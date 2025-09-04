@@ -1,19 +1,19 @@
-# Ignorar todo por defecto en la raíz del repo
-/*
+# Visual Studio
+.vs/
+**/*.user
+**/*.suo
+**/*.cache
+**/*.log
+*.userosscache
+*.sln.docstates
 
-# Permitir explícitamente SOLO la carpeta del proyecto
-!/InmoTech/
-!/InmoTech/**
+# Build artifacts
+bin/
+obj/
+**/bin/
+**/obj/
 
-# Permitir estos archivos en la raíz (si los querés)
-!/.gitignore
-!/README.md
-
-# Dentro de InmoTech, ignorar artefactos de VS/Build
-/InmoTech/.vs/
-/InmoTech/bin/
-/InmoTech/obj/
-/InmoTech/**/*.user
-/InmoTech/**/*.suo
-/InmoTech/**/*.cache
-/InmoTech/**/*.log
+# Opcional
+#.idea/
+#.vscode/
+*.DS_Store
