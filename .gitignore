@@ -1,11 +1,11 @@
-# Ignorar todo por defecto en la raíz del repo
+ï»¿# Ignorar todo por defecto en la raÃ­z del repo
 /*
 
-# Permitir explícitamente SOLO la carpeta del proyecto
+# Permitir explÃ­citamente SOLO la carpeta del proyecto
 !/InmoTech/
 !/InmoTech/**
 
-# Permitir estos archivos en la raíz (si los querés)
+# Permitir estos archivos en la raÃ­z (si los querÃ©s)
 !/.gitignore
 !/README.md
 
@@ -17,3 +17,8 @@
 /InmoTech/**/*.suo
 /InmoTech/**/*.cache
 /InmoTech/**/*.log
+
+# ðŸ‘‡ AgregÃ¡ estas excepciones para que se suban
+!/InmoTech/**/*.cs
+!/InmoTech/**/*.Designer.cs
+!/InmoTech/**/*.resx
