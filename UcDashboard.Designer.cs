@@ -97,7 +97,7 @@ namespace InmoTech
             tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 80F));
             tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 120F));
             tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
-            tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 160F));
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 420F));
             tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
             tlRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tlRoot.Size = new Size(980, 680);
@@ -119,12 +119,13 @@ namespace InmoTech
             // lblTitulo
             // 
             lblTitulo.AutoSize = true;
-            lblTitulo.Font = new Font("Verdana", 18F, FontStyle.Bold);
+            lblTitulo.Font = new Font("Montserrat", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblTitulo.Location = new Point(16, 24);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(237, 44);
+            lblTitulo.Size = new Size(231, 56);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "Dashboard";
+            lblTitulo.Click += lblTitulo_Click;
             // 
             // lblUserName
             // 
@@ -160,6 +161,7 @@ namespace InmoTech
             tlKpis.Controls.Add(kpi3, 2, 0);
             tlKpis.Controls.Add(kpi4, 3, 0);
             tlKpis.Dock = DockStyle.Fill;
+            tlKpis.Font = new Font("Montserrat", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tlKpis.Location = new Point(3, 83);
             tlKpis.Name = "tlKpis";
             tlKpis.Padding = new Padding(12);
@@ -186,10 +188,10 @@ namespace InmoTech
             // 
             lblKpiProp.AutoSize = true;
             lblKpiProp.Dock = DockStyle.Top;
-            lblKpiProp.Font = new Font("Verdana", 16F, FontStyle.Bold);
-            lblKpiProp.Location = new Point(12, 37);
+            lblKpiProp.Font = new Font("Montserrat", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblKpiProp.Location = new Point(12, 40);
             lblKpiProp.Name = "lblKpiProp";
-            lblKpiProp.Size = new Size(40, 38);
+            lblKpiProp.Size = new Size(33, 38);
             lblKpiProp.TabIndex = 0;
             lblKpiProp.Text = "0";
             // 
@@ -197,10 +199,10 @@ namespace InmoTech
             // 
             lblKpiPropCap.AutoSize = true;
             lblKpiPropCap.Dock = DockStyle.Top;
-            lblKpiPropCap.Font = new Font("Segoe UI", 9F);
+            lblKpiPropCap.Font = new Font("Montserrat Medium", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblKpiPropCap.Location = new Point(12, 12);
             lblKpiPropCap.Name = "lblKpiPropCap";
-            lblKpiPropCap.Size = new Size(111, 25);
+            lblKpiPropCap.Size = new Size(125, 28);
             lblKpiPropCap.TabIndex = 1;
             lblKpiPropCap.Text = "Propiedades";
             // 
@@ -222,10 +224,10 @@ namespace InmoTech
             // 
             lblKpiInq.AutoSize = true;
             lblKpiInq.Dock = DockStyle.Top;
-            lblKpiInq.Font = new Font("Verdana", 16F, FontStyle.Bold);
-            lblKpiInq.Location = new Point(12, 37);
+            lblKpiInq.Font = new Font("Montserrat", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblKpiInq.Location = new Point(12, 40);
             lblKpiInq.Name = "lblKpiInq";
-            lblKpiInq.Size = new Size(40, 38);
+            lblKpiInq.Size = new Size(33, 38);
             lblKpiInq.TabIndex = 0;
             lblKpiInq.Text = "0";
             // 
@@ -233,10 +235,10 @@ namespace InmoTech
             // 
             lblKpiInqCap.AutoSize = true;
             lblKpiInqCap.Dock = DockStyle.Top;
-            lblKpiInqCap.Font = new Font("Segoe UI", 9F);
+            lblKpiInqCap.Font = new Font("Montserrat Medium", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblKpiInqCap.Location = new Point(12, 12);
             lblKpiInqCap.Name = "lblKpiInqCap";
-            lblKpiInqCap.Size = new Size(89, 25);
+            lblKpiInqCap.Size = new Size(101, 28);
             lblKpiInqCap.TabIndex = 1;
             lblKpiInqCap.Text = "Inquilinos";
             // 
@@ -258,10 +260,10 @@ namespace InmoTech
             // 
             lblKpiIngreso.AutoSize = true;
             lblKpiIngreso.Dock = DockStyle.Top;
-            lblKpiIngreso.Font = new Font("Verdana", 16F, FontStyle.Bold);
-            lblKpiIngreso.Location = new Point(12, 37);
+            lblKpiIngreso.Font = new Font("Montserrat", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblKpiIngreso.Location = new Point(12, 40);
             lblKpiIngreso.Name = "lblKpiIngreso";
-            lblKpiIngreso.Size = new Size(63, 38);
+            lblKpiIngreso.Size = new Size(48, 38);
             lblKpiIngreso.TabIndex = 0;
             lblKpiIngreso.Text = "$0";
             // 
@@ -269,10 +271,10 @@ namespace InmoTech
             // 
             lblKpiIngresoCap.AutoSize = true;
             lblKpiIngresoCap.Dock = DockStyle.Top;
-            lblKpiIngresoCap.Font = new Font("Segoe UI", 9F);
+            lblKpiIngresoCap.Font = new Font("Montserrat Medium", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblKpiIngresoCap.Location = new Point(12, 12);
             lblKpiIngresoCap.Name = "lblKpiIngresoCap";
-            lblKpiIngresoCap.Size = new Size(139, 25);
+            lblKpiIngresoCap.Size = new Size(157, 28);
             lblKpiIngresoCap.TabIndex = 1;
             lblKpiIngresoCap.Text = "Ingreso del mes";
             // 
@@ -294,10 +296,10 @@ namespace InmoTech
             // 
             lblKpiPend.AutoSize = true;
             lblKpiPend.Dock = DockStyle.Top;
-            lblKpiPend.Font = new Font("Verdana", 16F, FontStyle.Bold);
-            lblKpiPend.Location = new Point(12, 37);
+            lblKpiPend.Font = new Font("Montserrat", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblKpiPend.Location = new Point(12, 40);
             lblKpiPend.Name = "lblKpiPend";
-            lblKpiPend.Size = new Size(40, 38);
+            lblKpiPend.Size = new Size(33, 38);
             lblKpiPend.TabIndex = 0;
             lblKpiPend.Text = "0";
             // 
@@ -305,10 +307,10 @@ namespace InmoTech
             // 
             lblKpiPendCap.AutoSize = true;
             lblKpiPendCap.Dock = DockStyle.Top;
-            lblKpiPendCap.Font = new Font("Segoe UI", 9F);
+            lblKpiPendCap.Font = new Font("Montserrat Medium", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblKpiPendCap.Location = new Point(12, 12);
             lblKpiPendCap.Name = "lblKpiPendCap";
-            lblKpiPendCap.Size = new Size(152, 25);
+            lblKpiPendCap.Size = new Size(175, 28);
             lblKpiPendCap.TabIndex = 1;
             lblKpiPendCap.Text = "Pagos pendientes";
             // 
@@ -316,7 +318,7 @@ namespace InmoTech
             // 
             lblPropDisp.AutoSize = true;
             lblPropDisp.Dock = DockStyle.Fill;
-            lblPropDisp.Font = new Font("Verdana", 16F, FontStyle.Bold);
+            lblPropDisp.Font = new Font("Montserrat", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblPropDisp.Location = new Point(3, 200);
             lblPropDisp.Name = "lblPropDisp";
             lblPropDisp.Padding = new Padding(12, 0, 0, 0);
@@ -327,20 +329,20 @@ namespace InmoTech
             // flPropiedades
             // 
             flPropiedades.AutoScroll = true;
-            flPropiedades.BackColor = Color.Gainsboro;
+            flPropiedades.BackColor = Color.WhiteSmoke;
             flPropiedades.Dock = DockStyle.Fill;
             flPropiedades.Location = new Point(3, 239);
             flPropiedades.Name = "flPropiedades";
             flPropiedades.Padding = new Padding(8);
-            flPropiedades.Size = new Size(974, 154);
+            flPropiedades.Size = new Size(974, 414);
             flPropiedades.TabIndex = 3;
             // 
             // lblContratos
             // 
             lblContratos.AutoSize = true;
             lblContratos.Dock = DockStyle.Fill;
-            lblContratos.Font = new Font("Verdana", 16F, FontStyle.Bold);
-            lblContratos.Location = new Point(3, 396);
+            lblContratos.Font = new Font("Montserrat", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblContratos.Location = new Point(3, 656);
             lblContratos.Name = "lblContratos";
             lblContratos.Padding = new Padding(12, 0, 0, 0);
             lblContratos.Size = new Size(974, 36);
@@ -356,13 +358,13 @@ namespace InmoTech
             dgvContratos.ColumnHeadersHeight = 34;
             dgvContratos.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4 });
             dgvContratos.Dock = DockStyle.Fill;
-            dgvContratos.Location = new Point(3, 435);
+            dgvContratos.Location = new Point(3, 695);
             dgvContratos.Name = "dgvContratos";
             dgvContratos.ReadOnly = true;
             dgvContratos.RowHeadersVisible = false;
             dgvContratos.RowHeadersWidth = 62;
             dgvContratos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvContratos.Size = new Size(974, 242);
+            dgvContratos.Size = new Size(974, 1);
             dgvContratos.TabIndex = 5;
             // 
             // dataGridViewTextBoxColumn1

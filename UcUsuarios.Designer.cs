@@ -110,8 +110,8 @@ namespace InmoTech
             tlRoot.Name = "tlRoot";
             tlRoot.RowCount = 4;
             tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 76F));
-            tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 258F));
-            tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 72F));
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 274F));
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.Absolute, 56F));
             tlRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tlRoot.Size = new Size(980, 680);
             tlRoot.TabIndex = 0;
@@ -168,7 +168,7 @@ namespace InmoTech
             gbCrear.Location = new Point(3, 79);
             gbCrear.Name = "gbCrear";
             gbCrear.Padding = new Padding(12);
-            gbCrear.Size = new Size(974, 252);
+            gbCrear.Size = new Size(974, 268);
             gbCrear.TabIndex = 1;
             gbCrear.TabStop = false;
             gbCrear.Text = "Crear Usuario";
@@ -376,16 +376,16 @@ namespace InmoTech
             pnlListaHeader.Controls.Add(lblListaTitulo);
             pnlListaHeader.Dock = DockStyle.Fill;
             pnlListaHeader.Font = new Font("Montserrat SemiBold", 9F, FontStyle.Bold);
-            pnlListaHeader.Location = new Point(3, 337);
+            pnlListaHeader.Location = new Point(3, 353);
             pnlListaHeader.Name = "pnlListaHeader";
-            pnlListaHeader.Size = new Size(974, 66);
+            pnlListaHeader.Size = new Size(974, 50);
             pnlListaHeader.TabIndex = 2;
             // 
             // lblListaTitulo
             // 
             lblListaTitulo.AutoSize = true;
             lblListaTitulo.Font = new Font("Montserrat ExtraBold", 12F, FontStyle.Bold);
-            lblListaTitulo.Location = new Point(3, 14);
+            lblListaTitulo.Location = new Point(-3, 10);
             lblListaTitulo.Name = "lblListaTitulo";
             lblListaTitulo.Size = new Size(198, 38);
             lblListaTitulo.TabIndex = 0;
