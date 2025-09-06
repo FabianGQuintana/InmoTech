@@ -130,10 +130,10 @@ namespace InmoTech
             // lblTitulo
             // 
             lblTitulo.AutoSize = true;
-            lblTitulo.Font = new Font("Verdana", 18F, FontStyle.Bold);
-            lblTitulo.Location = new Point(16, 18);
+            lblTitulo.Font = new Font("Montserrat SemiBold", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTitulo.Location = new Point(5, 10);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(195, 44);
+            lblTitulo.Size = new Size(163, 49);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "Usuarios";
             // 
@@ -384,10 +384,10 @@ namespace InmoTech
             // lblListaTitulo
             // 
             lblListaTitulo.AutoSize = true;
-            lblListaTitulo.Font = new Font("Montserrat ExtraBold", 12F, FontStyle.Bold);
+            lblListaTitulo.Font = new Font("Montserrat SemiBold", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblListaTitulo.Location = new Point(-3, 10);
             lblListaTitulo.Name = "lblListaTitulo";
-            lblListaTitulo.Size = new Size(198, 38);
+            lblListaTitulo.Size = new Size(188, 38);
             lblListaTitulo.TabIndex = 0;
             lblListaTitulo.Text = "Lista Usuarios";
             // 

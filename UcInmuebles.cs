@@ -193,7 +193,6 @@ namespace InmoTech
             if (x == null) return;
 
             _editandoId = id;
-            lblTitulo.Text = "Inmuebles · Editando";
             btnGuardar.Text = "Actualizar";
 
             txtDireccion.Text = x.direccion;
@@ -218,7 +217,6 @@ namespace InmoTech
         private void LimpiarFormulario()
         {
             _editandoId = null;
-            lblTitulo.Text = "Inmuebles";
             btnGuardar.Text = "Guardar";
 
             txtDireccion.Clear();
@@ -287,6 +285,11 @@ namespace InmoTech
         }
 
         private void gbCrear_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblTitulo_Click(object sender, EventArgs e)
         {
 
         }

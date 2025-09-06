@@ -9,7 +9,6 @@ namespace InmoTech
 
         private TableLayoutPanel tlRoot;
         private Panel pnlHeader;
-        private Label lblTitulo;
 
         private GroupBox gbCrear;
         private Label lblDireccion;
@@ -58,7 +57,7 @@ namespace InmoTech
         {
             tlRoot = new TableLayoutPanel();
             pnlHeader = new Panel();
-            lblTitulo = new Label();
+            label1 = new Label();
             gbCrear = new GroupBox();
             lblDireccion = new Label();
             txtDireccion = new TextBox();
@@ -120,24 +119,23 @@ namespace InmoTech
             // pnlHeader
             // 
             pnlHeader.BackColor = Color.White;
-            pnlHeader.Controls.Add(lblTitulo);
+            pnlHeader.Controls.Add(label1);
             pnlHeader.Dock = DockStyle.Top;
             pnlHeader.Location = new Point(15, 15);
             pnlHeader.Name = "pnlHeader";
             pnlHeader.Padding = new Padding(8, 0, 8, 6);
-            pnlHeader.Size = new Size(1170, 60);
+            pnlHeader.Size = new Size(1170, 69);
             pnlHeader.TabIndex = 0;
             // 
-            // lblTitulo
+            // label1
             // 
-            lblTitulo.AutoSize = true;
-            lblTitulo.Dock = DockStyle.Left;
-            lblTitulo.Font = new Font("Montserrat", 18F, FontStyle.Bold);
-            lblTitulo.Location = new Point(8, 0);
-            lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(225, 56);
-            lblTitulo.TabIndex = 0;
-            lblTitulo.Text = "Inmuebles";
+            label1.AutoSize = true;
+            label1.Font = new Font("Montserrat SemiBold", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label1.Location = new Point(0, 14);
+            label1.Name = "label1";
+            label1.Size = new Size(197, 49);
+            label1.TabIndex = 0;
+            label1.Text = "Inmuebles";
             // 
             // gbCrear
             // 
@@ -162,7 +160,7 @@ namespace InmoTech
             gbCrear.Controls.Add(btnCancelar);
             gbCrear.Dock = DockStyle.Top;
             gbCrear.Font = new Font("Montserrat", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            gbCrear.Location = new Point(12, 86);
+            gbCrear.Location = new Point(12, 95);
             gbCrear.Margin = new Padding(0, 8, 0, 8);
             gbCrear.Name = "gbCrear";
             gbCrear.Padding = new Padding(12);
@@ -329,11 +327,11 @@ namespace InmoTech
             // lblLista
             // 
             lblLista.AutoSize = true;
-            lblLista.Font = new Font("Montserrat", 12F, FontStyle.Bold);
-            lblLista.Location = new Point(12, 369);
+            lblLista.Font = new Font("Montserrat SemiBold", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblLista.Location = new Point(12, 378);
             lblLista.Margin = new Padding(0, 8, 0, 6);
             lblLista.Name = "lblLista";
-            lblLista.Size = new Size(216, 38);
+            lblLista.Size = new Size(212, 38);
             lblLista.TabIndex = 2;
             lblLista.Text = "Lista Inmuebles";
             // 
@@ -347,13 +345,13 @@ namespace InmoTech
             dgvInmuebles.Columns.AddRange(new DataGridViewColumn[] { colId, colDir, colTipo, colAmb, colAmueb, colEstado, colImg, colEditar, colToggle });
             dgvInmuebles.Dock = DockStyle.Fill;
             dgvInmuebles.GridColor = Color.White;
-            dgvInmuebles.Location = new Point(15, 416);
+            dgvInmuebles.Location = new Point(15, 425);
             dgvInmuebles.MultiSelect = false;
             dgvInmuebles.Name = "dgvInmuebles";
             dgvInmuebles.RowHeadersVisible = false;
             dgvInmuebles.RowHeadersWidth = 62;
             dgvInmuebles.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvInmuebles.Size = new Size(1170, 269);
+            dgvInmuebles.Size = new Size(1170, 260);
             dgvInmuebles.TabIndex = 3;
             // 
             // colId
@@ -439,5 +437,6 @@ namespace InmoTech
             ((System.ComponentModel.ISupportInitialize)dgvInmuebles).EndInit();
             ResumeLayout(false);
         }
+        private Label label1;
     }
 }

@@ -16,5 +16,10 @@ namespace InmoTech
         {
             InitializeComponent();
         }
+
+        private void TDireccion_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
