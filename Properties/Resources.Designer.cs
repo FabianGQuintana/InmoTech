@@ -73,6 +73,26 @@ namespace InmoTech.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap contratosIcon {
+            get {
+                object obj = ResourceManager.GetObject("contratosIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap dashboardIcon {
+            get {
+                object obj = ResourceManager.GetObject("dashboardIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap DollarIcon {
             get {
                 object obj = ResourceManager.GetObject("DollarIcon", resourceCulture);
@@ -83,9 +103,9 @@ namespace InmoTech.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap HomeIcon {
+        internal static System.Drawing.Bitmap floppi {
             get {
-                object obj = ResourceManager.GetObject("HomeIcon", resourceCulture);
+                object obj = ResourceManager.GetObject("floppi", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -93,9 +113,9 @@ namespace InmoTech.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap InmoTech_Logo {
+        internal static System.Drawing.Bitmap inmueblesIcon {
             get {
-                object obj = ResourceManager.GetObject("InmoTech-Logo", resourceCulture);
+                object obj = ResourceManager.GetObject("inmueblesIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -103,9 +123,29 @@ namespace InmoTech.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap InquilinosIcon {
+        internal static System.Drawing.Bitmap inquilinosIcon {
             get {
-                object obj = ResourceManager.GetObject("InquilinosIcon", resourceCulture);
+                object obj = ResourceManager.GetObject("inquilinosIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap logoImnoTech {
+            get {
+                object obj = ResourceManager.GetObject("logoImnoTech", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap pagosIcon {
+            get {
+                object obj = ResourceManager.GetObject("pagosIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -123,9 +163,19 @@ namespace InmoTech.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap UsuarioIcon {
+        internal static System.Drawing.Bitmap reportesIcon {
             get {
-                object obj = ResourceManager.GetObject("UsuarioIcon", resourceCulture);
+                object obj = ResourceManager.GetObject("reportesIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap usuariosIcon {
+            get {
+                object obj = ResourceManager.GetObject("usuariosIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

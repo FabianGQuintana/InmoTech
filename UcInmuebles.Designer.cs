@@ -1,37 +1,443 @@
-﻿namespace InmoTech
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace InmoTech
 {
     partial class UcInmuebles
     {
-        /// <summary> 
-        /// Variable del diseñador necesaria.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary> 
-        /// Limpiar los recursos que se estén usando.
-        /// </summary>
-        /// <param name="disposing">true si los recursos administrados se deben desechar; false en caso contrario.</param>
+        private TableLayoutPanel tlRoot;
+        private Panel pnlHeader;
+        private Label lblTitulo;
+
+        private GroupBox gbCrear;
+        private Label lblDireccion;
+        private Label lblTipo;
+        private Label lblDescripcion;
+        private Label lblEstado;
+        private Label lblAmbientes;
+        private Label lblAmueblado;
+        private Label lblImagen;
+
+        private TextBox txtDireccion;
+        private ComboBox cboTipo;
+        private TextBox txtDescripcion;
+        private ComboBox cboEstado;
+        private NumericUpDown nudAmbientes;
+        private CheckBox chkAmueblado;
+
+        private PictureBox pbFoto;
+        private Button btnCargarImagen;
+        private Button btnQuitarImagen;
+
+        private Button btnGuardar;
+        private Button btnCancelar;
+
+        private Label lblLista;
+        private DataGridView dgvInmuebles;
+
+        // Campos de columnas (para el diseñador)
+        private DataGridViewTextBoxColumn colId;
+        private DataGridViewTextBoxColumn colDir;
+        private DataGridViewTextBoxColumn colTipo;
+        private DataGridViewTextBoxColumn colAmb;
+        private DataGridViewCheckBoxColumn colAmueb;
+        private DataGridViewTextBoxColumn colEstado;
+        private DataGridViewImageColumn colImg;
+        private DataGridViewButtonColumn colEditar;
+        private DataGridViewButtonColumn colToggle;
+
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
-        #region Código generado por el Diseñador de componentes
-
-        /// <summary> 
-        /// Método necesario para admitir el Diseñador. No se puede modificar
-        /// el contenido de este método con el editor de código.
-        /// </summary>
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            tlRoot = new TableLayoutPanel();
+            pnlHeader = new Panel();
+            lblTitulo = new Label();
+            gbCrear = new GroupBox();
+            lblDireccion = new Label();
+            txtDireccion = new TextBox();
+            lblTipo = new Label();
+            cboTipo = new ComboBox();
+            lblAmbientes = new Label();
+            nudAmbientes = new NumericUpDown();
+            lblDescripcion = new Label();
+            txtDescripcion = new TextBox();
+            lblEstado = new Label();
+            cboEstado = new ComboBox();
+            lblAmueblado = new Label();
+            chkAmueblado = new CheckBox();
+            lblImagen = new Label();
+            pbFoto = new PictureBox();
+            btnCargarImagen = new Button();
+            btnQuitarImagen = new Button();
+            btnGuardar = new Button();
+            btnCancelar = new Button();
+            lblLista = new Label();
+            dgvInmuebles = new DataGridView();
+            colId = new DataGridViewTextBoxColumn();
+            colDir = new DataGridViewTextBoxColumn();
+            colTipo = new DataGridViewTextBoxColumn();
+            colAmb = new DataGridViewTextBoxColumn();
+            colAmueb = new DataGridViewCheckBoxColumn();
+            colEstado = new DataGridViewTextBoxColumn();
+            colImg = new DataGridViewImageColumn();
+            colEditar = new DataGridViewButtonColumn();
+            colToggle = new DataGridViewButtonColumn();
+            tlRoot.SuspendLayout();
+            pnlHeader.SuspendLayout();
+            gbCrear.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudAmbientes).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pbFoto).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvInmuebles).BeginInit();
+            SuspendLayout();
+            // 
+            // tlRoot
+            // 
+            tlRoot.ColumnCount = 1;
+            tlRoot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlRoot.Controls.Add(pnlHeader, 0, 0);
+            tlRoot.Controls.Add(gbCrear, 0, 1);
+            tlRoot.Controls.Add(lblLista, 0, 2);
+            tlRoot.Controls.Add(dgvInmuebles, 0, 3);
+            tlRoot.Dock = DockStyle.Fill;
+            tlRoot.Location = new Point(0, 0);
+            tlRoot.Name = "tlRoot";
+            tlRoot.Padding = new Padding(12);
+            tlRoot.RowCount = 4;
+            tlRoot.RowStyles.Add(new RowStyle());
+            tlRoot.RowStyles.Add(new RowStyle());
+            tlRoot.RowStyles.Add(new RowStyle());
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tlRoot.Size = new Size(1200, 700);
+            tlRoot.TabIndex = 0;
+            // 
+            // pnlHeader
+            // 
+            pnlHeader.BackColor = Color.White;
+            pnlHeader.Controls.Add(lblTitulo);
+            pnlHeader.Dock = DockStyle.Top;
+            pnlHeader.Location = new Point(15, 15);
+            pnlHeader.Name = "pnlHeader";
+            pnlHeader.Padding = new Padding(8, 0, 8, 6);
+            pnlHeader.Size = new Size(1170, 60);
+            pnlHeader.TabIndex = 0;
+            // 
+            // lblTitulo
+            // 
+            lblTitulo.AutoSize = true;
+            lblTitulo.Dock = DockStyle.Left;
+            lblTitulo.Font = new Font("Montserrat", 18F, FontStyle.Bold);
+            lblTitulo.Location = new Point(8, 0);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(225, 56);
+            lblTitulo.TabIndex = 0;
+            lblTitulo.Text = "Inmuebles";
+            // 
+            // gbCrear
+            // 
+            gbCrear.BackColor = Color.White;
+            gbCrear.Controls.Add(lblDireccion);
+            gbCrear.Controls.Add(txtDireccion);
+            gbCrear.Controls.Add(lblTipo);
+            gbCrear.Controls.Add(cboTipo);
+            gbCrear.Controls.Add(lblAmbientes);
+            gbCrear.Controls.Add(nudAmbientes);
+            gbCrear.Controls.Add(lblDescripcion);
+            gbCrear.Controls.Add(txtDescripcion);
+            gbCrear.Controls.Add(lblEstado);
+            gbCrear.Controls.Add(cboEstado);
+            gbCrear.Controls.Add(lblAmueblado);
+            gbCrear.Controls.Add(chkAmueblado);
+            gbCrear.Controls.Add(lblImagen);
+            gbCrear.Controls.Add(pbFoto);
+            gbCrear.Controls.Add(btnCargarImagen);
+            gbCrear.Controls.Add(btnQuitarImagen);
+            gbCrear.Controls.Add(btnGuardar);
+            gbCrear.Controls.Add(btnCancelar);
+            gbCrear.Dock = DockStyle.Top;
+            gbCrear.Font = new Font("Montserrat", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            gbCrear.Location = new Point(12, 86);
+            gbCrear.Margin = new Padding(0, 8, 0, 8);
+            gbCrear.Name = "gbCrear";
+            gbCrear.Padding = new Padding(12);
+            gbCrear.Size = new Size(1176, 267);
+            gbCrear.TabIndex = 1;
+            gbCrear.TabStop = false;
+            gbCrear.Text = "Crear / Editar Inmueble";
+            gbCrear.Enter += gbCrear_Enter;
+            // 
+            // lblDireccion
+            // 
+            lblDireccion.AutoSize = true;
+            lblDireccion.Location = new Point(16, 28);
+            lblDireccion.Name = "lblDireccion";
+            lblDireccion.Size = new Size(98, 28);
+            lblDireccion.TabIndex = 0;
+            lblDireccion.Text = "Dirección";
+            // 
+            // txtDireccion
+            // 
+            txtDireccion.Location = new Point(16, 56);
+            txtDireccion.Name = "txtDireccion";
+            txtDireccion.Size = new Size(280, 29);
+            txtDireccion.TabIndex = 1;
+            // 
+            // lblTipo
+            // 
+            lblTipo.AutoSize = true;
+            lblTipo.Location = new Point(330, 28);
+            lblTipo.Name = "lblTipo";
+            lblTipo.Size = new Size(50, 28);
+            lblTipo.TabIndex = 2;
+            lblTipo.Text = "Tipo";
+            // 
+            // cboTipo
+            // 
+            cboTipo.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboTipo.Location = new Point(330, 56);
+            cboTipo.Name = "cboTipo";
+            cboTipo.Size = new Size(280, 36);
+            cboTipo.TabIndex = 3;
+            // 
+            // lblAmbientes
+            // 
+            lblAmbientes.AutoSize = true;
+            lblAmbientes.Location = new Point(640, 28);
+            lblAmbientes.Name = "lblAmbientes";
+            lblAmbientes.Size = new Size(151, 28);
+            lblAmbientes.TabIndex = 4;
+            lblAmbientes.Text = "Nro. ambientes";
+            // 
+            // nudAmbientes
+            // 
+            nudAmbientes.Location = new Point(640, 56);
+            nudAmbientes.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
+            nudAmbientes.Name = "nudAmbientes";
+            nudAmbientes.Size = new Size(120, 29);
+            nudAmbientes.TabIndex = 5;
+            // 
+            // lblDescripcion
+            // 
+            lblDescripcion.AutoSize = true;
+            lblDescripcion.Location = new Point(15, 154);
+            lblDescripcion.Name = "lblDescripcion";
+            lblDescripcion.Size = new Size(119, 28);
+            lblDescripcion.TabIndex = 6;
+            lblDescripcion.Text = "Descripción";
+            // 
+            // txtDescripcion
+            // 
+            txtDescripcion.Location = new Point(15, 188);
+            txtDescripcion.MaxLength = 300;
+            txtDescripcion.Multiline = true;
+            txtDescripcion.Name = "txtDescripcion";
+            txtDescripcion.ScrollBars = ScrollBars.Vertical;
+            txtDescripcion.Size = new Size(560, 60);
+            txtDescripcion.TabIndex = 7;
+            // 
+            // lblEstado
+            // 
+            lblEstado.AutoSize = true;
+            lblEstado.Location = new Point(330, 102);
+            lblEstado.Name = "lblEstado";
+            lblEstado.Size = new Size(74, 28);
+            lblEstado.TabIndex = 8;
+            lblEstado.Text = "Estado";
+            // 
+            // cboEstado
+            // 
+            cboEstado.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboEstado.Location = new Point(330, 130);
+            cboEstado.Name = "cboEstado";
+            cboEstado.Size = new Size(280, 36);
+            cboEstado.TabIndex = 9;
+            // 
+            // lblAmueblado
+            // 
+            lblAmueblado.AutoSize = true;
+            lblAmueblado.Location = new Point(640, 108);
+            lblAmueblado.Name = "lblAmueblado";
+            lblAmueblado.Size = new Size(118, 28);
+            lblAmueblado.TabIndex = 10;
+            lblAmueblado.Text = "Amueblado";
+            // 
+            // chkAmueblado
+            // 
+            chkAmueblado.AutoSize = true;
+            chkAmueblado.Location = new Point(640, 136);
+            chkAmueblado.Name = "chkAmueblado";
+            chkAmueblado.Size = new Size(22, 21);
+            chkAmueblado.TabIndex = 11;
+            // 
+            // lblImagen
+            // 
+            lblImagen.AutoSize = true;
+            lblImagen.Location = new Point(940, 23);
+            lblImagen.Name = "lblImagen";
+            lblImagen.Size = new Size(82, 28);
+            lblImagen.TabIndex = 12;
+            lblImagen.Text = "Imagen";
+            // 
+            // pbFoto
+            // 
+            pbFoto.BorderStyle = BorderStyle.FixedSingle;
+            pbFoto.Location = new Point(940, 54);
+            pbFoto.Name = "pbFoto";
+            pbFoto.Size = new Size(180, 120);
+            pbFoto.SizeMode = PictureBoxSizeMode.Zoom;
+            pbFoto.TabIndex = 13;
+            pbFoto.TabStop = false;
+            // 
+            // btnCargarImagen
+            // 
+            btnCargarImagen.Location = new Point(940, 180);
+            btnCargarImagen.Name = "btnCargarImagen";
+            btnCargarImagen.Size = new Size(180, 30);
+            btnCargarImagen.TabIndex = 14;
+            btnCargarImagen.Text = "Cargar imagen…";
+            // 
+            // btnQuitarImagen
+            // 
+            btnQuitarImagen.Location = new Point(940, 216);
+            btnQuitarImagen.Name = "btnQuitarImagen";
+            btnQuitarImagen.Size = new Size(180, 30);
+            btnQuitarImagen.TabIndex = 15;
+            btnQuitarImagen.Text = "Quitar";
+            // 
+            // btnGuardar
+            // 
+            btnGuardar.Location = new Point(640, 216);
+            btnGuardar.Name = "btnGuardar";
+            btnGuardar.Size = new Size(120, 32);
+            btnGuardar.TabIndex = 16;
+            btnGuardar.Text = "Guardar";
+            // 
+            // btnCancelar
+            // 
+            btnCancelar.Location = new Point(776, 216);
+            btnCancelar.Name = "btnCancelar";
+            btnCancelar.Size = new Size(120, 32);
+            btnCancelar.TabIndex = 17;
+            btnCancelar.Text = "Cancelar";
+            // 
+            // lblLista
+            // 
+            lblLista.AutoSize = true;
+            lblLista.Font = new Font("Montserrat", 12F, FontStyle.Bold);
+            lblLista.Location = new Point(12, 369);
+            lblLista.Margin = new Padding(0, 8, 0, 6);
+            lblLista.Name = "lblLista";
+            lblLista.Size = new Size(216, 38);
+            lblLista.TabIndex = 2;
+            lblLista.Text = "Lista Inmuebles";
+            // 
+            // dgvInmuebles
+            // 
+            dgvInmuebles.AllowUserToAddRows = false;
+            dgvInmuebles.AllowUserToDeleteRows = false;
+            dgvInmuebles.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvInmuebles.BackgroundColor = Color.White;
+            dgvInmuebles.ColumnHeadersHeight = 34;
+            dgvInmuebles.Columns.AddRange(new DataGridViewColumn[] { colId, colDir, colTipo, colAmb, colAmueb, colEstado, colImg, colEditar, colToggle });
+            dgvInmuebles.Dock = DockStyle.Fill;
+            dgvInmuebles.GridColor = Color.White;
+            dgvInmuebles.Location = new Point(15, 416);
+            dgvInmuebles.MultiSelect = false;
+            dgvInmuebles.Name = "dgvInmuebles";
+            dgvInmuebles.RowHeadersVisible = false;
+            dgvInmuebles.RowHeadersWidth = 62;
+            dgvInmuebles.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvInmuebles.Size = new Size(1170, 269);
+            dgvInmuebles.TabIndex = 3;
+            // 
+            // colId
+            // 
+            colId.HeaderText = "ID";
+            colId.MinimumWidth = 8;
+            colId.Name = "colId";
+            colId.Visible = false;
+            // 
+            // colDir
+            // 
+            colDir.HeaderText = "Dirección";
+            colDir.MinimumWidth = 8;
+            colDir.Name = "colDir";
+            // 
+            // colTipo
+            // 
+            colTipo.FillWeight = 90F;
+            colTipo.HeaderText = "Tipo";
+            colTipo.MinimumWidth = 8;
+            colTipo.Name = "colTipo";
+            // 
+            // colAmb
+            // 
+            colAmb.FillWeight = 70F;
+            colAmb.HeaderText = "Ambientes";
+            colAmb.MinimumWidth = 8;
+            colAmb.Name = "colAmb";
+            // 
+            // colAmueb
+            // 
+            colAmueb.FillWeight = 70F;
+            colAmueb.HeaderText = "Amueblado";
+            colAmueb.MinimumWidth = 8;
+            colAmueb.Name = "colAmueb";
+            // 
+            // colEstado
+            // 
+            colEstado.FillWeight = 80F;
+            colEstado.HeaderText = "Estado";
+            colEstado.MinimumWidth = 8;
+            colEstado.Name = "colEstado";
+            // 
+            // colImg
+            // 
+            colImg.FillWeight = 80F;
+            colImg.HeaderText = "Imagen";
+            colImg.ImageLayout = DataGridViewImageCellLayout.Zoom;
+            colImg.MinimumWidth = 8;
+            colImg.Name = "colImg";
+            // 
+            // colEditar
+            // 
+            colEditar.FillWeight = 60F;
+            colEditar.HeaderText = "Editar";
+            colEditar.MinimumWidth = 8;
+            colEditar.Name = "colEditar";
+            colEditar.Text = "Editar";
+            colEditar.UseColumnTextForButtonValue = true;
+            // 
+            // colToggle
+            // 
+            colToggle.FillWeight = 90F;
+            colToggle.HeaderText = "Activar/Inactivar";
+            colToggle.MinimumWidth = 8;
+            colToggle.Name = "colToggle";
+            colToggle.Text = "Cambiar";
+            colToggle.UseColumnTextForButtonValue = true;
+            // 
+            // UcInmuebles
+            // 
+            Controls.Add(tlRoot);
+            Name = "UcInmuebles";
+            Size = new Size(1200, 700);
+            tlRoot.ResumeLayout(false);
+            tlRoot.PerformLayout();
+            pnlHeader.ResumeLayout(false);
+            pnlHeader.PerformLayout();
+            gbCrear.ResumeLayout(false);
+            gbCrear.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudAmbientes).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pbFoto).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvInmuebles).EndInit();
+            ResumeLayout(false);
         }
-
-        #endregion
     }
 }
