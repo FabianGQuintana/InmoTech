@@ -2,16 +2,20 @@ namespace InmoTech
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
+
+            using (var login = new LoginForm())
+            {
+                // Mostrar login como diálogo
+                if (login.ShowDialog() == DialogResult.OK)
+                {
+                    // Si fue correcto, abrir Form1
+                    Application.Run(new Form1());
+                }
+            }
         }
     }
 }

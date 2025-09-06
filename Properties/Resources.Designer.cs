@@ -183,6 +183,16 @@ namespace InmoTech.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap logoTransp {
+            get {
+                object obj = ResourceManager.GetObject("logoTransp", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap pagosIcon {
             get {
                 object obj = ResourceManager.GetObject("pagosIcon", resourceCulture);
