@@ -29,7 +29,7 @@ namespace InmoTech
 
         private void button1_Click(object sender, EventArgs e)
         {
-        
+
             string correo = textBox1.Text;
             string pass = textBox2.Text;
 
@@ -46,6 +46,10 @@ namespace InmoTech
             }
         }
 
+        private void LoginForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
 

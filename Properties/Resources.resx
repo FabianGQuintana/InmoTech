@@ -121,44 +121,32 @@
   <data name="DollarIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>DollarIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="botonSalir" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>botonSalir.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="PagosPendientesIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>PagosPendientesIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="logoImnoTech" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\logoImnoTech.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="contratosIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\contratosIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="reportesIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\reportesIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="inmueblesIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\inmueblesIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="pagosIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pagosIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="usuariosIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\usuariosIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="inquilinosIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\inquilinosIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="dashboardIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\dashboardIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="logoTransp" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\logoTransp.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="logoImnoTech" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\logoImnoTech.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="reportesIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\reportesIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="floppi" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\floppi.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="contratosIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\contratosIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="inmueblesIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\inmueblesIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="casa4" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\casa4.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="casa1" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\casa1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="casa2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\casa2.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
@@ -166,7 +154,22 @@
   <data name="casa3" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\casa3.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="logoTransp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\logoTransp.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="casa1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\casa1.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="usuariosIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\usuariosIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="botonSalir" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>botonSalir.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="inquilinosIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\inquilinosIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="PagosPendientesIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>PagosPendientesIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tarjetaIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>tarjetaIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

@@ -223,6 +223,16 @@ namespace InmoTech.Properties {
         /// <summary>
         ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap tarjetaIcon {
+            get {
+                object obj = ResourceManager.GetObject("tarjetaIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Busca un recurso adaptado de tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap usuariosIcon {
             get {
                 object obj = ResourceManager.GetObject("usuariosIcon", resourceCulture);
