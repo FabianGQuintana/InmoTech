@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Drawing;
+using System.Windows.Forms;
 
 namespace InmoTech
 {
@@ -6,32 +7,52 @@ namespace InmoTech
     {
         private System.ComponentModel.IContainer components = null;
 
-        private GroupBox grpEdicion;
+        // Header
+        private Panel pnlHeader;
+        private Label lblTitulo;
+        private Button btnVolver;
+
+        // VISTA 1: Contratos
+        private Panel pnlContratos;
+        private TextBox txtBuscarContrato;
+        private Button btnBuscarContrato;
+        private DataGridView dgvContratos;
+
+        // VISTA 2: Cuotas
+        private Panel pnlCuotas;
+        private Panel pnlResumenContrato;
+        private Label lblContratoResumen;
+        private Label lblInquilinoResumen;
+        private Label lblInmuebleResumen;
+        private ComboBox cmbEstadoCuota;
+        private ComboBox cmbAnio;
+        private Label lblEstadoCuota;
+        private Label lblAnio;
+        private DataGridView dgvCuotas;
+
+        // VISTA 3: Registrar Pago
+        private Panel pnlRegistrar;
+        private Label lblTituloPago;
         private Label lblContrato;
-        private TextBox txtContrato;
         private Label lblInquilino;
-        private TextBox txtInquilino;
-        private Label lblFecha;
+        private Label lblCuotaPeriodo;
         private DateTimePicker dtpFecha;
-        private Label lblImporte;
-        private NumericUpDown nudImporte;
-        private Label lblMetodo;
+        private Label lblFecha;
         private ComboBox cmbMetodo;
-        private Label lblEstado;
-        private ComboBox cmbEstado;
-        private Label lblObs;
+        private Label lblMetodo;
+        private TextBox txtComprobante;
+        private Label lblComprobante;
         private TextBox txtObs;
-        private Button btnGuardar;
-        private Button btnCancelar;
+        private Label lblObs;
+        private CheckBox chkEmitirRecibo;
+        private Button btnGuardarPago;
+        private Button btnCancelarPago;
 
-        private GroupBox grpFiltro;
-        private TextBox txtBuscar;
-        private ComboBox cmbFiltroEstado;
-        private Button btnBuscar;
-        private Label lblFiltroEstado;
-
-        private GroupBox grpLista;
-        private DataGridView dgvPagos;
+        // VISTA 4: Recibo
+        private Panel pnlRecibo;
+        private Label lblTituloRecibo;
+        private RichTextBox rtbRecibo;
+        private Button btnCerrarRecibo;
 
         protected override void Dispose(bool disposing)
         {
@@ -41,309 +62,469 @@ namespace InmoTech
 
         private void InitializeComponent()
         {
-            grpEdicion = new GroupBox();
-            pictureBox1 = new PictureBox();
+            pnlHeader = new Panel();
+            lblTitulo = new Label();
+            btnVolver = new Button();
+            pnlContratos = new Panel();
+            txtBuscarContrato = new TextBox();
+            btnBuscarContrato = new Button();
+            dgvContratos = new DataGridView();
+            pnlCuotas = new Panel();
+            pnlResumenContrato = new Panel();
+            lblContratoResumen = new Label();
+            lblInquilinoResumen = new Label();
+            lblInmuebleResumen = new Label();
+            lblEstadoCuota = new Label();
+            cmbEstadoCuota = new ComboBox();
+            lblAnio = new Label();
+            cmbAnio = new ComboBox();
+            dgvCuotas = new DataGridView();
+            pnlRegistrar = new Panel();
+            lblTituloPago = new Label();
             lblContrato = new Label();
-            txtContrato = new TextBox();
             lblInquilino = new Label();
-            txtInquilino = new TextBox();
+            lblCuotaPeriodo = new Label();
             lblFecha = new Label();
             dtpFecha = new DateTimePicker();
-            lblImporte = new Label();
-            nudImporte = new NumericUpDown();
             lblMetodo = new Label();
             cmbMetodo = new ComboBox();
-            lblEstado = new Label();
-            cmbEstado = new ComboBox();
+            lblComprobante = new Label();
+            txtComprobante = new TextBox();
             lblObs = new Label();
             txtObs = new TextBox();
-            btnGuardar = new Button();
-            btnCancelar = new Button();
-            grpFiltro = new GroupBox();
-            txtBuscar = new TextBox();
-            lblFiltroEstado = new Label();
-            cmbFiltroEstado = new ComboBox();
-            btnBuscar = new Button();
-            grpLista = new GroupBox();
-            dgvPagos = new DataGridView();
-            grpEdicion.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)nudImporte).BeginInit();
-            grpFiltro.SuspendLayout();
-            grpLista.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvPagos).BeginInit();
+            chkEmitirRecibo = new CheckBox();
+            btnGuardarPago = new Button();
+            btnCancelarPago = new Button();
+            pnlRecibo = new Panel();
+            lblTituloRecibo = new Label();
+            rtbRecibo = new RichTextBox();
+            btnCerrarRecibo = new Button();
+            pnlHeader.SuspendLayout();
+            pnlContratos.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvContratos).BeginInit();
+            pnlCuotas.SuspendLayout();
+            pnlResumenContrato.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvCuotas).BeginInit();
+            pnlRegistrar.SuspendLayout();
+            pnlRecibo.SuspendLayout();
             SuspendLayout();
             // 
-            // grpEdicion
+            // pnlHeader
             // 
-            grpEdicion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            grpEdicion.Controls.Add(pictureBox1);
-            grpEdicion.Controls.Add(lblContrato);
-            grpEdicion.Controls.Add(txtContrato);
-            grpEdicion.Controls.Add(lblInquilino);
-            grpEdicion.Controls.Add(txtInquilino);
-            grpEdicion.Controls.Add(lblFecha);
-            grpEdicion.Controls.Add(dtpFecha);
-            grpEdicion.Controls.Add(lblImporte);
-            grpEdicion.Controls.Add(nudImporte);
-            grpEdicion.Controls.Add(lblMetodo);
-            grpEdicion.Controls.Add(cmbMetodo);
-            grpEdicion.Controls.Add(lblEstado);
-            grpEdicion.Controls.Add(cmbEstado);
-            grpEdicion.Controls.Add(lblObs);
-            grpEdicion.Controls.Add(txtObs);
-            grpEdicion.Controls.Add(btnGuardar);
-            grpEdicion.Controls.Add(btnCancelar);
-            grpEdicion.Location = new Point(16, 12);
-            grpEdicion.Name = "grpEdicion";
-            grpEdicion.Size = new Size(980, 170);
-            grpEdicion.TabIndex = 2;
-            grpEdicion.TabStop = false;
-            grpEdicion.Text = "Registrar / Editar Pago";
+            pnlHeader.BackColor = Color.Teal;
+            pnlHeader.Controls.Add(lblTitulo);
+            pnlHeader.Controls.Add(btnVolver);
+            pnlHeader.Dock = DockStyle.Top;
+            pnlHeader.Location = new Point(0, 0);
+            pnlHeader.Margin = new Padding(4);
+            pnlHeader.Name = "pnlHeader";
+            pnlHeader.Padding = new Padding(20, 12, 20, 12);
+            pnlHeader.Size = new Size(1250, 70);
+            pnlHeader.TabIndex = 4;
             // 
-            // pictureBox1
+            // lblTitulo
             // 
-            pictureBox1.Image = Properties.Resources.tarjetaIcon;
-            pictureBox1.Location = new Point(833, 17);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(125, 101);
-            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox1.TabIndex = 16;
-            pictureBox1.TabStop = false;
+            lblTitulo.AutoSize = true;
+            lblTitulo.Font = new Font("Segoe UI Semibold", 14F, FontStyle.Bold);
+            lblTitulo.Location = new Point(0, 0);
+            lblTitulo.Margin = new Padding(4, 0, 4, 0);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(78, 32);
+            lblTitulo.TabIndex = 0;
+            lblTitulo.Text = "Pagos";
+            // 
+            // btnVolver
+            // 
+            btnVolver.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnVolver.FlatStyle = FlatStyle.System;
+            btnVolver.Location = new Point(1101, 14);
+            btnVolver.Margin = new Padding(4);
+            btnVolver.Name = "btnVolver";
+            btnVolver.Size = new Size(125, 40);
+            btnVolver.TabIndex = 1;
+            btnVolver.Text = "◀ Volver";
+            btnVolver.Visible = false;
+            // 
+            // pnlContratos
+            // 
+            pnlContratos.BackColor = Color.Teal;
+            pnlContratos.Controls.Add(txtBuscarContrato);
+            pnlContratos.Controls.Add(btnBuscarContrato);
+            pnlContratos.Controls.Add(dgvContratos);
+            pnlContratos.Dock = DockStyle.Fill;
+            pnlContratos.Location = new Point(0, 70);
+            pnlContratos.Margin = new Padding(4);
+            pnlContratos.Name = "pnlContratos";
+            pnlContratos.Padding = new Padding(30);
+            pnlContratos.Size = new Size(1250, 742);
+            pnlContratos.TabIndex = 0;
+            // 
+            // txtBuscarContrato
+            // 
+            txtBuscarContrato.Location = new Point(30, 30);
+            txtBuscarContrato.Margin = new Padding(4);
+            txtBuscarContrato.Name = "txtBuscarContrato";
+            txtBuscarContrato.PlaceholderText = "Buscar contratos…";
+            txtBuscarContrato.Size = new Size(399, 27);
+            txtBuscarContrato.TabIndex = 0;
+            // 
+            // btnBuscarContrato
+            // 
+            btnBuscarContrato.Location = new Point(450, 28);
+            btnBuscarContrato.Margin = new Padding(4);
+            btnBuscarContrato.Name = "btnBuscarContrato";
+            btnBuscarContrato.Size = new Size(112, 35);
+            btnBuscarContrato.TabIndex = 1;
+            btnBuscarContrato.Text = "Filtrar";
+            // 
+            // dgvContratos
+            // 
+            dgvContratos.AllowUserToAddRows = false;
+            dgvContratos.AllowUserToDeleteRows = false;
+            dgvContratos.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvContratos.BackgroundColor = SystemColors.Control;
+            dgvContratos.ColumnHeadersHeight = 29;
+            dgvContratos.Location = new Point(30, 98);
+            dgvContratos.Margin = new Padding(4);
+            dgvContratos.Name = "dgvContratos";
+            dgvContratos.ReadOnly = true;
+            dgvContratos.RowHeadersVisible = false;
+            dgvContratos.RowHeadersWidth = 51;
+            dgvContratos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvContratos.Size = new Size(1138, 580);
+            dgvContratos.TabIndex = 2;
+            // 
+            // pnlCuotas
+            // 
+            pnlCuotas.Controls.Add(pnlResumenContrato);
+            pnlCuotas.Controls.Add(lblEstadoCuota);
+            pnlCuotas.Controls.Add(cmbEstadoCuota);
+            pnlCuotas.Controls.Add(lblAnio);
+            pnlCuotas.Controls.Add(cmbAnio);
+            pnlCuotas.Controls.Add(dgvCuotas);
+            pnlCuotas.Dock = DockStyle.Fill;
+            pnlCuotas.Location = new Point(0, 70);
+            pnlCuotas.Margin = new Padding(4);
+            pnlCuotas.Name = "pnlCuotas";
+            pnlCuotas.Padding = new Padding(30);
+            pnlCuotas.Size = new Size(1250, 742);
+            pnlCuotas.TabIndex = 1;
+            // 
+            // pnlResumenContrato
+            // 
+            pnlResumenContrato.BackColor = Color.White;
+            pnlResumenContrato.Controls.Add(lblContratoResumen);
+            pnlResumenContrato.Controls.Add(lblInquilinoResumen);
+            pnlResumenContrato.Controls.Add(lblInmuebleResumen);
+            pnlResumenContrato.Location = new Point(30, 30);
+            pnlResumenContrato.Margin = new Padding(4);
+            pnlResumenContrato.Name = "pnlResumenContrato";
+            pnlResumenContrato.Padding = new Padding(20);
+            pnlResumenContrato.Size = new Size(1188, 112);
+            pnlResumenContrato.TabIndex = 0;
+            // 
+            // lblContratoResumen
+            // 
+            lblContratoResumen.AutoSize = true;
+            lblContratoResumen.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold);
+            lblContratoResumen.Location = new Point(0, 0);
+            lblContratoResumen.Margin = new Padding(4, 0, 4, 0);
+            lblContratoResumen.Name = "lblContratoResumen";
+            lblContratoResumen.Size = new Size(161, 25);
+            lblContratoResumen.TabIndex = 0;
+            lblContratoResumen.Text = "Contrato C-XXXX";
+            // 
+            // lblInquilinoResumen
+            // 
+            lblInquilinoResumen.AutoSize = true;
+            lblInquilinoResumen.Location = new Point(0, 38);
+            lblInquilinoResumen.Margin = new Padding(4, 0, 4, 0);
+            lblInquilinoResumen.Name = "lblInquilinoResumen";
+            lblInquilinoResumen.Size = new Size(0, 20);
+            lblInquilinoResumen.TabIndex = 1;
+            // 
+            // lblInmuebleResumen
+            // 
+            lblInmuebleResumen.AutoSize = true;
+            lblInmuebleResumen.Location = new Point(0, 65);
+            lblInmuebleResumen.Margin = new Padding(4, 0, 4, 0);
+            lblInmuebleResumen.Name = "lblInmuebleResumen";
+            lblInmuebleResumen.Size = new Size(0, 20);
+            lblInmuebleResumen.TabIndex = 2;
+            // 
+            // lblEstadoCuota
+            // 
+            lblEstadoCuota.AutoSize = true;
+            lblEstadoCuota.Location = new Point(30, 162);
+            lblEstadoCuota.Margin = new Padding(4, 0, 4, 0);
+            lblEstadoCuota.Name = "lblEstadoCuota";
+            lblEstadoCuota.Size = new Size(57, 20);
+            lblEstadoCuota.TabIndex = 1;
+            lblEstadoCuota.Text = "Estado:";
+            // 
+            // cmbEstadoCuota
+            // 
+            cmbEstadoCuota.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbEstadoCuota.Location = new Point(90, 158);
+            cmbEstadoCuota.Margin = new Padding(4);
+            cmbEstadoCuota.Name = "cmbEstadoCuota";
+            cmbEstadoCuota.Size = new Size(160, 28);
+            cmbEstadoCuota.TabIndex = 2;
+            // 
+            // lblAnio
+            // 
+            lblAnio.AutoSize = true;
+            lblAnio.Location = new Point(270, 162);
+            lblAnio.Margin = new Padding(4, 0, 4, 0);
+            lblAnio.Name = "lblAnio";
+            lblAnio.Size = new Size(39, 20);
+            lblAnio.TabIndex = 3;
+            lblAnio.Text = "Año:";
+            // 
+            // cmbAnio
+            // 
+            cmbAnio.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbAnio.Location = new Point(310, 158);
+            cmbAnio.Margin = new Padding(4);
+            cmbAnio.Name = "cmbAnio";
+            cmbAnio.Size = new Size(100, 28);
+            cmbAnio.TabIndex = 4;
+            // 
+            // dgvCuotas
+            // 
+            dgvCuotas.AllowUserToAddRows = false;
+            dgvCuotas.AllowUserToDeleteRows = false;
+            dgvCuotas.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvCuotas.BackgroundColor = SystemColors.Control;
+            dgvCuotas.ColumnHeadersHeight = 29;
+            dgvCuotas.Location = new Point(30, 200);
+            dgvCuotas.Margin = new Padding(4);
+            dgvCuotas.Name = "dgvCuotas";
+            dgvCuotas.ReadOnly = true;
+            dgvCuotas.RowHeadersVisible = false;
+            dgvCuotas.RowHeadersWidth = 51;
+            dgvCuotas.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvCuotas.Size = new Size(1188, 512);
+            dgvCuotas.TabIndex = 5;
+            // 
+            // pnlRegistrar
+            // 
+            pnlRegistrar.Controls.Add(lblTituloPago);
+            pnlRegistrar.Controls.Add(lblContrato);
+            pnlRegistrar.Controls.Add(lblInquilino);
+            pnlRegistrar.Controls.Add(lblCuotaPeriodo);
+            pnlRegistrar.Controls.Add(lblFecha);
+            pnlRegistrar.Controls.Add(dtpFecha);
+            pnlRegistrar.Controls.Add(lblMetodo);
+            pnlRegistrar.Controls.Add(cmbMetodo);
+            pnlRegistrar.Controls.Add(lblComprobante);
+            pnlRegistrar.Controls.Add(txtComprobante);
+            pnlRegistrar.Controls.Add(lblObs);
+            pnlRegistrar.Controls.Add(txtObs);
+            pnlRegistrar.Controls.Add(chkEmitirRecibo);
+            pnlRegistrar.Controls.Add(btnGuardarPago);
+            pnlRegistrar.Controls.Add(btnCancelarPago);
+            pnlRegistrar.Dock = DockStyle.Fill;
+            pnlRegistrar.Location = new Point(0, 70);
+            pnlRegistrar.Margin = new Padding(4);
+            pnlRegistrar.Name = "pnlRegistrar";
+            pnlRegistrar.Padding = new Padding(30);
+            pnlRegistrar.Size = new Size(1250, 742);
+            pnlRegistrar.TabIndex = 2;
+            // 
+            // lblTituloPago
+            // 
+            lblTituloPago.Location = new Point(50, 30);
+            lblTituloPago.Margin = new Padding(4, 0, 4, 0);
+            lblTituloPago.Name = "lblTituloPago";
+            lblTituloPago.Size = new Size(125, 29);
+            lblTituloPago.TabIndex = 0;
             // 
             // lblContrato
             // 
-            lblContrato.AutoSize = true;
-            lblContrato.Location = new Point(3, 29);
+            lblContrato.Location = new Point(50, 70);
+            lblContrato.Margin = new Padding(4, 0, 4, 0);
             lblContrato.Name = "lblContrato";
-            lblContrato.Size = new Size(91, 20);
-            lblContrato.TabIndex = 0;
-            lblContrato.Text = "N° Contrato:";
-            // 
-            // txtContrato
-            // 
-            txtContrato.Location = new Point(113, 26);
-            txtContrato.Name = "txtContrato";
-            txtContrato.Size = new Size(150, 27);
-            txtContrato.TabIndex = 1;
+            lblContrato.Size = new Size(125, 29);
+            lblContrato.TabIndex = 1;
             // 
             // lblInquilino
             // 
-            lblInquilino.AutoSize = true;
-            lblInquilino.Location = new Point(264, 33);
+            lblInquilino.Location = new Point(50, 98);
+            lblInquilino.Margin = new Padding(4, 0, 4, 0);
             lblInquilino.Name = "lblInquilino";
-            lblInquilino.Size = new Size(70, 20);
+            lblInquilino.Size = new Size(125, 29);
             lblInquilino.TabIndex = 2;
-            lblInquilino.Text = "Inquilino:";
             // 
-            // txtInquilino
+            // lblCuotaPeriodo
             // 
-            txtInquilino.Location = new Point(340, 26);
-            txtInquilino.Name = "txtInquilino";
-            txtInquilino.Size = new Size(220, 27);
-            txtInquilino.TabIndex = 3;
+            lblCuotaPeriodo.Location = new Point(50, 125);
+            lblCuotaPeriodo.Margin = new Padding(4, 0, 4, 0);
+            lblCuotaPeriodo.Name = "lblCuotaPeriodo";
+            lblCuotaPeriodo.Size = new Size(125, 29);
+            lblCuotaPeriodo.TabIndex = 3;
             // 
             // lblFecha
             // 
-            lblFecha.AutoSize = true;
-            lblFecha.Location = new Point(566, 29);
+            lblFecha.Location = new Point(50, 175);
+            lblFecha.Margin = new Padding(4, 0, 4, 0);
             lblFecha.Name = "lblFecha";
-            lblFecha.Size = new Size(50, 20);
+            lblFecha.Size = new Size(125, 29);
             lblFecha.TabIndex = 4;
-            lblFecha.Text = "Fecha:";
             // 
             // dtpFecha
             // 
-            dtpFecha.Location = new Point(630, 26);
+            dtpFecha.Location = new Point(50, 202);
+            dtpFecha.Margin = new Padding(4);
             dtpFecha.Name = "dtpFecha";
-            dtpFecha.Size = new Size(160, 27);
+            dtpFecha.Size = new Size(249, 27);
             dtpFecha.TabIndex = 5;
-            // 
-            // lblImporte
-            // 
-            lblImporte.AutoSize = true;
-            lblImporte.Location = new Point(3, 70);
-            lblImporte.Name = "lblImporte";
-            lblImporte.Size = new Size(65, 20);
-            lblImporte.TabIndex = 6;
-            lblImporte.Text = "Importe:";
-            // 
-            // nudImporte
-            // 
-            nudImporte.Location = new Point(88, 65);
-            nudImporte.Name = "nudImporte";
-            nudImporte.Size = new Size(150, 27);
-            nudImporte.TabIndex = 7;
             // 
             // lblMetodo
             // 
-            lblMetodo.AutoSize = true;
-            lblMetodo.Location = new Point(264, 70);
+            lblMetodo.Location = new Point(325, 175);
+            lblMetodo.Margin = new Padding(4, 0, 4, 0);
             lblMetodo.Name = "lblMetodo";
-            lblMetodo.Size = new Size(65, 20);
-            lblMetodo.TabIndex = 8;
-            lblMetodo.Text = "Método:";
+            lblMetodo.Size = new Size(125, 29);
+            lblMetodo.TabIndex = 6;
             // 
             // cmbMetodo
             // 
-            cmbMetodo.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbMetodo.Location = new Point(351, 62);
+            cmbMetodo.Location = new Point(325, 202);
+            cmbMetodo.Margin = new Padding(4);
             cmbMetodo.Name = "cmbMetodo";
-            cmbMetodo.Size = new Size(209, 28);
-            cmbMetodo.TabIndex = 9;
-            cmbMetodo.SelectedIndexChanged += cmbMetodo_SelectedIndexChanged;
+            cmbMetodo.Size = new Size(150, 28);
+            cmbMetodo.TabIndex = 7;
             // 
-            // lblEstado
+            // lblComprobante
             // 
-            lblEstado.AutoSize = true;
-            lblEstado.Location = new Point(566, 70);
-            lblEstado.Name = "lblEstado";
-            lblEstado.Size = new Size(57, 20);
-            lblEstado.TabIndex = 10;
-            lblEstado.Text = "Estado:";
+            lblComprobante.Location = new Point(50, 256);
+            lblComprobante.Margin = new Padding(4, 0, 4, 0);
+            lblComprobante.Name = "lblComprobante";
+            lblComprobante.Size = new Size(125, 29);
+            lblComprobante.TabIndex = 8;
             // 
-            // cmbEstado
+            // txtComprobante
             // 
-            cmbEstado.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbEstado.Location = new Point(639, 65);
-            cmbEstado.Name = "cmbEstado";
-            cmbEstado.Size = new Size(151, 28);
-            cmbEstado.TabIndex = 11;
+            txtComprobante.Location = new Point(50, 284);
+            txtComprobante.Margin = new Padding(4);
+            txtComprobante.Name = "txtComprobante";
+            txtComprobante.Size = new Size(250, 27);
+            txtComprobante.TabIndex = 9;
             // 
             // lblObs
             // 
-            lblObs.AutoSize = true;
-            lblObs.Location = new Point(3, 124);
+            lblObs.Location = new Point(400, 256);
+            lblObs.Margin = new Padding(4, 0, 4, 0);
             lblObs.Name = "lblObs";
-            lblObs.Size = new Size(108, 20);
-            lblObs.TabIndex = 12;
-            lblObs.Text = "Observaciones:";
+            lblObs.Size = new Size(125, 29);
+            lblObs.TabIndex = 10;
             // 
             // txtObs
             // 
-            txtObs.Location = new Point(141, 114);
+            txtObs.Location = new Point(400, 284);
+            txtObs.Margin = new Padding(4);
             txtObs.Multiline = true;
             txtObs.Name = "txtObs";
-            txtObs.Size = new Size(440, 50);
-            txtObs.TabIndex = 13;
+            txtObs.Size = new Size(360, 90);
+            txtObs.TabIndex = 11;
             // 
-            // btnGuardar
+            // chkEmitirRecibo
             // 
-            btnGuardar.BackColor = Color.White;
-            btnGuardar.Location = new Point(639, 124);
-            btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(127, 40);
-            btnGuardar.TabIndex = 14;
-            btnGuardar.Text = "Guardar";
-            btnGuardar.UseVisualStyleBackColor = false;
+            chkEmitirRecibo.Location = new Point(50, 400);
+            chkEmitirRecibo.Margin = new Padding(4);
+            chkEmitirRecibo.Name = "chkEmitirRecibo";
+            chkEmitirRecibo.Size = new Size(220, 30);
+            chkEmitirRecibo.TabIndex = 12;
+            chkEmitirRecibo.Text = "Emitir recibo automáticamente";
             // 
-            // btnCancelar
+            // btnGuardarPago
             // 
-            btnCancelar.BackColor = Color.White;
-            btnCancelar.Location = new Point(798, 124);
-            btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(130, 40);
-            btnCancelar.TabIndex = 15;
-            btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = false;
+            btnGuardarPago.Location = new Point(50, 450);
+            btnGuardarPago.Margin = new Padding(4);
+            btnGuardarPago.Name = "btnGuardarPago";
+            btnGuardarPago.Size = new Size(140, 36);
+            btnGuardarPago.TabIndex = 13;
+            btnGuardarPago.Text = "Guardar pago";
             // 
-            // grpFiltro
+            // btnCancelarPago
             // 
-            grpFiltro.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            grpFiltro.Controls.Add(txtBuscar);
-            grpFiltro.Controls.Add(lblFiltroEstado);
-            grpFiltro.Controls.Add(cmbFiltroEstado);
-            grpFiltro.Controls.Add(btnBuscar);
-            grpFiltro.Location = new Point(16, 188);
-            grpFiltro.Name = "grpFiltro";
-            grpFiltro.Size = new Size(980, 64);
-            grpFiltro.TabIndex = 1;
-            grpFiltro.TabStop = false;
-            grpFiltro.Text = "Búsqueda / Filtros";
+            btnCancelarPago.Location = new Point(210, 450);
+            btnCancelarPago.Margin = new Padding(4);
+            btnCancelarPago.Name = "btnCancelarPago";
+            btnCancelarPago.Size = new Size(120, 36);
+            btnCancelarPago.TabIndex = 14;
+            btnCancelarPago.Text = "Cancelar";
             // 
-            // txtBuscar
+            // pnlRecibo
             // 
-            txtBuscar.Location = new Point(16, 26);
-            txtBuscar.Name = "txtBuscar";
-            txtBuscar.PlaceholderText = "Buscar por contrato, inquilino u observaciones…";
-            txtBuscar.Size = new Size(420, 27);
-            txtBuscar.TabIndex = 0;
+            pnlRecibo.Controls.Add(lblTituloRecibo);
+            pnlRecibo.Controls.Add(rtbRecibo);
+            pnlRecibo.Controls.Add(btnCerrarRecibo);
+            pnlRecibo.Dock = DockStyle.Fill;
+            pnlRecibo.Location = new Point(0, 70);
+            pnlRecibo.Margin = new Padding(4);
+            pnlRecibo.Name = "pnlRecibo";
+            pnlRecibo.Padding = new Padding(30);
+            pnlRecibo.Size = new Size(1250, 742);
+            pnlRecibo.TabIndex = 3;
             // 
-            // lblFiltroEstado
+            // lblTituloRecibo
             // 
-            lblFiltroEstado.AutoSize = true;
-            lblFiltroEstado.Location = new Point(472, 29);
-            lblFiltroEstado.Name = "lblFiltroEstado";
-            lblFiltroEstado.Size = new Size(57, 20);
-            lblFiltroEstado.TabIndex = 1;
-            lblFiltroEstado.Text = "Estado:";
+            lblTituloRecibo.Location = new Point(30, 30);
+            lblTituloRecibo.Margin = new Padding(4, 0, 4, 0);
+            lblTituloRecibo.Name = "lblTituloRecibo";
+            lblTituloRecibo.Size = new Size(250, 29);
+            lblTituloRecibo.TabIndex = 0;
+            lblTituloRecibo.Text = "Vista previa del recibo";
             // 
-            // cmbFiltroEstado
+            // rtbRecibo
             // 
-            cmbFiltroEstado.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbFiltroEstado.Location = new Point(544, 25);
-            cmbFiltroEstado.Name = "cmbFiltroEstado";
-            cmbFiltroEstado.Size = new Size(140, 28);
-            cmbFiltroEstado.TabIndex = 2;
+            rtbRecibo.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            rtbRecibo.Location = new Point(30, 70);
+            rtbRecibo.Margin = new Padding(4);
+            rtbRecibo.Name = "rtbRecibo";
+            rtbRecibo.ReadOnly = true;
+            rtbRecibo.Size = new Size(1188, 612);
+            rtbRecibo.TabIndex = 1;
+            rtbRecibo.Text = "";
             // 
-            // btnBuscar
+            // btnCerrarRecibo
             // 
-            btnBuscar.BackColor = Color.White;
-            btnBuscar.Location = new Point(801, 21);
-            btnBuscar.Name = "btnBuscar";
-            btnBuscar.Size = new Size(127, 32);
-            btnBuscar.TabIndex = 3;
-            btnBuscar.Text = "Aplicar";
-            btnBuscar.UseVisualStyleBackColor = false;
-            // 
-            // grpLista
-            // 
-            grpLista.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            grpLista.Controls.Add(dgvPagos);
-            grpLista.Location = new Point(16, 258);
-            grpLista.Name = "grpLista";
-            grpLista.Size = new Size(980, 332);
-            grpLista.TabIndex = 0;
-            grpLista.TabStop = false;
-            grpLista.Text = "Lista de Pagos";
-            // 
-            // dgvPagos
-            // 
-            dgvPagos.AllowUserToAddRows = false;
-            dgvPagos.AllowUserToDeleteRows = false;
-            dgvPagos.BackgroundColor = SystemColors.Control;
-            dgvPagos.ColumnHeadersHeight = 29;
-            dgvPagos.Dock = DockStyle.Fill;
-            dgvPagos.Location = new Point(3, 23);
-            dgvPagos.MultiSelect = false;
-            dgvPagos.Name = "dgvPagos";
-            dgvPagos.RowHeadersVisible = false;
-            dgvPagos.RowHeadersWidth = 51;
-            dgvPagos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvPagos.Size = new Size(974, 306);
-            dgvPagos.TabIndex = 0;
+            btnCerrarRecibo.Location = new Point(30, 690);
+            btnCerrarRecibo.Margin = new Padding(4);
+            btnCerrarRecibo.Name = "btnCerrarRecibo";
+            btnCerrarRecibo.Size = new Size(100, 32);
+            btnCerrarRecibo.TabIndex = 2;
+            btnCerrarRecibo.Text = "Cerrar";
             // 
             // UcPagos
             // 
             AutoScaleDimensions = new SizeF(120F, 120F);
             AutoScaleMode = AutoScaleMode.Dpi;
-            BackColor = Color.Teal;
-            Controls.Add(grpLista);
-            Controls.Add(grpFiltro);
-            Controls.Add(grpEdicion);
+            BackColor = Color.WhiteSmoke;
+            Controls.Add(pnlContratos);
+            Controls.Add(pnlCuotas);
+            Controls.Add(pnlRegistrar);
+            Controls.Add(pnlRecibo);
+            Controls.Add(pnlHeader);
+            Margin = new Padding(4);
             Name = "UcPagos";
-            Padding = new Padding(8);
-            Size = new Size(1012, 606);
-            grpEdicion.ResumeLayout(false);
-            grpEdicion.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            ((System.ComponentModel.ISupportInitialize)nudImporte).EndInit();
-            grpFiltro.ResumeLayout(false);
-            grpFiltro.PerformLayout();
-            grpLista.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvPagos).EndInit();
+            Size = new Size(1250, 812);
+            pnlHeader.ResumeLayout(false);
+            pnlHeader.PerformLayout();
+            pnlContratos.ResumeLayout(false);
+            pnlContratos.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvContratos).EndInit();
+            pnlCuotas.ResumeLayout(false);
+            pnlCuotas.PerformLayout();
+            pnlResumenContrato.ResumeLayout(false);
+            pnlResumenContrato.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgvCuotas).EndInit();
+            pnlRegistrar.ResumeLayout(false);
+            pnlRegistrar.PerformLayout();
+            pnlRecibo.ResumeLayout(false);
             ResumeLayout(false);
         }
-        private PictureBox pictureBox1;
     }
 }
