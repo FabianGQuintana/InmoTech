@@ -133,7 +133,7 @@ namespace InmoTech
             lblTitulo.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblTitulo.Location = new Point(5, 10);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(130, 31);
+            lblTitulo.Size = new Size(152, 37);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "Usuarios";
             // 
@@ -190,7 +190,7 @@ namespace InmoTech
             label1.AutoSize = true;
             label1.Location = new Point(10, 176);
             label1.Name = "label1";
-            label1.Size = new Size(128, 18);
+            label1.Size = new Size(154, 22);
             label1.TabIndex = 21;
             label1.Text = "Fecha Nacimiento";
             label1.Click += label1_Click;
@@ -200,7 +200,7 @@ namespace InmoTech
             dateTimePicker1.Format = DateTimePickerFormat.Short;
             dateTimePicker1.Location = new Point(10, 207);
             dateTimePicker1.Name = "dateTimePicker1";
-            dateTimePicker1.Size = new Size(190, 24);
+            dateTimePicker1.Size = new Size(190, 28);
             dateTimePicker1.TabIndex = 20;
             // 
             // lblNombre
@@ -208,7 +208,7 @@ namespace InmoTech
             lblNombre.AutoSize = true;
             lblNombre.Location = new Point(11, 34);
             lblNombre.Name = "lblNombre";
-            lblNombre.Size = new Size(62, 18);
+            lblNombre.Size = new Size(73, 22);
             lblNombre.TabIndex = 23;
             lblNombre.Text = "Nombre";
             // 
@@ -216,7 +216,7 @@ namespace InmoTech
             // 
             txtNombre.Location = new Point(11, 65);
             txtNombre.Name = "txtNombre";
-            txtNombre.Size = new Size(190, 24);
+            txtNombre.Size = new Size(190, 28);
             txtNombre.TabIndex = 24;
             // 
             // lblApellido
@@ -224,7 +224,7 @@ namespace InmoTech
             lblApellido.AutoSize = true;
             lblApellido.Location = new Point(230, 34);
             lblApellido.Name = "lblApellido";
-            lblApellido.Size = new Size(59, 18);
+            lblApellido.Size = new Size(74, 22);
             lblApellido.TabIndex = 25;
             lblApellido.Text = "Apellido";
             // 
@@ -232,7 +232,7 @@ namespace InmoTech
             // 
             txtApellido.Location = new Point(230, 65);
             txtApellido.Name = "txtApellido";
-            txtApellido.Size = new Size(190, 24);
+            txtApellido.Size = new Size(190, 28);
             txtApellido.TabIndex = 26;
             // 
             // lblDni
@@ -240,7 +240,7 @@ namespace InmoTech
             lblDni.AutoSize = true;
             lblDni.Location = new Point(230, 176);
             lblDni.Name = "lblDni";
-            lblDni.Size = new Size(33, 18);
+            lblDni.Size = new Size(40, 22);
             lblDni.TabIndex = 27;
             lblDni.Text = "DNI";
             // 
@@ -248,7 +248,7 @@ namespace InmoTech
             // 
             txtDni.Location = new Point(230, 207);
             txtDni.Name = "txtDni";
-            txtDni.Size = new Size(190, 24);
+            txtDni.Size = new Size(190, 28);
             txtDni.TabIndex = 28;
             // 
             // lblTelefono
@@ -256,7 +256,7 @@ namespace InmoTech
             lblTelefono.AutoSize = true;
             lblTelefono.Location = new Point(10, 104);
             lblTelefono.Name = "lblTelefono";
-            lblTelefono.Size = new Size(66, 18);
+            lblTelefono.Size = new Size(81, 22);
             lblTelefono.TabIndex = 29;
             lblTelefono.Text = "Teléfono";
             // 
@@ -264,7 +264,7 @@ namespace InmoTech
             // 
             txtTelefono.Location = new Point(10, 135);
             txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new Size(190, 24);
+            txtTelefono.Size = new Size(190, 28);
             txtTelefono.TabIndex = 30;
             // 
             // lblEmail
@@ -272,7 +272,7 @@ namespace InmoTech
             lblEmail.AutoSize = true;
             lblEmail.Location = new Point(230, 104);
             lblEmail.Name = "lblEmail";
-            lblEmail.Size = new Size(45, 18);
+            lblEmail.Size = new Size(54, 22);
             lblEmail.TabIndex = 31;
             lblEmail.Text = "Email";
             // 
@@ -280,7 +280,7 @@ namespace InmoTech
             // 
             txtEmail.Location = new Point(230, 135);
             txtEmail.Name = "txtEmail";
-            txtEmail.Size = new Size(190, 24);
+            txtEmail.Size = new Size(190, 28);
             txtEmail.TabIndex = 32;
             // 
             // lblPass
@@ -288,7 +288,7 @@ namespace InmoTech
             lblPass.AutoSize = true;
             lblPass.Location = new Point(456, 104);
             lblPass.Name = "lblPass";
-            lblPass.Size = new Size(85, 18);
+            lblPass.Size = new Size(103, 22);
             lblPass.TabIndex = 33;
             lblPass.Text = "Contraseña";
             // 
@@ -296,7 +296,7 @@ namespace InmoTech
             // 
             txtPass.Location = new Point(456, 135);
             txtPass.Name = "txtPass";
-            txtPass.Size = new Size(190, 24);
+            txtPass.Size = new Size(190, 28);
             txtPass.TabIndex = 34;
             txtPass.UseSystemPasswordChar = true;
             // 
@@ -305,7 +305,7 @@ namespace InmoTech
             lblRol.AutoSize = true;
             lblRol.Location = new Point(456, 34);
             lblRol.Name = "lblRol";
-            lblRol.Size = new Size(31, 18);
+            lblRol.Size = new Size(37, 22);
             lblRol.TabIndex = 35;
             lblRol.Text = "Rol";
             // 
@@ -315,7 +315,7 @@ namespace InmoTech
             rbOperador.Checked = true;
             rbOperador.Location = new Point(449, 65);
             rbOperador.Name = "rbOperador";
-            rbOperador.Size = new Size(92, 22);
+            rbOperador.Size = new Size(111, 26);
             rbOperador.TabIndex = 36;
             rbOperador.TabStop = true;
             rbOperador.Text = "Operador";
@@ -325,7 +325,7 @@ namespace InmoTech
             rbAdministrador.AutoSize = true;
             rbAdministrador.Location = new Point(577, 65);
             rbAdministrador.Name = "rbAdministrador";
-            rbAdministrador.Size = new Size(120, 22);
+            rbAdministrador.Size = new Size(145, 26);
             rbAdministrador.TabIndex = 37;
             rbAdministrador.Text = "Administrador";
             // 
@@ -334,7 +334,7 @@ namespace InmoTech
             rbPropietario.AutoSize = true;
             rbPropietario.Location = new Point(749, 66);
             rbPropietario.Name = "rbPropietario";
-            rbPropietario.Size = new Size(101, 22);
+            rbPropietario.Size = new Size(122, 26);
             rbPropietario.TabIndex = 38;
             rbPropietario.Text = "Propietario";
             // 
@@ -343,7 +343,7 @@ namespace InmoTech
             lblPass2.AutoSize = true;
             lblPass2.Location = new Point(449, 176);
             lblPass2.Name = "lblPass2";
-            lblPass2.Size = new Size(136, 18);
+            lblPass2.Size = new Size(166, 22);
             lblPass2.TabIndex = 39;
             lblPass2.Text = "Repetir Contraseña";
             // 
@@ -351,7 +351,7 @@ namespace InmoTech
             // 
             txtPass2.Location = new Point(452, 206);
             txtPass2.Name = "txtPass2";
-            txtPass2.Size = new Size(190, 24);
+            txtPass2.Size = new Size(190, 28);
             txtPass2.TabIndex = 40;
             txtPass2.UseSystemPasswordChar = true;
             // 
@@ -377,7 +377,7 @@ namespace InmoTech
             // 
             // pnlListaHeader
             // 
-            pnlListaHeader.BackColor = Color.Teal;
+            pnlListaHeader.BackColor = Color.WhiteSmoke;
             pnlListaHeader.Controls.Add(lblListaTitulo);
             pnlListaHeader.Dock = DockStyle.Fill;
             pnlListaHeader.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
@@ -392,7 +392,7 @@ namespace InmoTech
             lblListaTitulo.Font = new Font("Microsoft Sans Serif", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblListaTitulo.Location = new Point(-3, 10);
             lblListaTitulo.Name = "lblListaTitulo";
-            lblListaTitulo.Size = new Size(149, 25);
+            lblListaTitulo.Size = new Size(178, 29);
             lblListaTitulo.TabIndex = 0;
             lblListaTitulo.Text = "Lista Usuarios";
             // 
@@ -401,7 +401,7 @@ namespace InmoTech
             dgvUsuarios.AllowUserToAddRows = false;
             dgvUsuarios.AllowUserToDeleteRows = false;
             dgvUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvUsuarios.BackgroundColor = Color.White;
+            dgvUsuarios.BackgroundColor = Color.Teal;
             dgvUsuarios.ColumnHeadersHeight = 34;
             dgvUsuarios.Dock = DockStyle.Fill;
             dgvUsuarios.Location = new Point(3, 409);

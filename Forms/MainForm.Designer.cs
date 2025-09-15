@@ -1,6 +1,6 @@
 ﻿namespace InmoTech
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -52,14 +52,15 @@
             pnlContent.BackgroundImageLayout = ImageLayout.None;
             pnlContent.Dock = DockStyle.Fill;
             pnlContent.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            pnlContent.Location = new Point(243, 3);
+            pnlContent.Location = new Point(311, 4);
+            pnlContent.Margin = new Padding(4);
             pnlContent.Name = "pnlContent";
-            pnlContent.Size = new Size(1093, 752);
+            pnlContent.Size = new Size(1393, 963);
             pnlContent.TabIndex = 1;
             // 
             // PanelLateral
             // 
-            PanelLateral.BackColor = Color.DarkSlateGray;
+            PanelLateral.BackColor = Color.White;
             PanelLateral.Controls.Add(LTituloLogo);
             PanelLateral.Controls.Add(pictureBox1);
             PanelLateral.Controls.Add(BReportes);
@@ -71,19 +72,20 @@
             PanelLateral.Controls.Add(BInmuebles);
             PanelLateral.Controls.Add(BSalir);
             PanelLateral.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            PanelLateral.Location = new Point(3, 3);
+            PanelLateral.Location = new Point(4, 4);
+            PanelLateral.Margin = new Padding(4);
             PanelLateral.Name = "PanelLateral";
-            PanelLateral.Size = new Size(234, 751);
+            PanelLateral.Size = new Size(299, 963);
             PanelLateral.TabIndex = 0;
             // 
             // LTituloLogo
             // 
             LTituloLogo.AutoSize = true;
             LTituloLogo.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            LTituloLogo.Location = new Point(70, 11);
+            LTituloLogo.Location = new Point(88, 14);
             LTituloLogo.Margin = new Padding(2, 0, 2, 0);
             LTituloLogo.Name = "LTituloLogo";
-            LTituloLogo.Size = new Size(143, 31);
+            LTituloLogo.Size = new Size(167, 37);
             LTituloLogo.TabIndex = 9;
             LTituloLogo.Text = "InmoTech";
             // 
@@ -94,15 +96,16 @@
             pictureBox1.Location = new Point(0, 0);
             pictureBox1.Margin = new Padding(2);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(66, 61);
+            pictureBox1.Size = new Size(82, 76);
             pictureBox1.TabIndex = 8;
             pictureBox1.TabStop = false;
             // 
             // BReportes
             // 
-            BReportes.Location = new Point(30, 435);
+            BReportes.Location = new Point(38, 544);
+            BReportes.Margin = new Padding(4);
             BReportes.Name = "BReportes";
-            BReportes.Size = new Size(168, 50);
+            BReportes.Size = new Size(210, 62);
             BReportes.TabIndex = 7;
             BReportes.Text = "Reportes";
             BReportes.UseVisualStyleBackColor = true;
@@ -110,9 +113,10 @@
             // 
             // BPagos
             // 
-            BPagos.Location = new Point(30, 378);
+            BPagos.Location = new Point(38, 472);
+            BPagos.Margin = new Padding(4);
             BPagos.Name = "BPagos";
-            BPagos.Size = new Size(168, 50);
+            BPagos.Size = new Size(210, 62);
             BPagos.TabIndex = 6;
             BPagos.Text = "Pagos";
             BPagos.UseVisualStyleBackColor = true;
@@ -120,9 +124,10 @@
             // 
             // BContratos
             // 
-            BContratos.Location = new Point(30, 322);
+            BContratos.Location = new Point(38, 402);
+            BContratos.Margin = new Padding(4);
             BContratos.Name = "BContratos";
-            BContratos.Size = new Size(168, 50);
+            BContratos.Size = new Size(210, 62);
             BContratos.TabIndex = 5;
             BContratos.Text = "Contratos";
             BContratos.UseVisualStyleBackColor = true;
@@ -130,9 +135,10 @@
             // 
             // BInquilinos
             // 
-            BInquilinos.Location = new Point(30, 265);
+            BInquilinos.Location = new Point(38, 331);
+            BInquilinos.Margin = new Padding(4);
             BInquilinos.Name = "BInquilinos";
-            BInquilinos.Size = new Size(168, 50);
+            BInquilinos.Size = new Size(210, 62);
             BInquilinos.TabIndex = 4;
             BInquilinos.Text = "Inquilinos";
             BInquilinos.UseVisualStyleBackColor = true;
@@ -144,10 +150,11 @@
             BDashboard.FlatStyle = FlatStyle.Flat;
             BDashboard.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             BDashboard.ImageAlign = ContentAlignment.MiddleLeft;
-            BDashboard.Location = new Point(30, 94);
+            BDashboard.Location = new Point(38, 118);
+            BDashboard.Margin = new Padding(4);
             BDashboard.Name = "BDashboard";
-            BDashboard.Padding = new Padding(10, 0, 10, 0);
-            BDashboard.Size = new Size(168, 50);
+            BDashboard.Padding = new Padding(12, 0, 12, 0);
+            BDashboard.Size = new Size(210, 62);
             BDashboard.TabIndex = 3;
             BDashboard.Text = "Dashboard";
             BDashboard.TextImageRelation = TextImageRelation.ImageBeforeText;
@@ -157,9 +164,10 @@
             // BUsuarios
             // 
             BUsuarios.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            BUsuarios.Location = new Point(30, 151);
+            BUsuarios.Location = new Point(38, 189);
+            BUsuarios.Margin = new Padding(4);
             BUsuarios.Name = "BUsuarios";
-            BUsuarios.Size = new Size(168, 50);
+            BUsuarios.Size = new Size(210, 62);
             BUsuarios.TabIndex = 2;
             BUsuarios.Text = "Usuarios";
             BUsuarios.UseVisualStyleBackColor = true;
@@ -167,9 +175,10 @@
             // 
             // BInmuebles
             // 
-            BInmuebles.Location = new Point(30, 208);
+            BInmuebles.Location = new Point(38, 260);
+            BInmuebles.Margin = new Padding(4);
             BInmuebles.Name = "BInmuebles";
-            BInmuebles.Size = new Size(168, 50);
+            BInmuebles.Size = new Size(210, 62);
             BInmuebles.TabIndex = 1;
             BInmuebles.Text = "Inmuebles";
             BInmuebles.UseVisualStyleBackColor = true;
@@ -177,11 +186,12 @@
             // 
             // BSalir
             // 
-            BSalir.BackColor = Color.Firebrick;
+            BSalir.BackColor = Color.White;
             BSalir.ImageAlign = ContentAlignment.MiddleLeft;
-            BSalir.Location = new Point(20, 648);
+            BSalir.Location = new Point(25, 810);
+            BSalir.Margin = new Padding(4);
             BSalir.Name = "BSalir";
-            BSalir.Size = new Size(178, 50);
+            BSalir.Size = new Size(222, 62);
             BSalir.TabIndex = 0;
             BSalir.Text = "Salir";
             BSalir.UseVisualStyleBackColor = false;
@@ -195,24 +205,24 @@
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 82.01912F));
             tableLayoutPanel1.Controls.Add(PanelLateral, 0, 0);
             tableLayoutPanel1.Controls.Add(pnlContent, 1, 0);
-            tableLayoutPanel1.Location = new Point(12, -2);
+            tableLayoutPanel1.Location = new Point(1, -6);
+            tableLayoutPanel1.Margin = new Padding(4);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel1.Size = new Size(1339, 758);
+            tableLayoutPanel1.Size = new Size(1708, 971);
             tableLayoutPanel1.TabIndex = 1;
-            tableLayoutPanel1.Paint += tableLayoutPanel1_Paint;
+
             // 
-            // Form1
+            // MainForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1363, 767);
+            ClientSize = new Size(1704, 959);
             Controls.Add(tableLayoutPanel1);
-            FormBorderStyle = FormBorderStyle.None;
-            Name = "Form1";
+            Margin = new Padding(4);
+            Name = "MainForm";
             Text = "Form1";
-            Load += Form1_Load;
             PanelLateral.ResumeLayout(false);
             PanelLateral.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();

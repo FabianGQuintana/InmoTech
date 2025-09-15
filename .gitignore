@@ -1,0 +1,9 @@
+# Archivos temporales de Visual Studio
+.vs/
+*.vsidx
+
+# Binarios y carpetas de build
+bin/
+obj/
+Debug/
+Release/

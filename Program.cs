@@ -1,3 +1,7 @@
+// Program.cs
+using System;
+using System.Windows.Forms;
+
 namespace InmoTech
 {
     internal static class Program
@@ -9,13 +13,15 @@ namespace InmoTech
 
             using (var login = new LoginForm())
             {
-                // Mostrar login como diálogo
-                if (login.ShowDialog() == DialogResult.OK)
+                var result = login.ShowDialog();
+                if (result != DialogResult.OK)
                 {
-                    // Si fue correcto, abrir Form1
-                    Application.Run(new Form1());
+                    // Si el usuario cierra o falla el login, salimos
+                    return;
                 }
             }
+
+            Application.Run(new MainForm());
         }
     }
 }
