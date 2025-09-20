@@ -1,5 +1,6 @@
 ﻿using InmoTech;
 using InmoTech.Models;
+using InmoTech.Security;   // AuthService
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,37 +10,186 @@ namespace InmoTech
 {
     public partial class MainForm : Form
     {
+        // ======================================================
+        //  REGIÓN: Tipos / Constantes / Paleta
+        // ======================================================
+        #region Tipos y Constantes
 
-        // CS8618 -> nullable porque se asigna luego
-        private Button? _botonActivo;
+        private enum RolUsuario
+        {
+            Administrador = 1,
+            Operador = 2,
+            Propietario = 3
+        }
 
-        // Cache de vistas
-        private readonly Dictionary<Type, UserControl> _cache = new();
+        private const int AnchoBarraLateral = 320;
+
+        private readonly Color ColorBotonFondo = Color.White;
+        private readonly Color ColorBotonHover = Color.FromArgb(245, 245, 245);
+        private readonly Color ColorBotonActivo = Color.FromArgb(211, 229, 211);
+        private readonly Color ColorBotonTexto = Color.FromArgb(30, 30, 30);
+
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Estado interno / Cache / Mapas de permisos
+        // ======================================================
+        #region Estado y Permisos
+
+        private Button? _botonLateralActivo;
+        private readonly Dictionary<Type, UserControl> _cacheVistas = new();
+
+        private readonly Dictionary<RolUsuario, HashSet<Type>> _vistasPermitidasPorRol = new()
+        {
+            [RolUsuario.Administrador] = new()
+            {
+                typeof(UcDashboard),
+                typeof(UcUsuarios),
+                typeof(UcInmuebles),
+                typeof(UcInquilinos),
+                typeof(UcReportes)
+            },
+            [RolUsuario.Operador] = new()
+            {
+                typeof(UcDashboard),
+                typeof(UcPagos),
+                typeof(UcContratos),
+                typeof(UcReportes)
+            },
+            [RolUsuario.Propietario] = new()
+            {
+                typeof(UcDashboard),
+                typeof(UcContratos),
+                typeof(UcInmuebles),
+                typeof(UcReportes)
+            }
+        };
+
+        private Dictionary<RolUsuario, Button[]> _botonesVisiblesPorRol = null!;
+
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Constructor
+        // ======================================================
+        #region Constructor
 
         public MainForm()
         {
             InitializeComponent();
 
-            // Lógica de layout (sin estilos)
-            this.Resize -= Form_Resize_Recalc;
-            this.Resize += Form_Resize_Recalc;
+            this.Resize -= EventoRedimensionarFormulario;
+            this.Resize += EventoRedimensionarFormulario;
 
-            // Vista inicial
+            _botonesVisiblesPorRol = new Dictionary<RolUsuario, Button[]>
+            {
+                [RolUsuario.Administrador] = new[] { BDashboard, BUsuarios, BInmuebles, BInquilinos, BReportes },
+                [RolUsuario.Operador] = new[] { BDashboard, BPagos, BContratos, BReportes },
+                [RolUsuario.Propietario] = new[] { BDashboard, BContratos, BInmuebles, BReportes }
+            };
+
+            AplicarEstiloMinimo();
+            AplicarPermisosPorRol();
             CargarVista<UcDashboard>(BDashboard);
-
-            // ====== DISEÑO (visual mínimo necesario) ======
-            AplicarDisenio();
         }
 
-        // Navegación
-        private void CargarVista<T>(Button origen) where T : UserControl, new()
-        {
-            if (origen != null) MarcarActivo(origen);
+        #endregion
 
-            if (!_cache.TryGetValue(typeof(T), out var vista))
+        // ======================================================
+        //  REGIÓN: Autenticación / Autorización
+        // ======================================================
+        #region Autenticación y Autorización
+
+        private RolUsuario? RolActual
+        {
+            get
             {
-                vista = new T { Dock = DockStyle.Fill, AutoScroll = true };
-                _cache[typeof(T)] = vista;
+                var idRol = AuthService.CurrentUser?.IdRol;
+                if (idRol is null) return null;
+                return Enum.IsDefined(typeof(RolUsuario), idRol.Value) ? (RolUsuario)idRol.Value : null;
+            }
+        }
+
+        private bool VistaPermitida(Type tipoVista)
+        {
+            if (!AuthService.IsAuthenticated)
+                return tipoVista == typeof(UcDashboard);
+
+            if (RolActual is RolUsuario rol && _vistasPermitidasPorRol.TryGetValue(rol, out var permitidas))
+                return permitidas.Contains(tipoVista);
+
+            return false;
+        }
+
+        private void AplicarPermisosPorRol()
+        {
+            Button[] todosLosBotones =
+            {
+                BDashboard, BUsuarios, BInmuebles, BInquilinos,
+                BContratos, BPagos, BReportes
+            };
+
+            foreach (var boton in todosLosBotones)
+                boton.Visible = true;
+
+            HashSet<Type>? vistasPermitidas = null;
+            if (AuthService.IsAuthenticated && RolActual is RolUsuario rol &&
+                _vistasPermitidasPorRol.TryGetValue(rol, out var set))
+            {
+                vistasPermitidas = set;
+            }
+
+            var mapaBotonVista = new Dictionary<Button, Type>
+            {
+                { BDashboard,  typeof(UcDashboard)  },
+                { BUsuarios,   typeof(UcUsuarios)   },
+                { BInmuebles,  typeof(UcInmuebles)  },
+                { BInquilinos, typeof(UcInquilinos) },
+                { BContratos,  typeof(UcContratos)  },
+                { BPagos,      typeof(UcPagos)      },
+                { BReportes,   typeof(UcReportes)   }
+            };
+
+            foreach (var (boton, vista) in mapaBotonVista)
+            {
+                var habilitado = vistasPermitidas != null && vistasPermitidas.Contains(vista);
+                if (!AuthService.IsAuthenticated) habilitado = (vista == typeof(UcDashboard));
+                DefinirEstadoBotonLateral(boton, habilitado);
+            }
+
+            BSalir.Visible = true;
+            DefinirEstadoBotonLateral(BSalir, true);
+
+            if (_botonLateralActivo is null || !_botonLateralActivo.Enabled)
+                _botonLateralActivo = null;
+        }
+
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Navegación
+        // ======================================================
+        #region Navegación
+
+        private void CargarVista<TVista>(Button botonOrigen) where TVista : UserControl, new()
+        {
+            if (!VistaPermitida(typeof(TVista)))
+            {
+                MessageBox.Show(
+                    "No tenés permisos para acceder a esta sección.",
+                    "Acceso denegado",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+
+            MarcarBotonLateralActivo(botonOrigen);
+
+            if (!_cacheVistas.TryGetValue(typeof(TVista), out var vista))
+            {
+                vista = new TVista { Dock = DockStyle.Fill, AutoScroll = true };
+                _cacheVistas[typeof(TVista)] = vista;
             }
 
             pnlContent.SuspendLayout();
@@ -49,23 +199,30 @@ namespace InmoTech
             pnlContent.ResumeLayout();
         }
 
-        // Marca botón activo (el color se maneja en diseño)
-        private void MarcarActivo(Button b)
+        private void MarcarBotonLateralActivo(Button boton)
         {
-            if (_botonActivo != null && _botonActivo != b)
-                _botonActivo.BackColor = BtnBg;
+            if (!boton.Enabled) return;
 
-            _botonActivo = b;
-            _botonActivo.BackColor = BtnActive;
+            if (_botonLateralActivo != null && _botonLateralActivo != boton)
+                _botonLateralActivo.BackColor = ColorBotonFondo;
+
+            _botonLateralActivo = boton;
+            _botonLateralActivo.BackColor = ColorBotonActivo;
         }
 
-        private void Form_Resize_Recalc(object? sender, EventArgs e)
+        private void EventoRedimensionarFormulario(object? sender, EventArgs e)
         {
             tableLayoutPanel1?.PerformLayout();
             pnlContent?.PerformLayout();
         }
 
-        // Handlers (lógica pura)
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Handlers de Click
+        // ======================================================
+        #region Handlers
+
         private void BDashboard_Click(object sender, EventArgs e) => CargarVista<UcDashboard>(BDashboard);
         private void BUsuarios_Click(object sender, EventArgs e) => CargarVista<UcUsuarios>(BUsuarios);
         private void BInmuebles_Click(object sender, EventArgs e) => CargarVista<UcInmuebles>(BInmuebles);
@@ -81,42 +238,39 @@ namespace InmoTech
             if (r == DialogResult.Yes) Close();
         }
 
+        #endregion
 
         // ======================================================
-        //                   DISEÑO / ESTILO (mínimo)
-        //     Responsivo + iconos correctos + botones legibles
+        //  REGIÓN: Estilo / Sidebar / Iconos
         // ======================================================
+        #region Estilo
 
-        // Ancho fijo de sidebar
-        private const int SidebarWidth = 320;
-
-        // Paleta mínima necesaria
-        private readonly Color BtnBg = Color.White;
-        private readonly Color BtnHover = Color.FromArgb(245, 245, 245);
-        private readonly Color BtnActive = Color.FromArgb(211, 229, 211);
-        private readonly Color BtnText = Color.FromArgb(30, 30, 30);
-
-        private void AplicarDisenio()
+        private sealed class IconosBotonLateral
         {
-            ConfigurarLayoutBase();        // Responsivo
-            ConfigurarHeaderMinimo();      // Logo/Título básicos
-            ReforzarPaddingContenido();    // Padding suave
-            AplicaEstilosSidebar();        // Botones + iconos + hover
+            public Image? Original { get; init; }
+            public Image? Deshabilitado { get; init; }
+        }
+
+        private void AplicarEstiloMinimo()
+        {
+            ConfigurarLayoutBase();
+            ConfigurarEncabezado();
+            AplicarPaddingContenido();
+            EstilizarBotonesSidebar();
         }
 
         private void ConfigurarLayoutBase()
         {
-            // Columnas: 0 (sidebar fijo), 1 (contenido flexible)
             if (tableLayoutPanel1.ColumnStyles.Count < 2)
             {
                 tableLayoutPanel1.ColumnStyles.Clear();
-                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, SidebarWidth));
+                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, AnchoBarraLateral));
                 tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             }
             else
             {
                 tableLayoutPanel1.ColumnStyles[0].SizeType = SizeType.Absolute;
-                tableLayoutPanel1.ColumnStyles[0].Width = SidebarWidth;
+                tableLayoutPanel1.ColumnStyles[0].Width = AnchoBarraLateral;
                 tableLayoutPanel1.ColumnStyles[1].SizeType = SizeType.Percent;
                 tableLayoutPanel1.ColumnStyles[1].Width = 100;
             }
@@ -132,7 +286,6 @@ namespace InmoTech
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Margin = Padding.Empty;
             tableLayoutPanel1.Padding = Padding.Empty;
-            tableLayoutPanel1.CellBorderStyle = TableLayoutPanelCellBorderStyle.None;
 
             PanelLateral.Dock = DockStyle.Fill;
             PanelLateral.Margin = Padding.Empty;
@@ -144,7 +297,7 @@ namespace InmoTech
             pnlContent.Margin = Padding.Empty;
         }
 
-        private void ConfigurarHeaderMinimo()
+        private void ConfigurarEncabezado()
         {
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.Location = new Point(12, 12);
@@ -157,68 +310,113 @@ namespace InmoTech
             LTituloLogo.AutoEllipsis = true;
             LTituloLogo.TextAlign = ContentAlignment.MiddleLeft;
             LTituloLogo.Location = new Point(pictureBox1.Right + 12, pictureBox1.Top + 12);
-            try { LTituloLogo.Font = new Font("Montserrat", 16f, FontStyle.Bold); } catch { /* fuente opcional */ }
+            try { LTituloLogo.Font = new Font("Montserrat", 16f, FontStyle.Bold); } catch { }
         }
 
-        private void ReforzarPaddingContenido()
+        private void AplicarPaddingContenido()
         {
             pnlContent.Padding = new Padding(16, 8, 16, 16);
             pnlContent.BackColor = Color.WhiteSmoke;
         }
 
-        private void AplicaEstilosSidebar()
+        private void EstilizarBotonesSidebar()
         {
-            // Títulos de botones + iconos (escalados en runtime)
-            EstilizarSidebarButton(BDashboard, Properties.Resources.dashboardIcon, "Dashboard");
-            EstilizarSidebarButton(BUsuarios, Properties.Resources.usuariosIcon, "Usuarios");
-            EstilizarSidebarButton(BInmuebles, Properties.Resources.inmueblesIcon, "Inmuebles");
-            EstilizarSidebarButton(BInquilinos, Properties.Resources.inquilinosIcon, "Inquilinos");
-            EstilizarSidebarButton(BContratos, Properties.Resources.contratosIcon, "Contratos");
-            EstilizarSidebarButton(BPagos, Properties.Resources.pagosIcon, "Pagos");
-            EstilizarSidebarButton(BReportes, Properties.Resources.reportesIcon, "Reportes");
-            EstilizarSidebarButton(BSalir, Properties.Resources.botonSalir, "Salir");
+            EstilizarBotonSidebar(BDashboard, Properties.Resources.dashboardIcon, "Dashboard");
+            EstilizarBotonSidebar(BUsuarios, Properties.Resources.usuariosIcon, "Usuarios");
+            EstilizarBotonSidebar(BInmuebles, Properties.Resources.inmueblesIcon, "Inmuebles");
+            EstilizarBotonSidebar(BInquilinos, Properties.Resources.inquilinosIcon, "Inquilinos");
+            EstilizarBotonSidebar(BContratos, Properties.Resources.contratosIcon, "Contratos");
+            EstilizarBotonSidebar(BPagos, Properties.Resources.pagosIcon, "Pagos");
+            EstilizarBotonSidebar(BReportes, Properties.Resources.reportesIcon, "Reportes");
+            EstilizarBotonSidebar(BSalir, Properties.Resources.botonSalir, "Salir");
         }
 
-        private void EstilizarSidebarButton(Button b, Image icono, string texto)
+        private void EstilizarBotonSidebar(Button boton, Image icono, string texto)
         {
-            b.Text = texto;
-            b.TextAlign = ContentAlignment.MiddleLeft;
-            b.ImageAlign = ContentAlignment.MiddleLeft;
-            b.TextImageRelation = TextImageRelation.ImageBeforeText;
-            b.Padding = new Padding(14, 0, 10, 0);
+            boton.Text = texto;
+            boton.TextAlign = ContentAlignment.MiddleLeft;
+            boton.ImageAlign = ContentAlignment.MiddleLeft;
+            boton.TextImageRelation = TextImageRelation.ImageBeforeText;
+            boton.Padding = new Padding(14, 0, 10, 0);
 
-            try { b.Font = new Font("Montserrat", 10f, FontStyle.Bold); } catch { }
+            try { boton.Font = new Font("Montserrat", 10f, FontStyle.Bold); } catch { }
 
-            b.FlatStyle = FlatStyle.Flat;
-            b.FlatAppearance.BorderSize = 0;
+            boton.FlatStyle = FlatStyle.Flat;
+            boton.FlatAppearance.BorderSize = 0;
 
-            b.BackColor = BtnBg;
-            b.ForeColor = BtnText;
+            boton.BackColor = ColorBotonFondo;
+            boton.ForeColor = ColorBotonTexto;
 
-            b.Image = icono != null ? ScaleIconToButton(b, icono) : null;
+            var iconoEscalado = icono != null ? EscalarIconoBoton(boton, icono) : null;
+            var iconoDeshabilitado = iconoEscalado != null ? CrearIconoDeshabilitado(iconoEscalado) : null;
+            boton.Tag = new IconosBotonLateral { Original = iconoEscalado, Deshabilitado = iconoDeshabilitado };
+            boton.Image = iconoEscalado;
 
-            // Hover simple
-            b.MouseEnter -= Boton_MouseEnter;
-            b.MouseLeave -= Boton_MouseLeave;
-            b.MouseEnter += Boton_MouseEnter;
-            b.MouseLeave += Boton_MouseLeave;
+            boton.MouseEnter -= EventoBotonMouseEnter;
+            boton.MouseLeave -= EventoBotonMouseLeave;
+            boton.MouseEnter += EventoBotonMouseEnter;
+            boton.MouseLeave += EventoBotonMouseLeave;
         }
 
-        private void Boton_MouseEnter(object? sender, EventArgs e)
+        private void DefinirEstadoBotonLateral(Button boton, bool habilitado)
         {
-            if (sender is Button b && b != _botonActivo) b.BackColor = BtnHover;
+            boton.Enabled = habilitado;
+
+            if (habilitado)
+            {
+                boton.ForeColor = ColorBotonTexto;
+                boton.BackColor = ColorBotonFondo;
+                if (boton.Tag is IconosBotonLateral iconos && iconos.Original != null)
+                    boton.Image = iconos.Original;
+            }
+            else
+            {
+                boton.ForeColor = Color.FromArgb(150, ColorBotonTexto);
+                boton.BackColor = Color.FromArgb(248, 248, 248);
+                if (boton.Tag is IconosBotonLateral iconos && iconos.Deshabilitado != null)
+                    boton.Image = iconos.Deshabilitado;
+            }
         }
 
-        private void Boton_MouseLeave(object? sender, EventArgs e)
+        private void EventoBotonMouseEnter(object? sender, EventArgs e)
         {
-            if (sender is Button b && b != _botonActivo) b.BackColor = BtnBg;
+            if (sender is Button boton && boton.Enabled && boton != _botonLateralActivo)
+                boton.BackColor = ColorBotonHover;
         }
 
-        private Image ScaleIconToButton(Button b, Image original)
+        private void EventoBotonMouseLeave(object? sender, EventArgs e)
         {
-            // Ajusta el icono al alto del botón con un margen
-            int maxIconSize = Math.Max(16, b.Height - 20);
-            return new Bitmap(original, new Size(maxIconSize, maxIconSize));
+            if (sender is Button boton && boton.Enabled && boton != _botonLateralActivo)
+                boton.BackColor = ColorBotonFondo;
         }
+
+        private Image EscalarIconoBoton(Button boton, Image original)
+        {
+            int tamanoMax = Math.Max(16, boton.Height - 20);
+            return new Bitmap(original, new Size(tamanoMax, tamanoMax));
+        }
+
+        private Image CrearIconoDeshabilitado(Image original)
+        {
+            var bmp = new Bitmap(original.Width, original.Height);
+            using var g = Graphics.FromImage(bmp);
+            using var ia = new System.Drawing.Imaging.ImageAttributes();
+
+            var cm = new System.Drawing.Imaging.ColorMatrix(new float[][]
+            {
+                new float[] {0.35f,0.35f,0.35f,0,0},
+                new float[] {0.35f,0.35f,0.35f,0,0},
+                new float[] {0.35f,0.35f,0.35f,0,0},
+                new float[] {0,0,0,0.55f,0},
+                new float[] {0,0,0,0,0}
+            });
+            ia.SetColorMatrix(cm);
+
+            g.DrawImage(original, new Rectangle(0, 0, bmp.Width, bmp.Height),
+                        0, 0, original.Width, original.Height, GraphicsUnit.Pixel, ia);
+            return bmp;
+        }
+
+        #endregion
     }
 }

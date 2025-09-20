@@ -16,14 +16,15 @@ namespace InmoTech
         {
             InitializeComponent();
 
-            // Wire events (por si no lo hiciste en el diseñador)
+            txtPassword.UseSystemPasswordChar = true; 
+
             btnLogin.Click += BtnLogin_Click;
             chkMostrarPassword.CheckedChanged += ChkMostrarPassword_CheckedChanged;
 
-            // UX menor
             txtEmail.KeyDown += OnKeyDownEnterLogin;
             txtPassword.KeyDown += OnKeyDownEnterLogin;
         }
+
 
         private void ChkMostrarPassword_CheckedChanged(object? sender, EventArgs e)
         {
@@ -72,7 +73,7 @@ namespace InmoTech
 
                 if (usuario is null)
                 {
-                    MostrarError("Usuario o contraseña incorrectos, o cuenta inactiva.");
+                    MostrarError("Usuario o contraseña incorrectos");
                     return;
                 }
 
