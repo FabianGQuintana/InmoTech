@@ -40,10 +40,7 @@ namespace InmoTech
         // ------ DATA + RENDER ------
         private void Seed()
         {
-            // Encabezado
-            lblTitulo.Text = "Dashboard";
-            lblUserName.Text = "Iván Romero Maurin";
-            lblRol.Text = "Rol: administrador";
+            
 
             // KPIs
             lblKpiProp.Text = "12";
