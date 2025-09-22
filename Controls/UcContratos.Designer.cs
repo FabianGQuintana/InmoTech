@@ -22,6 +22,8 @@ namespace InmoTech.Controls
             panel1 = new Panel();
             lblTitulo = new Label();
             dataGridView1 = new DataGridView();
+
+            // === Declarar columnas (ojo con tipos) ===
             colNumero = new DataGridViewTextBoxColumn();
             colInquilino = new DataGridViewTextBoxColumn();
             colInmueble = new DataGridViewTextBoxColumn();
@@ -29,7 +31,8 @@ namespace InmoTech.Controls
             colFin = new DataGridViewTextBoxColumn();
             colMonto = new DataGridViewTextBoxColumn();
             colEstado = new DataGridViewTextBoxColumn();
-            colActivo = new DataGridViewTextBoxColumn();
+            colActivo = new DataGridViewCheckBoxColumn(); // <-- CheckBox!
+
             LListaInquilinos = new Label();
             panel2 = new Panel();
             cmbInmueble = new ComboBox();
@@ -54,9 +57,8 @@ namespace InmoTech.Controls
             panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudMonto).BeginInit();
             SuspendLayout();
-            // 
+
             // panel1
-            // 
             panel1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel1.BackColor = Color.Teal;
             panel1.Controls.Add(lblTitulo);
@@ -64,9 +66,8 @@ namespace InmoTech.Controls
             panel1.Name = "panel1";
             panel1.Size = new Size(1170, 70);
             panel1.TabIndex = 3;
-            // 
+
             // lblTitulo
-            // 
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblTitulo.Location = new Point(14, 15);
@@ -74,75 +75,94 @@ namespace InmoTech.Controls
             lblTitulo.Size = new Size(166, 37);
             lblTitulo.TabIndex = 1;
             lblTitulo.Text = "Contratos";
-            // 
+
             // dataGridView1
-            // 
             dataGridView1.AllowUserToAddRows = false;
             dataGridView1.AllowUserToDeleteRows = false;
             dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridView1.AutoGenerateColumns = false; // <-- CLAVE: no autogenerar
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.BackgroundColor = Color.Teal;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colNumero, colInquilino, colInmueble, colInicio, colFin, colMonto, colEstado, colActivo });
             dataGridView1.Location = new Point(16, 366);
             dataGridView1.MultiSelect = false;
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
+            dataGridView1.RowHeadersVisible = false;
             dataGridView1.RowHeadersWidth = 62;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView1.Size = new Size(1170, 318);
             dataGridView1.TabIndex = 4;
-            // 
+
+            // === Config de cada columna (HeaderText + DataPropertyName + formato) ===
+
             // colNumero
-            // 
-            colNumero.MinimumWidth = 8;
+            colNumero.DataPropertyName = "NumeroContrato";
+            colNumero.HeaderText = "Número";
+            colNumero.MinimumWidth = 70;
             colNumero.Name = "colNumero";
             colNumero.ReadOnly = true;
-            // 
+
             // colInquilino
-            // 
-            colInquilino.MinimumWidth = 8;
+            colInquilino.DataPropertyName = "Inquilino";
+            colInquilino.HeaderText = "Inquilino";
+            colInquilino.MinimumWidth = 90;
             colInquilino.Name = "colInquilino";
             colInquilino.ReadOnly = true;
-            // 
+
             // colInmueble
-            // 
-            colInmueble.MinimumWidth = 8;
+            colInmueble.DataPropertyName = "Inmueble";
+            colInmueble.HeaderText = "Inmueble";
+            colInmueble.MinimumWidth = 90;
             colInmueble.Name = "colInmueble";
             colInmueble.ReadOnly = true;
-            // 
+
             // colInicio
-            // 
-            colInicio.MinimumWidth = 8;
+            colInicio.DataPropertyName = "Inicio";
+            colInicio.HeaderText = "Inicio";
+            colInicio.MinimumWidth = 80;
             colInicio.Name = "colInicio";
             colInicio.ReadOnly = true;
-            // 
+            colInicio.DefaultCellStyle.Format = "dd/MM/yyyy";
+
             // colFin
-            // 
-            colFin.MinimumWidth = 8;
+            colFin.DataPropertyName = "Fin";
+            colFin.HeaderText = "Fin";
+            colFin.MinimumWidth = 80;
             colFin.Name = "colFin";
             colFin.ReadOnly = true;
-            // 
+            colFin.DefaultCellStyle.Format = "dd/MM/yyyy";
+
             // colMonto
-            // 
-            colMonto.MinimumWidth = 8;
+            colMonto.DataPropertyName = "Monto";
+            colMonto.HeaderText = "Monto";
+            colMonto.MinimumWidth = 80;
             colMonto.Name = "colMonto";
             colMonto.ReadOnly = true;
-            // 
+            colMonto.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            colMonto.DefaultCellStyle.Format = "N0"; // o "C0" si querés símbolo de moneda
+
             // colEstado
-            // 
-            colEstado.MinimumWidth = 8;
+            colEstado.DataPropertyName = "Estado";
+            colEstado.HeaderText = "Estado";
+            colEstado.MinimumWidth = 80;
             colEstado.Name = "colEstado";
             colEstado.ReadOnly = true;
-            // 
-            // colActivo
-            // 
-            colActivo.MinimumWidth = 8;
+
+            // colActivo (CheckBox)
+            ((DataGridViewCheckBoxColumn)colActivo).DataPropertyName = "Activo";
+            colActivo.HeaderText = "Activo";
+            colActivo.MinimumWidth = 60;
             colActivo.Name = "colActivo";
             colActivo.ReadOnly = true;
-            // 
+
+            // Agregar columnas en el orden deseado
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[]
+            {
+                colNumero, colInquilino, colInmueble, colInicio, colFin, colMonto, colEstado, colActivo
+            });
+
             // LListaInquilinos
-            // 
             LListaInquilinos.AutoSize = true;
             LListaInquilinos.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             LListaInquilinos.Location = new Point(16, 324);
@@ -150,9 +170,8 @@ namespace InmoTech.Controls
             LListaInquilinos.Size = new Size(187, 29);
             LListaInquilinos.TabIndex = 5;
             LListaInquilinos.Text = "Lista Contratos";
-            // 
-            // panel2
-            // 
+
+            // panel2  (sin cambios relevantes visuales)
             panel2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel2.BackColor = Color.Teal;
             panel2.Controls.Add(cmbInmueble);
@@ -176,27 +195,22 @@ namespace InmoTech.Controls
             panel2.Name = "panel2";
             panel2.Size = new Size(1170, 200);
             panel2.TabIndex = 6;
-            // 
-            // cmbInmueble
-            // 
+
+            // (resto de controles del panel2 tal como los tenías)
             cmbInmueble.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbInmueble.Location = new Point(801, 22);
             cmbInmueble.Margin = new Padding(4);
             cmbInmueble.Name = "cmbInmueble";
             cmbInmueble.Size = new Size(234, 33);
             cmbInmueble.TabIndex = 36;
-            // 
-            // cmbInquilino
-            // 
+
             cmbInquilino.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbInquilino.Location = new Point(460, 22);
             cmbInquilino.Margin = new Padding(4);
             cmbInquilino.Name = "cmbInquilino";
             cmbInquilino.Size = new Size(234, 33);
             cmbInquilino.TabIndex = 33;
-            // 
-            // lblEstado
-            // 
+
             lblEstado.AutoSize = true;
             lblEstado.Location = new Point(386, 139);
             lblEstado.Margin = new Padding(4, 0, 4, 0);
@@ -204,26 +218,20 @@ namespace InmoTech.Controls
             lblEstado.Size = new Size(66, 25);
             lblEstado.TabIndex = 30;
             lblEstado.Text = "Estado";
-            // 
-            // dtpInicio
-            // 
+
             dtpInicio.Location = new Point(127, 81);
             dtpInicio.Margin = new Padding(4);
             dtpInicio.Name = "dtpInicio";
             dtpInicio.Size = new Size(236, 31);
             dtpInicio.TabIndex = 25;
-            // 
-            // cmbEstado
-            // 
+
             cmbEstado.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbEstado.Location = new Point(460, 137);
             cmbEstado.Margin = new Padding(4);
             cmbEstado.Name = "cmbEstado";
             cmbEstado.Size = new Size(234, 33);
             cmbEstado.TabIndex = 31;
-            // 
-            // chkActivo
-            // 
+
             chkActivo.AutoSize = true;
             chkActivo.Checked = true;
             chkActivo.CheckState = CheckState.Checked;
@@ -233,9 +241,7 @@ namespace InmoTech.Controls
             chkActivo.Size = new Size(88, 29);
             chkActivo.TabIndex = 32;
             chkActivo.Text = "Activo";
-            // 
-            // lblNumero
-            // 
+
             lblNumero.AutoSize = true;
             lblNumero.Location = new Point(12, 25);
             lblNumero.Margin = new Padding(4, 0, 4, 0);
@@ -243,17 +249,13 @@ namespace InmoTech.Controls
             lblNumero.Size = new Size(107, 25);
             lblNumero.TabIndex = 20;
             lblNumero.Text = "N° Contrato";
-            // 
-            // txtNumero
-            // 
+
             txtNumero.Location = new Point(127, 23);
             txtNumero.Margin = new Padding(4);
             txtNumero.Name = "txtNumero";
             txtNumero.Size = new Size(236, 31);
             txtNumero.TabIndex = 21;
-            // 
-            // lblInquilino
-            // 
+
             lblInquilino.AutoSize = true;
             lblInquilino.Location = new Point(371, 25);
             lblInquilino.Margin = new Padding(4, 0, 4, 0);
@@ -261,9 +263,7 @@ namespace InmoTech.Controls
             lblInquilino.Size = new Size(81, 25);
             lblInquilino.TabIndex = 22;
             lblInquilino.Text = "Inquilino";
-            // 
-            // lblInmueble
-            // 
+
             lblInmueble.AutoSize = true;
             lblInmueble.Location = new Point(716, 26);
             lblInmueble.Margin = new Padding(4, 0, 4, 0);
@@ -271,9 +271,7 @@ namespace InmoTech.Controls
             lblInmueble.Size = new Size(86, 25);
             lblInmueble.TabIndex = 23;
             lblInmueble.Text = "Inmueble";
-            // 
-            // lblInicio
-            // 
+
             lblInicio.AutoSize = true;
             lblInicio.Location = new Point(68, 81);
             lblInicio.Margin = new Padding(4, 0, 4, 0);
@@ -281,9 +279,7 @@ namespace InmoTech.Controls
             lblInicio.Size = new Size(54, 25);
             lblInicio.TabIndex = 24;
             lblInicio.Text = "Inicio";
-            // 
-            // lblFin
-            // 
+
             lblFin.AutoSize = true;
             lblFin.Location = new Point(417, 81);
             lblFin.Margin = new Padding(4, 0, 4, 0);
@@ -291,17 +287,13 @@ namespace InmoTech.Controls
             lblFin.Size = new Size(35, 25);
             lblFin.TabIndex = 26;
             lblFin.Text = "Fin";
-            // 
-            // dtpFin
-            // 
+
             dtpFin.Location = new Point(460, 81);
             dtpFin.Margin = new Padding(4);
             dtpFin.Name = "dtpFin";
             dtpFin.Size = new Size(234, 31);
             dtpFin.TabIndex = 27;
-            // 
-            // lblMonto
-            // 
+
             lblMonto.AutoSize = true;
             lblMonto.Location = new Point(56, 139);
             lblMonto.Margin = new Padding(4, 0, 4, 0);
@@ -309,17 +301,13 @@ namespace InmoTech.Controls
             lblMonto.Size = new Size(66, 25);
             lblMonto.TabIndex = 28;
             lblMonto.Text = "Monto";
-            // 
-            // nudMonto
-            // 
+
             nudMonto.Location = new Point(127, 139);
             nudMonto.Margin = new Padding(4);
             nudMonto.Name = "nudMonto";
             nudMonto.Size = new Size(236, 31);
             nudMonto.TabIndex = 29;
-            // 
-            // btnGuardar
-            // 
+
             btnGuardar.BackColor = Color.White;
             btnGuardar.Location = new Point(927, 133);
             btnGuardar.Margin = new Padding(4);
@@ -328,9 +316,7 @@ namespace InmoTech.Controls
             btnGuardar.TabIndex = 34;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
-            // 
-            // btnCancelar
-            // 
+
             btnCancelar.BackColor = Color.White;
             btnCancelar.Location = new Point(743, 135);
             btnCancelar.Margin = new Padding(4);
@@ -339,17 +325,20 @@ namespace InmoTech.Controls
             btnCancelar.TabIndex = 35;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = false;
-            // 
+
             // UcContratos
-            // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             Controls.Add(panel2);
             Controls.Add(LListaInquilinos);
+
+            // Aca ya están agregadas; mover después de configurar columnas
             Controls.Add(dataGridView1);
             Controls.Add(panel1);
             Name = "UcContratos";
             Size = new Size(1200, 700);
+
+            // IMPORTANTE: Agregar las columnas al grid ANTES de ResumeLayout
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
@@ -384,6 +373,7 @@ namespace InmoTech.Controls
         private NumericUpDown nudMonto;
         private Button btnGuardar;
         private Button btnCancelar;
+
         private DataGridViewTextBoxColumn colNumero;
         private DataGridViewTextBoxColumn colInquilino;
         private DataGridViewTextBoxColumn colInmueble;
@@ -391,6 +381,6 @@ namespace InmoTech.Controls
         private DataGridViewTextBoxColumn colFin;
         private DataGridViewTextBoxColumn colMonto;
         private DataGridViewTextBoxColumn colEstado;
-        private DataGridViewTextBoxColumn colActivo;
+        private DataGridViewCheckBoxColumn colActivo; // <-- ahora es CheckBox
     }
 }

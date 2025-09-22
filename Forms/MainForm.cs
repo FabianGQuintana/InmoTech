@@ -1,4 +1,5 @@
-﻿using InmoTech;
+﻿// MainForm.cs — versión completa con Reportes por rol (Admin/Operador/Propietario)
+using InmoTech;
 using InmoTech.Controls;
 using InmoTech.Models;
 using InmoTech.Security;   // AuthService
@@ -43,6 +44,7 @@ namespace InmoTech
         // Historial para navegar hacia atrás (si querés usarlo luego)
         private readonly Stack<UserControl> _historial = new();
 
+        // ⬇️ Mapa de vistas permitidas por rol (incluye Reportes según rol)
         private readonly Dictionary<RolUsuario, HashSet<Type>> _vistasPermitidasPorRol = new()
         {
             [RolUsuario.Administrador] = new()
@@ -51,21 +53,21 @@ namespace InmoTech
                 typeof(UcUsuarios),
                 typeof(UcInmuebles),
                 typeof(UcInquilinos),
-                typeof(UcReportes)
+                typeof(UcReportesAdmin)        // ✅ Reportes para Admin
             },
             [RolUsuario.Operador] = new()
             {
                 typeof(UcDashboard),
                 typeof(UcPagos_Contratos),
                 typeof(UcContratos),
-                typeof(UcReportes)
+                typeof(UcReportesOperador)     // ✅ Reportes para Operador
             },
             [RolUsuario.Propietario] = new()
             {
                 typeof(UcDashboard),
                 typeof(UcContratos),
                 typeof(UcInmuebles),
-                typeof(UcReportes)
+                typeof(UcReportesPropietario)  // ✅ Reportes para Propietario
             }
         };
 
@@ -135,6 +137,20 @@ namespace InmoTech
             return false;
         }
 
+        // ⬇️ NUEVO: decide el UserControl de Reportes según rol
+        private Type? TipoReportePorRol()
+        {
+            if (!AuthService.IsAuthenticated || RolActual is null) return null;
+
+            return RolActual switch
+            {
+                RolUsuario.Administrador => typeof(UcReportesAdmin),
+                RolUsuario.Operador => typeof(UcReportesOperador),
+                RolUsuario.Propietario => typeof(UcReportesPropietario),
+                _ => null
+            };
+        }
+
         private void AplicarPermisosPorRol()
         {
             Button[] todosLosBotones =
@@ -153,6 +169,7 @@ namespace InmoTech
                 vistasPermitidas = set;
             }
 
+            // Mapa normal (sin Reportes: lo manejamos dinámico)
             var mapaBotonVista = new Dictionary<Button, Type>
             {
                 { BDashboard,  typeof(UcDashboard)  },
@@ -160,8 +177,7 @@ namespace InmoTech
                 { BInmuebles,  typeof(UcInmuebles)  },
                 { BInquilinos, typeof(UcInquilinos) },
                 { BContratos,  typeof(UcContratos)  },
-                { BPagos,      typeof(UcPagos_Contratos)},
-                { BReportes,   typeof(UcReportes)   }
+                { BPagos,      typeof(UcPagos_Contratos) }
             };
 
             foreach (var (boton, vista) in mapaBotonVista)
@@ -170,6 +186,18 @@ namespace InmoTech
                 if (!AuthService.IsAuthenticated) habilitado = (vista == typeof(UcDashboard));
                 DefinirEstadoBotonLateral(boton, habilitado);
             }
+
+            // ===== Botón Reportes (dinámico por rol) =====
+            var tipoReporte = TipoReportePorRol();
+            bool habilitarReportes =
+                tipoReporte != null &&
+                vistasPermitidas != null &&
+                vistasPermitidas.Contains(tipoReporte);
+
+            if (!AuthService.IsAuthenticated) habilitarReportes = false;
+
+            DefinirEstadoBotonLateral(BReportes, habilitarReportes);
+            // =============================================
 
             BSalir.Visible = true;
             DefinirEstadoBotonLateral(BSalir, true);
@@ -204,6 +232,37 @@ namespace InmoTech
             {
                 vista = new TVista { Dock = DockStyle.Fill, AutoScroll = true };
                 _cacheVistas[typeof(TVista)] = vista;
+            }
+
+            pnlContent.SuspendLayout();
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(vista);
+            vista.BringToFront();
+            pnlContent.ResumeLayout();
+        }
+
+        // ⬇️ NUEVO: overload por Type (para Reportes por rol)
+        private void CargarVista(Type tipoVista, Button botonOrigen)
+        {
+            if (!VistaPermitida(tipoVista))
+            {
+                MessageBox.Show(
+                    "No tenés permisos para acceder a esta sección.",
+                    "Acceso denegado",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+
+            MarcarBotonLateralActivo(botonOrigen);
+
+            if (!_cacheVistas.TryGetValue(tipoVista, out var vista))
+            {
+                vista = (UserControl)Activator.CreateInstance(tipoVista)!;
+                vista.Dock = DockStyle.Fill;
+                vista.AutoScroll = true;
+                _cacheVistas[tipoVista] = vista;
             }
 
             pnlContent.SuspendLayout();
@@ -287,7 +346,19 @@ namespace InmoTech
         private void BInquilinos_Click(object sender, EventArgs e) => CargarVista<UcInquilinos>(BInquilinos);
         private void BContratos_Click(object sender, EventArgs e) => CargarVista<UcContratos>(BContratos);
         private void BPagos_Click(object sender, EventArgs e) => CargarVista<UcPagos_Contratos>(BPagos);
-        private void BReportes_Click(object sender, EventArgs e) => CargarVista<UcReportes>(BReportes);
+
+        // ⬇️ MODIFICADO: Reportes abre la vista según rol
+        private void BReportes_Click(object sender, EventArgs e)
+        {
+            var tipo = TipoReportePorRol();
+            if (tipo == null)
+            {
+                MessageBox.Show("No tenés permisos para Reportes.", "Acceso denegado",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            CargarVista(tipo, BReportes);
+        }
 
         private void BSalir_Click(object sender, EventArgs e)
         {

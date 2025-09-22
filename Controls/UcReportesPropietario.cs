@@ -10,13 +10,13 @@ using System.Windows.Forms;
 
 namespace InmoTech
 {
-    public partial class UcReportes : UserControl
+    public partial class UcReportesPropietario : UserControl
     {
         private readonly BindingList<ReporteItem> _data = new();
         private readonly BindingSource _bs = new();
         private List<ReporteItem> _allItems = new();
 
-        public UcReportes()
+        public UcReportesPropietario()
         {
             InitializeComponent();
             DoubleBuffered = true;

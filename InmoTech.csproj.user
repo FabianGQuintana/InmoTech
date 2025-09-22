@@ -17,6 +17,12 @@
     <Compile Update="Controls\UcPagos_Recibo.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Controls\UcReportesOperador.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UcReportesAdmin.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -32,7 +38,7 @@
     <Compile Update="Controls\UcPagos_Contratos.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Controls\UcReportes.cs">
+    <Compile Update="Controls\UcReportesPropietario.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcUsuarios.cs">

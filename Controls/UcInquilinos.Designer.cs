@@ -50,6 +50,7 @@ namespace InmoTech.Controls
             // panel1
             // 
             panel1.BackColor = Color.Teal;
+            panel1.BorderStyle = BorderStyle.Fixed3D;
             panel1.Controls.Add(lblTitulo);
             panel1.Location = new Point(15, 24);
             panel1.Name = "panel1";
@@ -69,6 +70,7 @@ namespace InmoTech.Controls
             // panel2
             // 
             panel2.BackColor = Color.Teal;
+            panel2.BorderStyle = BorderStyle.Fixed3D;
             panel2.Controls.Add(label1);
             panel2.Controls.Add(dateTimePicker1);
             panel2.Controls.Add(lblNombre);
@@ -231,6 +233,7 @@ namespace InmoTech.Controls
             dataGridInquilinos.AllowUserToAddRows = false;
             dataGridInquilinos.AllowUserToDeleteRows = false;
             dataGridInquilinos.BackgroundColor = Color.Teal;
+            dataGridInquilinos.BorderStyle = BorderStyle.Fixed3D;
             dataGridInquilinos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridInquilinos.Location = new Point(15, 422);
             dataGridInquilinos.MultiSelect = false;

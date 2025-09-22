@@ -1,6 +1,6 @@
 ﻿namespace InmoTech
 {
-    partial class UcReportes
+    partial class UcReportesPropietario
     {
         /// <summary> 
         /// Variable del diseñador necesaria.

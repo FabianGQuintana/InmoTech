@@ -27,64 +27,57 @@ namespace InmoTech.Controls
         {
             InitializeComponent();
 
-            // Binding listo (sin datos inicialmente)
+            // === Binding listo (sin datos inicialmente)
             _bs.DataSource = new BindingList<ContratoVm>();
             dataGridView1.DataSource = _bs;
 
-            // Eventos
-            btnGuardar.Click += BtnGuardar_Click;
-            btnCancelar.Click += BtnCancelar_Click;
-
-            dataGridView1.CellFormatting += DataGridView1_CellFormatting;
+            // NO formateamos 'Activo' como texto porque ahora es CheckBox
+            // Podés dejar este evento si querés dar formato extra a otras columnas:
+            // dataGridView1.CellFormatting += DataGridView1_CellFormatting;
 
             // ===== Datos de prueba =====
             var demo = new List<ContratoVm>
-    {
-        new ContratoVm {
-            NumeroContrato = "C-001",
-            Inquilino = "Juan Pérez",
-            Inmueble = "Depto 2A",
-            Inicio = new DateTime(2025, 1, 1),
-            Fin = new DateTime(2025, 12, 31),
-            Monto = 250000m,
-            Estado = "Vigente",
-            Activo = true
-        },
-        new ContratoVm {
-            NumeroContrato = "C-002",
-            Inquilino = "María López",
-            Inmueble = "Casa 5",
-            Inicio = new DateTime(2024, 6, 1),
-            Fin = new DateTime(2025, 5, 31),
-            Monto = 300000m,
-            Estado = "Finalizado",
-            Activo = false
-        },
-        new ContratoVm {
-            NumeroContrato = "C-003",
-            Inquilino = "Carlos Gómez",
-            Inmueble = "Local Comercial",
-            Inicio = new DateTime(2025, 3, 15),
-            Fin = new DateTime(2026, 3, 14),
-            Monto = 450000m,
-            Estado = "Vigente",
-            Activo = true
-        }
-    };
+            {
+                new ContratoVm {
+                    NumeroContrato = "C-001",
+                    Inquilino = "Juan Pérez",
+                    Inmueble = "Depto 2A",
+                    Inicio = new DateTime(2025, 1, 1),
+                    Fin = new DateTime(2025, 12, 31),
+                    Monto = 250000m,
+                    Estado = "Vigente",
+                    Activo = true
+                },
+                new ContratoVm {
+                    NumeroContrato = "C-002",
+                    Inquilino = "María López",
+                    Inmueble = "Casa 5",
+                    Inicio = new DateTime(2024, 6, 1),
+                    Fin = new DateTime(2025, 5, 31),
+                    Monto = 300000m,
+                    Estado = "Finalizado",
+                    Activo = false
+                },
+                new ContratoVm {
+                    NumeroContrato = "C-003",
+                    Inquilino = "Carlos Gómez",
+                    Inmueble = "Local Comercial",
+                    Inicio = new DateTime(2025, 3, 15),
+                    Fin = new DateTime(2026, 3, 14),
+                    Monto = 450000m,
+                    Estado = "Vigente",
+                    Activo = true
+                }
+            };
 
             CargarDatos(demo);
         }
 
-
+        // Ejemplo de formateo opcional (si querés afinar fechas/moneda por código)
         private void DataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (dataGridView1.Columns[e.ColumnIndex].Name == "colActivo" && e.Value is bool valor)
-            {
-                e.Value = valor ? "Activo" : "Inactivo";
-                e.FormattingApplied = true;
-            }
+            // Dejar vacío o personalizar si necesitás algo puntual
         }
-
 
         // API pública para cargar/recargar datos reales desde tu repo/servicio
         public void CargarDatos(IEnumerable<ContratoVm> items)
@@ -107,12 +100,12 @@ namespace InmoTech.Controls
         // ==== Handlers de ejemplo (dejados vacíos) ====
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
-            // acá iría tu lógica de guardado
+            // Lógica de guardado
         }
 
         private void BtnCancelar_Click(object? sender, EventArgs e)
         {
-            // acá iría tu lógica de cancelación
+            // Lógica de cancelación
         }
     }
 }
