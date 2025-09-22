@@ -207,9 +207,9 @@ namespace InmoTech.Controls
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.White;
-            btnGuardar.Location = new Point(688, 198);
+            btnGuardar.Location = new Point(607, 198);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(100, 36);
+            btnGuardar.Size = new Size(157, 38);
             btnGuardar.TabIndex = 63;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
@@ -218,9 +218,9 @@ namespace InmoTech.Controls
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.White;
-            btnCancelar.Location = new Point(823, 198);
+            btnCancelar.Location = new Point(797, 198);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(100, 36);
+            btnCancelar.Size = new Size(157, 38);
             btnCancelar.TabIndex = 64;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = false;

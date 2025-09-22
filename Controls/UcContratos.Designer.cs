@@ -1,306 +1,396 @@
-﻿using System.Windows.Forms;
+﻿// UcContratos.Designer.cs
+using System.Drawing;
+using System.Windows.Forms;
 
-namespace InmoTech
+namespace InmoTech.Controls
 {
     partial class UcContratos
     {
         private System.ComponentModel.IContainer components = null;
-        private GroupBox grpEdicion;
-        private Label lblNumero;
-        private TextBox txtNumero;
-        private Label lblInquilino;
-        private TextBox txtInquilino;
-        private Label lblInmueble;
-        private TextBox txtInmueble;
-        private Label lblInicio;
-        private DateTimePicker dtpInicio;
-        private Label lblFin;
-        private DateTimePicker dtpFin;
-        private Label lblMonto;
-        private NumericUpDown nudMonto;
-        private Label lblEstado;
-        private ComboBox cmbEstado;
-        private CheckBox chkActivo;
-        private Button btnGuardar;
-        private Button btnCancelar;
-        private TextBox txtBuscar;
-        private Button btnBuscar;
-        private DataGridView dgvContratos;
-        private GroupBox grpLista;
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null)) components.Dispose();
+            if (disposing && (components != null))
+                components.Dispose();
             base.Dispose(disposing);
         }
 
+        #region Código generado por el Diseñador de componentes
+
         private void InitializeComponent()
         {
-            grpEdicion = new GroupBox();
+            panel1 = new Panel();
+            lblTitulo = new Label();
+            dataGridView1 = new DataGridView();
+            colNumero = new DataGridViewTextBoxColumn();
+            colInquilino = new DataGridViewTextBoxColumn();
+            colInmueble = new DataGridViewTextBoxColumn();
+            colInicio = new DataGridViewTextBoxColumn();
+            colFin = new DataGridViewTextBoxColumn();
+            colMonto = new DataGridViewTextBoxColumn();
+            colEstado = new DataGridViewTextBoxColumn();
+            colActivo = new DataGridViewTextBoxColumn();
+            LListaInquilinos = new Label();
+            panel2 = new Panel();
+            cmbInmueble = new ComboBox();
+            cmbInquilino = new ComboBox();
+            lblEstado = new Label();
+            dtpInicio = new DateTimePicker();
+            cmbEstado = new ComboBox();
+            chkActivo = new CheckBox();
             lblNumero = new Label();
             txtNumero = new TextBox();
             lblInquilino = new Label();
-            txtInquilino = new TextBox();
             lblInmueble = new Label();
-            txtInmueble = new TextBox();
             lblInicio = new Label();
-            dtpInicio = new DateTimePicker();
             lblFin = new Label();
             dtpFin = new DateTimePicker();
             lblMonto = new Label();
             nudMonto = new NumericUpDown();
-            lblEstado = new Label();
-            cmbEstado = new ComboBox();
-            chkActivo = new CheckBox();
             btnGuardar = new Button();
             btnCancelar = new Button();
-            btnBuscar = new Button();
-            txtBuscar = new TextBox();
-            grpLista = new GroupBox();
-            dgvContratos = new DataGridView();
-            grpEdicion.SuspendLayout();
+            panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudMonto).BeginInit();
-            grpLista.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvContratos).BeginInit();
             SuspendLayout();
             // 
-            // grpEdicion
+            // panel1
             // 
-            grpEdicion.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            grpEdicion.Controls.Add(lblNumero);
-            grpEdicion.Controls.Add(txtNumero);
-            grpEdicion.Controls.Add(lblInquilino);
-            grpEdicion.Controls.Add(txtInquilino);
-            grpEdicion.Controls.Add(lblInmueble);
-            grpEdicion.Controls.Add(txtInmueble);
-            grpEdicion.Controls.Add(lblInicio);
-            grpEdicion.Controls.Add(dtpInicio);
-            grpEdicion.Controls.Add(lblFin);
-            grpEdicion.Controls.Add(dtpFin);
-            grpEdicion.Controls.Add(lblMonto);
-            grpEdicion.Controls.Add(nudMonto);
-            grpEdicion.Controls.Add(lblEstado);
-            grpEdicion.Controls.Add(cmbEstado);
-            grpEdicion.Controls.Add(chkActivo);
-            grpEdicion.Controls.Add(btnGuardar);
-            grpEdicion.Controls.Add(btnCancelar);
-            grpEdicion.Controls.Add(btnBuscar);
-            grpEdicion.Controls.Add(txtBuscar);
-            grpEdicion.Location = new Point(16, 12);
-            grpEdicion.Name = "grpEdicion";
-            grpEdicion.Size = new Size(958, 150);
-            grpEdicion.TabIndex = 1;
-            grpEdicion.TabStop = false;
-            grpEdicion.Text = "Crear / Editar Contrato";
+            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panel1.BackColor = Color.Teal;
+            panel1.Controls.Add(lblTitulo);
+            panel1.Location = new Point(16, 18);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1170, 70);
+            panel1.TabIndex = 3;
             // 
-            // lblNumero
+            // lblTitulo
             // 
-            lblNumero.AutoSize = true;
-            lblNumero.Location = new Point(16, 30);
-            lblNumero.Name = "lblNumero";
-            lblNumero.Size = new Size(88, 20);
-            lblNumero.TabIndex = 0;
-            lblNumero.Text = "N° Contrato";
+            lblTitulo.AutoSize = true;
+            lblTitulo.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTitulo.Location = new Point(14, 15);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(166, 37);
+            lblTitulo.TabIndex = 1;
+            lblTitulo.Text = "Contratos";
             // 
-            // txtNumero
+            // dataGridView1
             // 
-            txtNumero.Location = new Point(110, 26);
-            txtNumero.Name = "txtNumero";
-            txtNumero.Size = new Size(160, 27);
-            txtNumero.TabIndex = 1;
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.AllowUserToDeleteRows = false;
+            dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.BackgroundColor = Color.Teal;
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colNumero, colInquilino, colInmueble, colInicio, colFin, colMonto, colEstado, colActivo });
+            dataGridView1.Location = new Point(16, 366);
+            dataGridView1.MultiSelect = false;
+            dataGridView1.Name = "dataGridView1";
+            dataGridView1.ReadOnly = true;
+            dataGridView1.RowHeadersWidth = 62;
+            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridView1.Size = new Size(1170, 318);
+            dataGridView1.TabIndex = 4;
             // 
-            // lblInquilino
+            // colNumero
             // 
-            lblInquilino.AutoSize = true;
-            lblInquilino.Location = new Point(277, 33);
-            lblInquilino.Name = "lblInquilino";
-            lblInquilino.Size = new Size(67, 20);
-            lblInquilino.TabIndex = 2;
-            lblInquilino.Text = "Inquilino";
+            colNumero.MinimumWidth = 8;
+            colNumero.Name = "colNumero";
+            colNumero.ReadOnly = true;
             // 
-            // txtInquilino
+            // colInquilino
             // 
-            txtInquilino.Location = new Point(350, 26);
-            txtInquilino.Name = "txtInquilino";
-            txtInquilino.Size = new Size(220, 27);
-            txtInquilino.TabIndex = 3;
+            colInquilino.MinimumWidth = 8;
+            colInquilino.Name = "colInquilino";
+            colInquilino.ReadOnly = true;
             // 
-            // lblInmueble
+            // colInmueble
             // 
-            lblInmueble.AutoSize = true;
-            lblInmueble.Location = new Point(576, 29);
-            lblInmueble.Name = "lblInmueble";
-            lblInmueble.Size = new Size(71, 20);
-            lblInmueble.TabIndex = 4;
-            lblInmueble.Text = "Inmueble";
+            colInmueble.MinimumWidth = 8;
+            colInmueble.Name = "colInmueble";
+            colInmueble.ReadOnly = true;
             // 
-            // txtInmueble
+            // colInicio
             // 
-            txtInmueble.Location = new Point(660, 26);
-            txtInmueble.Name = "txtInmueble";
-            txtInmueble.Size = new Size(220, 27);
-            txtInmueble.TabIndex = 5;
+            colInicio.MinimumWidth = 8;
+            colInicio.Name = "colInicio";
+            colInicio.ReadOnly = true;
             // 
-            // lblInicio
+            // colFin
             // 
-            lblInicio.AutoSize = true;
-            lblInicio.Location = new Point(16, 70);
-            lblInicio.Name = "lblInicio";
-            lblInicio.Size = new Size(45, 20);
-            lblInicio.TabIndex = 6;
-            lblInicio.Text = "Inicio";
+            colFin.MinimumWidth = 8;
+            colFin.Name = "colFin";
+            colFin.ReadOnly = true;
             // 
-            // dtpInicio
+            // colMonto
             // 
-            dtpInicio.Location = new Point(110, 66);
-            dtpInicio.Name = "dtpInicio";
-            dtpInicio.Size = new Size(160, 27);
-            dtpInicio.TabIndex = 7;
+            colMonto.MinimumWidth = 8;
+            colMonto.Name = "colMonto";
+            colMonto.ReadOnly = true;
             // 
-            // lblFin
+            // colEstado
             // 
-            lblFin.AutoSize = true;
-            lblFin.Location = new Point(290, 70);
-            lblFin.Name = "lblFin";
-            lblFin.Size = new Size(28, 20);
-            lblFin.TabIndex = 8;
-            lblFin.Text = "Fin";
+            colEstado.MinimumWidth = 8;
+            colEstado.Name = "colEstado";
+            colEstado.ReadOnly = true;
             // 
-            // dtpFin
+            // colActivo
             // 
-            dtpFin.Location = new Point(350, 66);
-            dtpFin.Name = "dtpFin";
-            dtpFin.Size = new Size(160, 27);
-            dtpFin.TabIndex = 9;
+            colActivo.MinimumWidth = 8;
+            colActivo.Name = "colActivo";
+            colActivo.ReadOnly = true;
             // 
-            // lblMonto
+            // LListaInquilinos
             // 
-            lblMonto.AutoSize = true;
-            lblMonto.Location = new Point(530, 70);
-            lblMonto.Name = "lblMonto";
-            lblMonto.Size = new Size(53, 20);
-            lblMonto.TabIndex = 10;
-            lblMonto.Text = "Monto";
+            LListaInquilinos.AutoSize = true;
+            LListaInquilinos.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LListaInquilinos.Location = new Point(16, 324);
+            LListaInquilinos.Name = "LListaInquilinos";
+            LListaInquilinos.Size = new Size(187, 29);
+            LListaInquilinos.TabIndex = 5;
+            LListaInquilinos.Text = "Lista Contratos";
             // 
-            // nudMonto
+            // panel2
             // 
-            nudMonto.Location = new Point(590, 66);
-            nudMonto.Name = "nudMonto";
-            nudMonto.Size = new Size(120, 27);
-            nudMonto.TabIndex = 11;
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panel2.BackColor = Color.Teal;
+            panel2.Controls.Add(cmbInmueble);
+            panel2.Controls.Add(cmbInquilino);
+            panel2.Controls.Add(lblEstado);
+            panel2.Controls.Add(dtpInicio);
+            panel2.Controls.Add(cmbEstado);
+            panel2.Controls.Add(chkActivo);
+            panel2.Controls.Add(lblNumero);
+            panel2.Controls.Add(txtNumero);
+            panel2.Controls.Add(lblInquilino);
+            panel2.Controls.Add(lblInmueble);
+            panel2.Controls.Add(lblInicio);
+            panel2.Controls.Add(lblFin);
+            panel2.Controls.Add(dtpFin);
+            panel2.Controls.Add(lblMonto);
+            panel2.Controls.Add(nudMonto);
+            panel2.Controls.Add(btnGuardar);
+            panel2.Controls.Add(btnCancelar);
+            panel2.Location = new Point(16, 103);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(1170, 200);
+            panel2.TabIndex = 6;
+            // 
+            // cmbInmueble
+            // 
+            cmbInmueble.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbInmueble.Location = new Point(801, 22);
+            cmbInmueble.Margin = new Padding(4);
+            cmbInmueble.Name = "cmbInmueble";
+            cmbInmueble.Size = new Size(234, 33);
+            cmbInmueble.TabIndex = 36;
+            // 
+            // cmbInquilino
+            // 
+            cmbInquilino.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbInquilino.Location = new Point(460, 22);
+            cmbInquilino.Margin = new Padding(4);
+            cmbInquilino.Name = "cmbInquilino";
+            cmbInquilino.Size = new Size(234, 33);
+            cmbInquilino.TabIndex = 33;
             // 
             // lblEstado
             // 
             lblEstado.AutoSize = true;
-            lblEstado.Location = new Point(730, 70);
+            lblEstado.Location = new Point(386, 139);
+            lblEstado.Margin = new Padding(4, 0, 4, 0);
             lblEstado.Name = "lblEstado";
-            lblEstado.Size = new Size(54, 20);
-            lblEstado.TabIndex = 12;
+            lblEstado.Size = new Size(66, 25);
+            lblEstado.TabIndex = 30;
             lblEstado.Text = "Estado";
+            // 
+            // dtpInicio
+            // 
+            dtpInicio.Location = new Point(127, 81);
+            dtpInicio.Margin = new Padding(4);
+            dtpInicio.Name = "dtpInicio";
+            dtpInicio.Size = new Size(236, 31);
+            dtpInicio.TabIndex = 25;
             // 
             // cmbEstado
             // 
             cmbEstado.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbEstado.Location = new Point(785, 66);
+            cmbEstado.Location = new Point(460, 137);
+            cmbEstado.Margin = new Padding(4);
             cmbEstado.Name = "cmbEstado";
-            cmbEstado.Size = new Size(120, 28);
-            cmbEstado.TabIndex = 13;
+            cmbEstado.Size = new Size(234, 33);
+            cmbEstado.TabIndex = 31;
             // 
             // chkActivo
             // 
             chkActivo.AutoSize = true;
             chkActivo.Checked = true;
             chkActivo.CheckState = CheckState.Checked;
-            chkActivo.Location = new Point(16, 108);
+            chkActivo.Location = new Point(781, 77);
+            chkActivo.Margin = new Padding(4);
             chkActivo.Name = "chkActivo";
-            chkActivo.Size = new Size(73, 24);
-            chkActivo.TabIndex = 14;
+            chkActivo.Size = new Size(88, 29);
+            chkActivo.TabIndex = 32;
             chkActivo.Text = "Activo";
+            // 
+            // lblNumero
+            // 
+            lblNumero.AutoSize = true;
+            lblNumero.Location = new Point(12, 25);
+            lblNumero.Margin = new Padding(4, 0, 4, 0);
+            lblNumero.Name = "lblNumero";
+            lblNumero.Size = new Size(107, 25);
+            lblNumero.TabIndex = 20;
+            lblNumero.Text = "N° Contrato";
+            // 
+            // txtNumero
+            // 
+            txtNumero.Location = new Point(127, 23);
+            txtNumero.Margin = new Padding(4);
+            txtNumero.Name = "txtNumero";
+            txtNumero.Size = new Size(236, 31);
+            txtNumero.TabIndex = 21;
+            // 
+            // lblInquilino
+            // 
+            lblInquilino.AutoSize = true;
+            lblInquilino.Location = new Point(371, 25);
+            lblInquilino.Margin = new Padding(4, 0, 4, 0);
+            lblInquilino.Name = "lblInquilino";
+            lblInquilino.Size = new Size(81, 25);
+            lblInquilino.TabIndex = 22;
+            lblInquilino.Text = "Inquilino";
+            // 
+            // lblInmueble
+            // 
+            lblInmueble.AutoSize = true;
+            lblInmueble.Location = new Point(716, 26);
+            lblInmueble.Margin = new Padding(4, 0, 4, 0);
+            lblInmueble.Name = "lblInmueble";
+            lblInmueble.Size = new Size(86, 25);
+            lblInmueble.TabIndex = 23;
+            lblInmueble.Text = "Inmueble";
+            // 
+            // lblInicio
+            // 
+            lblInicio.AutoSize = true;
+            lblInicio.Location = new Point(68, 81);
+            lblInicio.Margin = new Padding(4, 0, 4, 0);
+            lblInicio.Name = "lblInicio";
+            lblInicio.Size = new Size(54, 25);
+            lblInicio.TabIndex = 24;
+            lblInicio.Text = "Inicio";
+            // 
+            // lblFin
+            // 
+            lblFin.AutoSize = true;
+            lblFin.Location = new Point(417, 81);
+            lblFin.Margin = new Padding(4, 0, 4, 0);
+            lblFin.Name = "lblFin";
+            lblFin.Size = new Size(35, 25);
+            lblFin.TabIndex = 26;
+            lblFin.Text = "Fin";
+            // 
+            // dtpFin
+            // 
+            dtpFin.Location = new Point(460, 81);
+            dtpFin.Margin = new Padding(4);
+            dtpFin.Name = "dtpFin";
+            dtpFin.Size = new Size(234, 31);
+            dtpFin.TabIndex = 27;
+            // 
+            // lblMonto
+            // 
+            lblMonto.AutoSize = true;
+            lblMonto.Location = new Point(56, 139);
+            lblMonto.Margin = new Padding(4, 0, 4, 0);
+            lblMonto.Name = "lblMonto";
+            lblMonto.Size = new Size(66, 25);
+            lblMonto.TabIndex = 28;
+            lblMonto.Text = "Monto";
+            // 
+            // nudMonto
+            // 
+            nudMonto.Location = new Point(127, 139);
+            nudMonto.Margin = new Padding(4);
+            nudMonto.Name = "nudMonto";
+            nudMonto.Size = new Size(236, 31);
+            nudMonto.TabIndex = 29;
             // 
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.White;
-            btnGuardar.Location = new Point(717, 106);
+            btnGuardar.Location = new Point(927, 133);
+            btnGuardar.Margin = new Padding(4);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(131, 32);
-            btnGuardar.TabIndex = 15;
+            btnGuardar.Size = new Size(157, 37);
+            btnGuardar.TabIndex = 34;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
             // 
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.White;
-            btnCancelar.Location = new Point(539, 107);
+            btnCancelar.Location = new Point(743, 135);
+            btnCancelar.Margin = new Padding(4);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(150, 30);
-            btnCancelar.TabIndex = 16;
+            btnCancelar.Size = new Size(157, 36);
+            btnCancelar.TabIndex = 35;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = false;
             // 
-            // btnBuscar
-            // 
-            btnBuscar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnBuscar.BackColor = Color.White;
-            btnBuscar.Location = new Point(110, 105);
-            btnBuscar.Name = "btnBuscar";
-            btnBuscar.Size = new Size(117, 37);
-            btnBuscar.TabIndex = 17;
-            btnBuscar.Text = "Buscar";
-            btnBuscar.UseVisualStyleBackColor = false;
-            // 
-            // txtBuscar
-            // 
-            txtBuscar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            txtBuscar.Location = new Point(245, 110);
-            txtBuscar.Multiline = true;
-            txtBuscar.Name = "txtBuscar";
-            txtBuscar.PlaceholderText = "Buscar por nº, inquilino o inmueble…";
-            txtBuscar.Size = new Size(265, 27);
-            txtBuscar.TabIndex = 18;
-            // 
-            // grpLista
-            // 
-            grpLista.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            grpLista.Controls.Add(dgvContratos);
-            grpLista.Location = new Point(16, 170);
-            grpLista.Name = "grpLista";
-            grpLista.Size = new Size(958, 478);
-            grpLista.TabIndex = 0;
-            grpLista.TabStop = false;
-            grpLista.Text = "Lista de Contratos";
-            // 
-            // dgvContratos
-            // 
-            dgvContratos.AllowUserToAddRows = false;
-            dgvContratos.AllowUserToDeleteRows = false;
-            dgvContratos.BackgroundColor = SystemColors.Control;
-            dgvContratos.ColumnHeadersHeight = 29;
-            dgvContratos.Dock = DockStyle.Fill;
-            dgvContratos.Location = new Point(3, 23);
-            dgvContratos.MultiSelect = false;
-            dgvContratos.Name = "dgvContratos";
-            dgvContratos.RowHeadersVisible = false;
-            dgvContratos.RowHeadersWidth = 51;
-            dgvContratos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvContratos.Size = new Size(952, 452);
-            dgvContratos.TabIndex = 0;
-            // 
             // UcContratos
             // 
-            AutoScaleDimensions = new SizeF(120F, 120F);
-            AutoScaleMode = AutoScaleMode.Dpi;
-            BackColor = Color.Teal;
-            Controls.Add(grpLista);
-            Controls.Add(grpEdicion);
+            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleMode = AutoScaleMode.Font;
+            Controls.Add(panel2);
+            Controls.Add(LListaInquilinos);
+            Controls.Add(dataGridView1);
+            Controls.Add(panel1);
             Name = "UcContratos";
-            Padding = new Padding(8);
-            Size = new Size(990, 664);
-            grpEdicion.ResumeLayout(false);
-            grpEdicion.PerformLayout();
+            Size = new Size(1200, 700);
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)nudMonto).EndInit();
-            grpLista.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvContratos).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
+
+        #endregion
+
+        private Panel panel1;
+        private Label lblTitulo;
+        private DataGridView dataGridView1;
+        private Label LListaInquilinos;
+        private Panel panel2;
+        private ComboBox cmbInmueble;
+        private ComboBox cmbInquilino;
+        private Label lblEstado;
+        private DateTimePicker dtpInicio;
+        private ComboBox cmbEstado;
+        private CheckBox chkActivo;
+        private Label lblNumero;
+        private TextBox txtNumero;
+        private Label lblInquilino;
+        private Label lblInmueble;
+        private Label lblInicio;
+        private Label lblFin;
+        private DateTimePicker dtpFin;
+        private Label lblMonto;
+        private NumericUpDown nudMonto;
+        private Button btnGuardar;
+        private Button btnCancelar;
+        private DataGridViewTextBoxColumn colNumero;
+        private DataGridViewTextBoxColumn colInquilino;
+        private DataGridViewTextBoxColumn colInmueble;
+        private DataGridViewTextBoxColumn colInicio;
+        private DataGridViewTextBoxColumn colFin;
+        private DataGridViewTextBoxColumn colMonto;
+        private DataGridViewTextBoxColumn colEstado;
+        private DataGridViewTextBoxColumn colActivo;
     }
 }
