@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿// UcPagos_Cuotas.Designer.cs — header arreglado para que se vea completo
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace InmoTech
@@ -7,13 +8,20 @@ namespace InmoTech
     {
         private System.ComponentModel.IContainer components = null;
 
+        // Layout raíz
+        private TableLayoutPanel tlRoot;
+
+        // Encabezado + Métricas
+        private TableLayoutPanel tlTop;   // 2 columnas: header | métricas
         private Panel cardHeader;
+        private TableLayoutPanel tlHeader;
         private Label lblContrato;
         private Label lblInquilino;
         private Label lblInmueble;
         private Label lblPeriodo;
 
         private Panel cardMetrics;
+        private TableLayoutPanel tlMetrics;
         private Label lblTotalTitulo;
         private Label lblTotalValor;
         private Label lblAtrasoTitulo;
@@ -21,28 +29,29 @@ namespace InmoTech
         private Label lblCuotasTitulo;
         private Label lblCuotasValor;
 
-        private Panel tabsHeader;
+        // Tabs header
+        private FlowLayoutPanel tabsHeader;
         private Button tabBtnCuotas;
         private Button tabBtnLineaTiempo;
 
-        // 🔁 Cambiado a FlowLayoutPanel (mismo nombre)
+        // Filtros
         private FlowLayoutPanel filtersPanel;
         private Label lblEstado;
         private ComboBox cboEstado;
         private Label lblAnio;
         private ComboBox cboAnio;
 
+        // Contenido
         private TabControl tabs;
         private TabPage tabCuotas;
         private TabPage tabLineaTiempo;
-
         private DataGridView dgvCuotas;
         private Label lblPager;
 
-        // Columns
-        private DataGridViewTextBoxColumn colCuota;          // muestra "n / de"
-        private DataGridViewTextBoxColumn colCuotaRaw;       // oculto
-        private DataGridViewTextBoxColumn colDeCuotasRaw;    // oculto
+        // Columnas
+        private DataGridViewTextBoxColumn colCuota;
+        private DataGridViewTextBoxColumn colCuotaRaw;
+        private DataGridViewTextBoxColumn colDeCuotasRaw;
         private DataGridViewTextBoxColumn colPeriodo;
         private DataGridViewTextBoxColumn colMonto;
         private DataGridViewTextBoxColumn colVencimiento;
@@ -59,21 +68,50 @@ namespace InmoTech
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            SuspendLayout();
 
+            // ===== root =====
             BackColor = Color.White;
             AutoScaleMode = AutoScaleMode.Dpi;
             Name = "UcPagos_Cuotas";
-            Size = new Size(1000, 680);
+            Padding = new Padding(16);
+            MinimumSize = new Size(700, 420);
 
-            // ======= Card cabecera =======
+            tlRoot = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 4,
+                BackColor = Color.White
+            };
+            tlRoot.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // header + metrics (alto auto)
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // tabs header
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // filtros
+            tlRoot.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));  // contenido (llena resto)
+
+            // ===== Encabezado + métricas =====
+            tlTop = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                ColumnCount = 2,
+                RowCount = 1,
+                Padding = new Padding(0, 0, 0, 8),
+                AutoSize = true
+            };
+            tlTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 68F));
+            tlTop.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32F));
+            tlTop.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            // -- Card header
             cardHeader = new Panel
             {
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.None,
-                Location = new Point(20, 16),
-                Size = new Size(960, 110),
-                Padding = new Padding(16)
+                Dock = DockStyle.Fill,
+                Padding = new Padding(16),
+                Margin = new Padding(0, 0, 8, 0),
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink
             };
             cardHeader.Paint += (s, e) =>
             {
@@ -81,50 +119,69 @@ namespace InmoTech
                 e.Graphics.DrawRectangle(p, 0, 0, cardHeader.Width - 1, cardHeader.Height - 1);
             };
 
+            // Tabla interna para texto (evita recortes)
+            tlHeader = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 4,
+                AutoSize = true
+            };
+            tlHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlHeader.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // contrato
+            tlHeader.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // inquilino
+            tlHeader.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // inmueble
+            tlHeader.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // periodo
+
             lblContrato = new Label
             {
                 AutoSize = true,
-                Font = new Font("Segoe UI", 14F, FontStyle.Bold, GraphicsUnit.Point),
+                Font = new Font("Segoe UI", 16F, FontStyle.Bold, GraphicsUnit.Point),
                 ForeColor = Color.FromArgb(35, 35, 35),
-                Location = new Point(16, 12),
+                Margin = new Padding(0, 0, 0, 4),
                 Text = "Contrato C-XXXX"
             };
-
             lblInquilino = new Label
             {
                 AutoSize = true,
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point),
+                Font = new Font("Segoe UI", 9.5F),
                 ForeColor = Color.FromArgb(70, 70, 70),
-                Location = new Point(18, 46),
+                Margin = new Padding(0, 2, 0, 0),
                 Text = "Inquilino: —"
             };
-
             lblInmueble = new Label
             {
                 AutoSize = true,
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point),
+                Font = new Font("Segoe UI", 9.5F),
                 ForeColor = Color.FromArgb(70, 70, 70),
-                Location = new Point(18, 66),
+                Margin = new Padding(0, 2, 0, 0),
                 Text = "Inmueble: —"
             };
-
             lblPeriodo = new Label
             {
                 AutoSize = true,
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point),
+                Font = new Font("Segoe UI", 9.5F),
                 ForeColor = Color.FromArgb(70, 70, 70),
-                Location = new Point(18, 86),
+                Margin = new Padding(0, 2, 0, 0),
                 Text = "Inicio – Fin: —"
             };
 
-            // ======= Card métricas =======
+            tlHeader.Controls.Add(lblContrato, 0, 0);
+            tlHeader.Controls.Add(lblInquilino, 0, 1);
+            tlHeader.Controls.Add(lblInmueble, 0, 2);
+            tlHeader.Controls.Add(lblPeriodo, 0, 3);
+            cardHeader.Controls.Add(tlHeader);
+
+            // -- Card métricas
             cardMetrics = new Panel
             {
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.None,
-                Location = new Point(640, 16),
-                Size = new Size(340, 110),
-                Padding = new Padding(12)
+                Dock = DockStyle.Fill,
+                Padding = new Padding(12),
+                Margin = new Padding(8, 0, 0, 0),
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink
             };
             cardMetrics.Paint += (s, e) =>
             {
@@ -132,21 +189,33 @@ namespace InmoTech
                 e.Graphics.DrawRectangle(p, 0, 0, cardMetrics.Width - 1, cardMetrics.Height - 1);
             };
 
+            tlMetrics = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 2,
+                AutoSize = true
+            };
+            tlMetrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlMetrics.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlMetrics.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlMetrics.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
             lblTotalTitulo = new Label
             {
                 Text = "Total",
                 AutoSize = true,
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
-                Location = new Point(14, 14),
-                ForeColor = Color.FromArgb(90, 90, 90)
+                Font = new Font("Segoe UI", 9.5F),
+                ForeColor = Color.FromArgb(90, 90, 90),
+                Margin = new Padding(0, 0, 0, 0)
             };
             lblTotalValor = new Label
             {
                 Text = "$0",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 14F, FontStyle.Bold),
-                Location = new Point(14, 34),
-                ForeColor = Color.FromArgb(35, 35, 35)
+                ForeColor = Color.FromArgb(35, 35, 35),
+                Margin = new Padding(0, 2, 0, 6)
             };
 
             lblAtrasoTitulo = new Label
@@ -154,16 +223,16 @@ namespace InmoTech
                 Text = "Atraso",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9.5F),
-                Location = new Point(180, 14),
-                ForeColor = Color.FromArgb(90, 90, 90)
+                ForeColor = Color.FromArgb(90, 90, 90),
+                Margin = new Padding(0, 0, 0, 0)
             };
             lblAtrasoValor = new Label
             {
                 Text = "$0",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 14F, FontStyle.Bold),
-                Location = new Point(180, 34),
-                ForeColor = Color.FromArgb(200, 60, 40)
+                ForeColor = Color.FromArgb(200, 60, 40),
+                Margin = new Padding(0, 2, 0, 6)
             };
 
             lblCuotasTitulo = new Label
@@ -171,43 +240,68 @@ namespace InmoTech
                 Text = "Cuotas",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9.5F),
-                Location = new Point(14, 70),
-                ForeColor = Color.FromArgb(90, 90, 90)
+                ForeColor = Color.FromArgb(90, 90, 90),
+                Margin = new Padding(0, 0, 0, 0)
             };
             lblCuotasValor = new Label
             {
                 Text = "0",
                 AutoSize = true,
                 Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
-                Location = new Point(70, 70),
-                ForeColor = Color.FromArgb(35, 35, 35)
+                ForeColor = Color.FromArgb(35, 35, 35),
+                Margin = new Padding(0, 2, 0, 0)
             };
 
-            cardHeader.Controls.Add(lblContrato);
-            cardHeader.Controls.Add(lblInquilino);
-            cardHeader.Controls.Add(lblInmueble);
-            cardHeader.Controls.Add(lblPeriodo);
-
-            cardMetrics.Controls.Add(lblTotalTitulo);
-            cardMetrics.Controls.Add(lblTotalValor);
-            cardMetrics.Controls.Add(lblAtrasoTitulo);
-            cardMetrics.Controls.Add(lblAtrasoValor);
-            cardMetrics.Controls.Add(lblCuotasTitulo);
-            cardMetrics.Controls.Add(lblCuotasValor);
-
-            // ======= Tabs header =======
-            tabsHeader = new Panel
+            // Columna izquierda (Total / Cuotas)
+            var leftPanel = new FlowLayoutPanel
             {
-                BackColor = Color.White,
-                Location = new Point(20, 140),
-                Size = new Size(960, 36)
+                FlowDirection = FlowDirection.TopDown,
+                AutoSize = true,
+                WrapContents = false,
+                Dock = DockStyle.Fill
+            };
+            leftPanel.Controls.Add(lblTotalTitulo);
+            leftPanel.Controls.Add(lblTotalValor);
+            leftPanel.Controls.Add(lblCuotasTitulo);
+            leftPanel.Controls.Add(lblCuotasValor);
+
+            // Columna derecha (Atraso)
+            var rightPanel = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.TopDown,
+                AutoSize = true,
+                WrapContents = false,
+                Dock = DockStyle.Fill
+            };
+            rightPanel.Controls.Add(lblAtrasoTitulo);
+            rightPanel.Controls.Add(lblAtrasoValor);
+
+            tlMetrics.Controls.Add(leftPanel, 0, 0);
+            tlMetrics.SetRowSpan(leftPanel, 2);
+            tlMetrics.Controls.Add(rightPanel, 1, 0);
+            tlMetrics.SetRowSpan(rightPanel, 2);
+
+            cardMetrics.Controls.Add(tlMetrics);
+
+            tlTop.Controls.Add(cardHeader, 0, 0);
+            tlTop.Controls.Add(cardMetrics, 1, 0);
+
+            // ===== Tabs header =====
+            tabsHeader = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Dock = DockStyle.Top,
+                Height = 40,
+                Padding = new Padding(0, 4, 0, 4),
+                BackColor = Color.White
             };
             tabBtnCuotas = new Button
             {
                 Text = "Cuotas",
                 FlatStyle = FlatStyle.Flat,
-                Location = new Point(0, 0),
-                Size = new Size(90, 32)
+                AutoSize = true,
+                Margin = new Padding(0, 0, 8, 0)
             };
             tabBtnCuotas.FlatAppearance.BorderSize = 0;
 
@@ -215,27 +309,25 @@ namespace InmoTech
             {
                 Text = "Línea de tiempo",
                 FlatStyle = FlatStyle.Flat,
-                Location = new Point(100, 0),
-                Size = new Size(140, 32)
+                AutoSize = true,
+                Margin = new Padding(0)
             };
             tabBtnLineaTiempo.FlatAppearance.BorderSize = 0;
 
             tabsHeader.Controls.Add(tabBtnCuotas);
             tabsHeader.Controls.Add(tabBtnLineaTiempo);
 
-            // ======= Filtros (FlowLayoutPanel) =======
+            // ===== Filtros =====
             filtersPanel = new FlowLayoutPanel
             {
-                BackColor = Color.White,
-                Location = new Point(20, 176),
-                Size = new Size(960, 36),
+                Dock = DockStyle.Top,
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
-                Padding = new Padding(0, 4, 0, 4)
+                Padding = new Padding(0, 2, 0, 8),
+                BackColor = Color.White
             };
-
             lblEstado = new Label
             {
                 Text = "Estado:",
@@ -249,7 +341,6 @@ namespace InmoTech
                 Width = 160,
                 Margin = new Padding(0, 4, 20, 0)
             };
-
             lblAnio = new Label
             {
                 Text = "Año:",
@@ -263,23 +354,20 @@ namespace InmoTech
                 Width = 120,
                 Margin = new Padding(0, 4, 0, 0)
             };
-
             filtersPanel.Controls.Add(lblEstado);
             filtersPanel.Controls.Add(cboEstado);
             filtersPanel.Controls.Add(lblAnio);
             filtersPanel.Controls.Add(cboAnio);
 
-            // ======= TabControl =======
+            // ===== Contenido: TabControl (fill) =====
             tabs = new TabControl
             {
-                Location = new Point(20, 212),
-                Size = new Size(960, 420),
+                Dock = DockStyle.Fill,
                 Appearance = TabAppearance.Normal
             };
             tabCuotas = new TabPage("Cuotas") { BackColor = Color.White };
             tabLineaTiempo = new TabPage("Línea de tiempo") { BackColor = Color.White };
 
-            // ======= DataGridView =======
             dgvCuotas = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -291,71 +379,19 @@ namespace InmoTech
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
                 GridColor = Color.FromArgb(235, 235, 235),
             };
-
-            // Columnas
-            colCuota = new DataGridViewTextBoxColumn
-            {
-                Name = "colCuota",
-                HeaderText = "Cuota",
-                FillWeight = 85
-            };
-            colCuotaRaw = new DataGridViewTextBoxColumn
-            {
-                Name = "colCuotaRaw",
-                DataPropertyName = "NroCuota",
-                Visible = false
-            };
-            colDeCuotasRaw = new DataGridViewTextBoxColumn
-            {
-                Name = "colDeCuotasRaw",
-                DataPropertyName = "DeCuotas",
-                Visible = false
-            };
-            colPeriodo = new DataGridViewTextBoxColumn
-            {
-                Name = "colPeriodo",
-                HeaderText = "Período",
-                DataPropertyName = "Periodo",
-                FillWeight = 140
-            };
-            colMonto = new DataGridViewTextBoxColumn
-            {
-                Name = "colMonto",
-                HeaderText = "Monto",
-                DataPropertyName = "Monto",
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "C0" },
-                FillWeight = 110
-            };
-            colVencimiento = new DataGridViewTextBoxColumn
-            {
-                Name = "colVencimiento",
-                HeaderText = "Vencimiento",
-                DataPropertyName = "Vencimiento",
-                DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" },
-                FillWeight = 120
-            };
-            colEstado = new DataGridViewTextBoxColumn
-            {
-                Name = "colEstado",
-                HeaderText = "Estado",
-                DataPropertyName = "Estado",
-                FillWeight = 110
-            };
-            colAccion = new DataGridViewButtonColumn
-            {
-                Name = "colAccion",
-                HeaderText = "Acciones",
-                UseColumnTextForButtonValue = false,
-                Text = "Pagar",
-                FillWeight = 110
-            };
-
+            colCuota = new DataGridViewTextBoxColumn { Name = "colCuota", HeaderText = "Cuota", FillWeight = 85 };
+            colCuotaRaw = new DataGridViewTextBoxColumn { Name = "colCuotaRaw", DataPropertyName = "NroCuota", Visible = false };
+            colDeCuotasRaw = new DataGridViewTextBoxColumn { Name = "colDeCuotasRaw", DataPropertyName = "DeCuotas", Visible = false };
+            colPeriodo = new DataGridViewTextBoxColumn { Name = "colPeriodo", HeaderText = "Período", DataPropertyName = "Periodo", FillWeight = 140 };
+            colMonto = new DataGridViewTextBoxColumn { Name = "colMonto", HeaderText = "Monto", DataPropertyName = "Monto", DefaultCellStyle = new DataGridViewCellStyle { Format = "C0" }, FillWeight = 110 };
+            colVencimiento = new DataGridViewTextBoxColumn { Name = "colVencimiento", HeaderText = "Vencimiento", DataPropertyName = "Vencimiento", DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" }, FillWeight = 120 };
+            colEstado = new DataGridViewTextBoxColumn { Name = "colEstado", HeaderText = "Estado", DataPropertyName = "Estado", FillWeight = 110 };
+            colAccion = new DataGridViewButtonColumn { Name = "colAccion", HeaderText = "Acciones", UseColumnTextForButtonValue = false, Text = "Pagar", FillWeight = 110 };
             dgvCuotas.Columns.AddRange(new DataGridViewColumn[]
             {
                 colCuota, colCuotaRaw, colDeCuotasRaw, colPeriodo, colMonto, colVencimiento, colEstado, colAccion
             });
 
-            // Pager
             lblPager = new Label
             {
                 Dock = DockStyle.Bottom,
@@ -367,18 +403,19 @@ namespace InmoTech
 
             tabCuotas.Controls.Add(dgvCuotas);
             tabCuotas.Controls.Add(lblPager);
-
             tabs.TabPages.Add(tabCuotas);
             tabs.TabPages.Add(tabLineaTiempo);
 
-            // Add controls to root
-            Controls.Add(cardHeader);
-            Controls.Add(cardMetrics);
-            Controls.Add(tabsHeader);
-            Controls.Add(filtersPanel);  // <- ahora es FlowLayoutPanel
-            Controls.Add(tabs);
+            // ===== Compose raíz =====
+            tlTop.Controls.Add(cardHeader, 0, 0);
+            tlTop.Controls.Add(cardMetrics, 1, 0);
 
-            ResumeLayout(false);
+            tlRoot.Controls.Add(tlTop, 0, 0);
+            tlRoot.Controls.Add(tabsHeader, 0, 1);
+            tlRoot.Controls.Add(filtersPanel, 0, 2);
+            tlRoot.Controls.Add(tabs, 0, 3);
+
+            Controls.Add(tlRoot);
         }
         #endregion
     }

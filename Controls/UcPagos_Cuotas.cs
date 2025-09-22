@@ -42,9 +42,7 @@ namespace InmoTech
         private readonly BindingSource _bs = new();
 
         // ======= Eventos públicos =======
-        // Envia: contrato, nroCuota, periodo, monto, vencimiento  (→ MainForm abre Pagar)
         public event EventHandler<(string contrato, int nroCuota, string periodo, decimal monto, DateTime vencimiento)>? PagarClicked;
-        // Compatibilidad para "Ver recibo"
         public event EventHandler<(string contrato, int nroCuota)>? VerReciboClicked;
 
         // ======= Estado =======
@@ -56,15 +54,12 @@ namespace InmoTech
 
             if (!DesignMode)
             {
-                // Datasource
                 _bs.DataSource = _data;
                 dgvCuotas.AutoGenerateColumns = false;
                 dgvCuotas.DataSource = _bs;
 
-                // Estilos
                 StyleDataGridView();
 
-                // Eventos UI
                 dgvCuotas.CellPainting += DgvCuotas_CellPainting;         // badge Estado
                 dgvCuotas.CellFormatting += DgvCuotas_CellFormatting;     // texto botón Acciones
                 dgvCuotas.CellContentClick += DgvCuotas_CellContentClick; // click botón acciones
@@ -75,8 +70,7 @@ namespace InmoTech
                 tabBtnCuotas.Click += (_, __) => tabs.SelectedIndex = 0;
                 tabBtnLineaTiempo.Click += (_, __) => ShowTimelinePlaceholder();
 
-                // Demo opcional
-                LoadDemo();
+                LoadDemo(); // demo
             }
         }
 
@@ -112,23 +106,20 @@ namespace InmoTech
                 });
             }
 
-            // Filtros: Estado y Año
             BuildFilterCombos();
             ApplyFilters();
             UpdatePager();
         }
 
-        // ======= Helpers filtros =======
+        // ======= Filtros =======
         private void BuildFilterCombos()
         {
-            // Estado
             var estados = new[] { "Todas" }
                 .Concat(_data.Select(d => d.Estado).Distinct().OrderBy(s => s))
                 .ToList();
             cboEstado.DataSource = estados;
             cboEstado.SelectedIndex = 0;
 
-            // Años
             var years = _data.Select(d => d.AnioPeriodo).Distinct().OrderBy(y => y).ToList();
             if (years.Count == 0) years = new List<int> { DateTime.Today.Year };
             var items = new List<string> { "Todos" };
@@ -157,7 +148,6 @@ namespace InmoTech
 
         private static int InferYearFromPeriodo(string periodo, DateTime fallback)
         {
-            // "Mayo 2024" -> 2024
             var tokens = (periodo ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (tokens.Length >= 2 && int.TryParse(tokens[^1], out int y)) return y;
             return fallback.Year;
@@ -198,7 +188,6 @@ namespace InmoTech
 
             var row = dgvCuotas.Rows[e.RowIndex];
 
-            // Columna "Cuota" muestra "n / de"
             if (dgvCuotas.Columns[e.ColumnIndex].Name == "colCuota")
             {
                 int.TryParse(row.Cells["colCuotaRaw"].Value?.ToString(), out int nro);
@@ -208,7 +197,6 @@ namespace InmoTech
                 return;
             }
 
-            // Botón Acciones según Estado
             if (dgvCuotas.Columns[e.ColumnIndex].Name == "colAccion")
             {
                 string estado = row.Cells["colEstado"].Value?.ToString() ?? string.Empty;
@@ -237,21 +225,20 @@ namespace InmoTech
                 (int)textSize.Height + padY * 2
             );
 
-            // Colores por estado
             Color back, border;
             if (estadoText.Equals("Pagada", StringComparison.OrdinalIgnoreCase))
             {
-                back = Color.FromArgb(253, 226, 239);   // rosado suave
+                back = Color.FromArgb(253, 226, 239);
                 border = Color.FromArgb(250, 200, 220);
             }
             else if (estadoText.Equals("Vencida", StringComparison.OrdinalIgnoreCase))
             {
-                back = Color.FromArgb(255, 228, 225);   // rojo muy claro
+                back = Color.FromArgb(255, 228, 225);
                 border = Color.FromArgb(255, 205, 205);
             }
-            else // Pendiente
+            else
             {
-                back = Color.FromArgb(255, 248, 220);   // amarillo claro
+                back = Color.FromArgb(255, 248, 220);
                 border = Color.FromArgb(255, 235, 180);
             }
 
@@ -268,7 +255,6 @@ namespace InmoTech
             e.Paint(e.ClipBounds, DataGridViewPaintParts.Border);
         }
 
-        // ======= Click en botón Acciones =======
         private void DgvCuotas_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
@@ -278,16 +264,12 @@ namespace InmoTech
 
             var row = dgvCuotas.Rows[e.RowIndex];
 
-            // nro de cuota (desde raw "n")
             if (!int.TryParse(row.Cells["colCuotaRaw"].Value?.ToString(), out int nroCuota))
                 return;
 
             string estado = row.Cells["colEstado"].Value?.ToString() ?? string.Empty;
-
-            // leer periodo
             string periodo = row.Cells["colPeriodo"]?.Value?.ToString() ?? "";
 
-            // leer monto (puede venir "50.000" o "$ 50.000")
             decimal monto = 0m;
             var montoText = (row.Cells["colMonto"]?.Value?.ToString() ?? "")
                             .Replace("$", "").Trim();
@@ -297,7 +279,6 @@ namespace InmoTech
                 CultureInfo.GetCultureInfo("es-AR"),
                 out monto);
 
-            // leer vencimiento
             DateTime venc = DateTime.MinValue;
             DateTime.TryParse(row.Cells["colVencimiento"]?.Value?.ToString(), out venc);
 
@@ -307,7 +288,7 @@ namespace InmoTech
                 PagarClicked?.Invoke(this, (_numeroContrato, nroCuota, periodo, monto, venc));
         }
 
-        // ======= Utilitarios =======
+        // ===== Utilitarios =====
         private static System.Drawing.Drawing2D.GraphicsPath RoundedRect(Rectangle bounds, int radius)
         {
             int d = radius * 2;
@@ -339,13 +320,12 @@ namespace InmoTech
 
         private void UpdatePager()
         {
-            // Placeholder: “1 - N de M”
             int total = _data.Count;
             int visibles = (_bs.List?.Count ?? 0);
             lblPager.Text = visibles == 0 ? "0 de 0" : $"1 - {visibles} de {total}";
         }
 
-        // ======= Demo opcional para ver algo sin BD =======
+        // ===== Demo para visualizar sin BD =====
         private void LoadDemo()
         {
             LoadContrato(new CabeceraContratoVm
