@@ -1,4 +1,4 @@
-﻿// MainForm.cs — versión completa con Reportes por rol (Admin/Operador/Propietario)
+﻿// MainForm.cs — versión completa con Reportes por rol (Admin/Operador/Propietario) + Botón Backup (solo Admin)
 using InmoTech;
 using InmoTech.Controls;
 using InmoTech.Models;
@@ -91,9 +91,9 @@ namespace InmoTech
             // Botones visibles por rol (si luego querés ocultar por rol)
             _botonesVisiblesPorRol = new Dictionary<RolUsuario, Button[]>
             {
-                [RolUsuario.Administrador] = new[] { BDashboard, BUsuarios, BInmuebles, BInquilinos, BReportes },
-                [RolUsuario.Operador] = new[] { BDashboard, BPagos, BContratos, BReportes },
-                [RolUsuario.Propietario] = new[] { BDashboard, BContratos, BInmuebles, BReportes }
+                [RolUsuario.Administrador] = new[] { BDashboard, BUsuarios, BInmuebles, BInquilinos, BReportes, BBackup },
+                [RolUsuario.Operador] = new[] { BDashboard, BPagos, BContratos, BReportes /* Backup NO */ },
+                [RolUsuario.Propietario] = new[] { BDashboard, BContratos, BInmuebles, BReportes /* Backup NO */ }
             };
 
             // Estilo y permisos
@@ -107,6 +107,10 @@ namespace InmoTech
             // Flujo especial de Pagos → Contratos → Cuotas, sin tocar tu handler original
             BPagos.Click -= BPagos_Click_Ex; // evitar doble suscripción por si el diseñador engancha varias veces
             BPagos.Click += BPagos_Click_Ex;
+
+            // Backup (solo vista por ahora)
+            BBackup.Click -= BBackup_Click;
+            BBackup.Click += BBackup_Click;
         }
 
         #endregion
@@ -156,7 +160,7 @@ namespace InmoTech
             Button[] todosLosBotones =
             {
                 BDashboard, BUsuarios, BInmuebles, BInquilinos,
-                BContratos, BPagos, BReportes
+                BContratos, BPagos, BReportes, BBackup
             };
 
             foreach (var boton in todosLosBotones)
@@ -169,7 +173,7 @@ namespace InmoTech
                 vistasPermitidas = set;
             }
 
-            // Mapa normal (sin Reportes: lo manejamos dinámico)
+            // Mapa normal (sin Reportes y sin Backup)
             var mapaBotonVista = new Dictionary<Button, Type>
             {
                 { BDashboard,  typeof(UcDashboard)  },
@@ -195,8 +199,12 @@ namespace InmoTech
                 vistasPermitidas.Contains(tipoReporte);
 
             if (!AuthService.IsAuthenticated) habilitarReportes = false;
-
             DefinirEstadoBotonLateral(BReportes, habilitarReportes);
+            // =============================================
+
+            // ===== Botón Backup (solo Administrador) =====
+            bool habilitarBackup = AuthService.IsAuthenticated && RolActual == RolUsuario.Administrador;
+            DefinirEstadoBotonLateral(BBackup, habilitarBackup);
             // =============================================
 
             BSalir.Visible = true;
@@ -360,6 +368,40 @@ namespace InmoTech
             CargarVista(tipo, BReportes);
         }
 
+        // Reemplazá solo este método en MainForm.cs
+
+        private void BBackup_Click(object? sender, EventArgs e)
+        {
+            // Restricción de rol (solo Administrador)
+            if (!(Security.AuthService.IsAuthenticated && RolActual == (RolUsuario)1)) // 1 = Administrador
+            {
+                MessageBox.Show("Solo el Administrador puede acceder al Backup.", "Acceso denegado",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Muestra la vista de Backup en el panel de contenido
+            if (sender is Button btn) MarcarBotonLateralActivo(btn);
+
+            var uc = new Controls.UcBackup();
+
+            // (Enganches opcionales para cuando agregues backend)
+            uc.ProbarRutaClicked += (_, ruta) =>
+            {
+                // TODO: acá podrías hacer chequeos extra (permisos, espacio libre, etc.)
+                // Por ahora no hace nada adicional.
+            };
+
+            uc.SimularClicked += (_, cfg) =>
+            {
+                // TODO: acá podrías construir el T-SQL o script real usando cfg
+                // Por ahora no hace nada adicional.
+            };
+
+            ShowInContent(uc);
+        }
+
+
         private void BSalir_Click(object sender, EventArgs e)
         {
             var r = MessageBox.Show("¿Desea salir de InmoTech?", "Confirmar salida",
@@ -457,6 +499,10 @@ namespace InmoTech
             EstilizarBotonSidebar(BContratos, Properties.Resources.contratosIcon, "Contratos");
             EstilizarBotonSidebar(BPagos, Properties.Resources.pagosIcon, "Pagos");
             EstilizarBotonSidebar(BReportes, Properties.Resources.reportesIcon, "Reportes");
+
+            // Para "Backup" reutilizo el ícono de reportes (podés cambiarlo cuando tengas uno específico)
+            EstilizarBotonSidebar(BBackup, Properties.Resources.reportesIcon, "Backup");
+
             EstilizarBotonSidebar(BSalir, Properties.Resources.botonSalir, "Salir");
         }
 
@@ -642,8 +688,7 @@ namespace InmoTech
                 // Guardar
                 pagar.GuardarPagoClicked += (_, pago) =>
                 {
-                    // TODO: guardar en BD. Ejemplo mínimo:
-                    // repoPagos.RegistrarPago(pago.Contrato, pago.NroCuota, pago.FechaPago, pago.MedioPago, pago.Comprobante, pago.Observaciones, pago.Monto);
+                    // TODO: guardar en BD.
 
                     // Si quiere recibo automático o previa, mostramos Recibo
                     if (pago.EmitirRecibo)
@@ -683,7 +728,7 @@ namespace InmoTech
                         Periodo = pago.Periodo,
                         FechaPago = pago.FechaPago,
                         MedioPago = pago.MedioPago,
-                        Importe = pago.Monto,
+                        Importe = 50000m,
                         Inquilino = inquilino,
                         Inmueble = inmueble
                     });
@@ -709,8 +754,8 @@ namespace InmoTech
                     FechaPago = new DateTime(2024, 06, 10),
                     MedioPago = "Transferencia",
                     Importe = 50000m,
-                    Inquilino = inquilino,
-                    Inmueble = inmueble
+                    Inquilino = "—",
+                    Inmueble = "—"
                 });
                 ShowInContent(recibo);
             };

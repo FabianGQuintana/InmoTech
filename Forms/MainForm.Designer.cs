@@ -1,4 +1,8 @@
-﻿namespace InmoTech
+﻿// MainForm.Designer.cs — agrega botón BBackup antes de Salir y respeta pnlInfoUsuario
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace InmoTech
 {
     partial class MainForm
     {
@@ -43,6 +47,7 @@
             BDashboard = new Button();
             BUsuarios = new Button();
             BInmuebles = new Button();
+            BBackup = new Button(); // ⬅️ NUEVO
             BSalir = new Button();
             tableLayoutPanel1 = new TableLayoutPanel();
             PanelLateral.SuspendLayout();
@@ -76,6 +81,7 @@
             PanelLateral.Controls.Add(BDashboard);
             PanelLateral.Controls.Add(BUsuarios);
             PanelLateral.Controls.Add(BInmuebles);
+            PanelLateral.Controls.Add(BBackup); // ⬅️ NUEVO: antes que Salir
             PanelLateral.Controls.Add(BSalir);
             PanelLateral.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             PanelLateral.Location = new Point(4, 4);
@@ -238,11 +244,22 @@
             BInmuebles.UseVisualStyleBackColor = true;
             BInmuebles.Click += BInmuebles_Click;
             // 
+            // BBackup (NUEVO)
+            // 
+            BBackup.Location = new Point(25, 810); // justo antes de Salir y fuera del área de pnlInfoUsuario
+            BBackup.Margin = new Padding(4);
+            BBackup.Name = "BBackup";
+            BBackup.Size = new Size(222, 62);
+            BBackup.TabIndex = 11;
+            BBackup.Text = "Backup";
+            BBackup.UseVisualStyleBackColor = true;
+            // el Click se engancha en el constructor: BBackup.Click += BBackup_Click;
+            // 
             // BSalir
             // 
             BSalir.BackColor = Color.White;
             BSalir.ImageAlign = ContentAlignment.MiddleLeft;
-            BSalir.Location = new Point(25, 810);
+            BSalir.Location = new Point(25, 882); // movido un poco más abajo para no superponerse
             BSalir.Margin = new Padding(4);
             BSalir.Name = "BSalir";
             BSalir.Size = new Size(222, 62);
@@ -299,6 +316,7 @@
         private Button BDashboard;
         private Button BUsuarios;
         private Button BInmuebles;
+        private Button BBackup;   // ⬅️ NUEVO
         private Button BSalir;
         private TableLayoutPanel tableLayoutPanel1;
         private PictureBox pictureBox1;
