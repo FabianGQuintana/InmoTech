@@ -12,6 +12,10 @@ using System.Windows.Forms;
 
 namespace InmoTech
 {
+    /// <summary>
+    /// UserControl para alta/edición y listado de usuarios.
+    /// Incluye validaciones, normalización de texto y acciones sobre el DataGridView.
+    /// </summary>
     public partial class UcUsuarios : UserControl
     {
         private readonly BindingList<Usuario> _usuariosBindingList = new();
@@ -22,6 +26,9 @@ namespace InmoTech
         private bool _estaNormalizandoTexto;
         private static readonly TextInfo _textoInfo = CultureInfo.GetCultureInfo("es-AR").TextInfo;
 
+        /// <summary>
+        /// Constructor: inicializa la UI, engancha eventos y deja todo listo para usar.
+        /// </summary>
         public UcUsuarios()
         {
             InitializeComponent();
@@ -36,19 +43,26 @@ namespace InmoTech
             dgvUsuarios.CellDoubleClick += DataGridUsuarios_CellDoubleClick;
             dgvUsuarios.CellFormatting += DataGridUsuarios_CellFormatting;
 
-            // Restricciones numéricas (tecleo y pegado)
+            // Restricciones numéricas (tecleo y pegado) para DNI y Teléfono
             txtDni.KeyPress += TextBoxSoloDigitos_KeyPress;
             txtDni.TextChanged += TextBoxSoloDigitos_TextChanged;
             txtTelefono.KeyPress += TextBoxSoloDigitos_KeyPress;
             txtTelefono.TextChanged += TextBoxSoloDigitos_TextChanged;
 
-            // Capitalización en vivo
+            // Capitalización en vivo para Nombre y Apellido
             txtNombre.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
             txtApellido.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
+
+            // Bloquea números en Nombre y Apellido al tipear
+            txtNombre.KeyPress += TextBoxSoloLetras_KeyPress;
+            txtApellido.KeyPress += TextBoxSoloLetras_KeyPress;
 
             AjustarInterfazUsuario();
         }
 
+        /// <summary>
+        /// Evento Load: configura grilla, setea valores por defecto y carga usuarios.
+        /// </summary>
         private void UcUsuarios_Load(object? sender, EventArgs e)
         {
             if (DesignMode || (Site?.DesignMode ?? false)) return;
@@ -65,6 +79,9 @@ namespace InmoTech
         }
 
         // ========================== Guardar (Alta / Edición) ==========================
+        /// <summary>
+        /// Click en Guardar: valida, mapea y ejecuta alta o edición según corresponda.
+        /// </summary>
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
             LimpiarErroresValidacion();
@@ -161,6 +178,9 @@ namespace InmoTech
         }
 
         // ========================== Grilla: acciones / formato ==========================
+        /// <summary>
+        /// Doble click en una fila del grid: carga el formulario en modo edición.
+        /// </summary>
         private void DataGridUsuarios_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -168,6 +188,9 @@ namespace InmoTech
             if (usuarioSeleccionado != null) CargarFormularioParaEditar(usuarioSeleccionado);
         }
 
+        /// <summary>
+        /// Click en columnas de acción (Editar / Activar-Inactivar).
+        /// </summary>
         private void DataGridUsuarios_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -219,6 +242,9 @@ namespace InmoTech
             }
         }
 
+        /// <summary>
+        /// Formatea columnas como Estado (bool a texto) y Rol (int a nombre).
+        /// </summary>
         private void DataGridUsuarios_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -237,6 +263,9 @@ namespace InmoTech
             }
         }
 
+        /// <summary>
+        /// Devuelve el nombre legible de un rol dado su Id.
+        /// </summary>
         private static string ObtenerNombreRol(int idRol) =>
             idRol switch
             {
@@ -247,11 +276,17 @@ namespace InmoTech
             };
 
         // ========================== Mapeo / Validación / Estados ==========================
+        /// <summary>
+        /// Obtiene el <see cref="Usuario"/> vinculado a una fila del DataGridView.
+        /// </summary>
         private Usuario? ObtenerUsuarioDeFila(int indiceFila) =>
             (indiceFila >= 0 && indiceFila < dgvUsuarios.Rows.Count)
                 ? dgvUsuarios.Rows[indiceFila].DataBoundItem as Usuario
                 : null;
 
+        /// <summary>
+        /// Pone el formulario en modo edición con los datos del usuario indicado.
+        /// </summary>
         private void CargarFormularioParaEditar(Usuario usuario)
         {
             _usuarioEnEdicion = usuario;
@@ -278,6 +313,9 @@ namespace InmoTech
             txtNombre.Focus();
         }
 
+        /// <summary>
+        /// Convierte los campos del formulario en una instancia de <see cref="Usuario"/>.
+        /// </summary>
         private Usuario MapearFormularioAUsuario() => new()
         {
             Dni = int.Parse(txtDni.Text.Trim()),
@@ -290,6 +328,9 @@ namespace InmoTech
             FechaNacimiento = dateTimePicker1.Value.Date
         };
 
+        /// <summary>
+        /// Valida el formulario y devuelve la lista de errores (si los hubiera).
+        /// </summary>
         private bool TryValidarFormulario(out List<string> erroresValidacion)
         {
             erroresValidacion = new();
@@ -319,8 +360,14 @@ namespace InmoTech
                 ep.SetError(txtTelefono, "Mínimo 6 dígitos.");
             }
 
+            // ===== Email: obligatorio + formato =====
             string emailNormalizado = txtEmail.Text.Trim();
-            if (!string.IsNullOrWhiteSpace(emailNormalizado))
+            if (string.IsNullOrWhiteSpace(emailNormalizado))
+            {
+                erroresValidacion.Add("El email es obligatorio.");
+                ep.SetError(txtEmail, "Ingresá un email.");
+            }
+            else
             {
                 var expresionEmailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
                 if (!expresionEmailRegex.IsMatch(emailNormalizado))
@@ -363,6 +410,9 @@ namespace InmoTech
             return erroresValidacion.Count == 0;
         }
 
+        /// <summary>
+        /// Establece el formulario en modo alta (limpia selección y textos).
+        /// </summary>
         private void EstablecerModoAlta()
         {
             _usuarioEnEdicion = null;
@@ -372,6 +422,9 @@ namespace InmoTech
             lblListaTitulo.Text = "Lista de usuarios";
         }
 
+        /// <summary>
+        /// Limpia los campos del formulario y errores.
+        /// </summary>
         private void LimpiarFormulario()
         {
             LimpiarErroresValidacion();
@@ -387,6 +440,9 @@ namespace InmoTech
             txtNombre.Focus();
         }
 
+        /// <summary>
+        /// Borra los mensajes del ErrorProvider.
+        /// </summary>
         private void LimpiarErroresValidacion()
         {
             ep.SetError(txtNombre, string.Empty);
@@ -399,6 +455,9 @@ namespace InmoTech
             ep.SetError(dateTimePicker1, string.Empty);
         }
 
+        /// <summary>
+        /// Carga la lista de usuarios desde la base y refresca el binding.
+        /// </summary>
         private void CargarUsuariosDesdeBaseDeDatos()
         {
             try
@@ -417,6 +476,9 @@ namespace InmoTech
         }
 
         // ========================== Diseño / UI (al final) ==========================
+        /// <summary>
+        /// Define columnas del DataGridView (sin autogeneradas).
+        /// </summary>
         private void ConfigurarGrillaUsuarios()
         {
             dgvUsuarios.AutoGenerateColumns = false;
@@ -441,6 +503,9 @@ namespace InmoTech
             dgvUsuarios.Columns.Add(new DataGridViewButtonColumn { Name = "colToggle", HeaderText = "Activar/Inactivar", Text = "Cambiar", UseColumnTextForButtonValue = true, Width = 120 });
         }
 
+        /// <summary>
+        /// Ajustes de padding/márgenes para una UI más consistente.
+        /// </summary>
         private void AjustarInterfazUsuario()
         {
             var contenedorFormulario = Controls.Find("gbCrear", true).FirstOrDefault() as Control;
@@ -457,12 +522,19 @@ namespace InmoTech
         }
 
         // ========================== Helpers: numéricos y capitalización ==========================
+        /// <summary>
+        /// Permite sólo dígitos en el tecleo (usado para DNI y Teléfono).
+        /// </summary>
         private void TextBoxSoloDigitos_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
             if (!char.IsDigit(e.KeyChar)) e.Handled = true;
         }
 
+        /// <summary>
+        /// Normaliza un TextBox a "sólo dígitos" cuando se pega/edita.
+        /// Mantiene el caret en posición coherente.
+        /// </summary>
         private void TextBoxSoloDigitos_TextChanged(object? sender, EventArgs e)
         {
             if (sender is not TextBox textBox) return;
@@ -478,6 +550,9 @@ namespace InmoTech
             textBox.SelectionStart = Math.Min(cantidadDigitosAntes, textBox.Text.Length);
         }
 
+        /// <summary>
+        /// Convierte el texto a TitleCase en vivo (para Nombre y Apellido).
+        /// </summary>
         private void TextBoxCapitalizarEnVivo_TextChanged(object? sender, EventArgs e)
         {
             if (_estaNormalizandoTexto) return;
@@ -495,9 +570,27 @@ namespace InmoTech
             _estaNormalizandoTexto = false;
         }
 
-        // ==== Handlers requeridos por el diseñador (stubs) ====
-        private void gbCrear_Enter(object sender, EventArgs e) { /* no-op */ }
-        private void label1_Click(object sender, EventArgs e) { /* no-op */ }
+        /// <summary>
+        /// Bloquea números y símbolos no permitidos al teclear en campos de Nombre/Apellido.
+        /// Permite letras (incluye acentos), espacios, apóstrofo y guion.
+        /// </summary>
+        private void TextBoxSoloLetras_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar)) return;
 
+            char c = e.KeyChar;
+            bool esLetra = char.IsLetter(c);              // Incluye letras con acentos/ñ
+            bool permitido = esLetra || char.IsWhiteSpace(c) || c == '\'' || c == '-';
+
+            if (!permitido)
+                e.Handled = true;
+        }
+
+        // ==== Handlers requeridos por el diseñador (stubs) ====
+        /// <summary> Stub requerido por el diseñador. </summary>
+        private void gbCrear_Enter(object sender, EventArgs e) { /* no-op */ }
+
+        /// <summary> Stub requerido por el diseñador. </summary>
+        private void label1_Click(object sender, EventArgs e) { /* no-op */ }
     }
 }
