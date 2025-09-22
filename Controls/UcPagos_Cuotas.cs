@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Runtime.Versioning;
+using System.Windows.Forms;
 
 namespace InmoTech
 {
@@ -29,12 +29,12 @@ namespace InmoTech
         private class CuotaVm
         {
             public int NroCuota { get; set; }          // 1..n
-            public int DeCuotas { get; set; }          // total del contrato (para mostrar "1 / 12")
+            public int DeCuotas { get; set; }          // total del contrato (para col visual "1 / 12")
             public string Periodo { get; set; } = "";  // "Mayo 2024"
-            public decimal Monto { get; set; }
+            public decimal Monto { get; set; }         // $ 50.000
             public DateTime Vencimiento { get; set; }
             public string Estado { get; set; } = "Pendiente"; // Pendiente / Vencida / Pagada
-            public int AnioPeriodo { get; set; }       // para filtrar rápido por año
+            public int AnioPeriodo { get; set; }       // para filtro por año
         }
 
         // ======= Datos & binding =======
@@ -42,7 +42,9 @@ namespace InmoTech
         private readonly BindingSource _bs = new();
 
         // ======= Eventos públicos =======
-        public event EventHandler<(string contrato, int nroCuota)>? PagarClicked;
+        // Envia: contrato, nroCuota, periodo, monto, vencimiento  (→ MainForm abre Pagar)
+        public event EventHandler<(string contrato, int nroCuota, string periodo, decimal monto, DateTime vencimiento)>? PagarClicked;
+        // Compatibilidad para "Ver recibo"
         public event EventHandler<(string contrato, int nroCuota)>? VerReciboClicked;
 
         // ======= Estado =======
@@ -65,7 +67,7 @@ namespace InmoTech
                 // Eventos UI
                 dgvCuotas.CellPainting += DgvCuotas_CellPainting;         // badge Estado
                 dgvCuotas.CellFormatting += DgvCuotas_CellFormatting;     // texto botón Acciones
-                dgvCuotas.CellContentClick += dgvCuotas_CellContentClick; // <- corregido (minúscula)
+                dgvCuotas.CellContentClick += DgvCuotas_CellContentClick; // click botón acciones
 
                 cboEstado.SelectedIndexChanged += (_, __) => ApplyFilters();
                 cboAnio.SelectedIndexChanged += (_, __) => ApplyFilters();
@@ -86,10 +88,10 @@ namespace InmoTech
             lblContrato.Text = $"Contrato {cabecera.NumeroContrato}";
             lblInquilino.Text = $"Inquilino: {cabecera.Inquilino}";
             lblInmueble.Text = $"Inmueble: {cabecera.Inmueble}";
-            lblPeriodo.Text = $"Inicio – Fin:  {cabecera.Inicio:dd/MM/yyyy} – {cabecera.Fin:MM/yyyy}";
+            lblPeriodo.Text = $"Inicio – Fin:  {cabecera.Inicio:dd/MM/yyyy} – {cabecera.Fin:dd/MM/yyyy}";
 
-            lblTotalValor.Text = cabecera.Total.ToString("$#,0.##");
-            lblAtrasoValor.Text = cabecera.Atraso.ToString("$#,0.##");
+            lblTotalValor.Text = cabecera.Total.ToString("$ #,0.##", CultureInfo.GetCultureInfo("es-AR"));
+            lblAtrasoValor.Text = cabecera.Atraso.ToString("$ #,0.##", CultureInfo.GetCultureInfo("es-AR"));
             lblCuotasValor.Text = $"{cabecera.CantidadCuotas}";
         }
 
@@ -127,10 +129,8 @@ namespace InmoTech
             cboEstado.SelectedIndex = 0;
 
             // Años
-            var anios = new[] { "2024", "2025", "2026" }; // fallback si lista vacía
             var years = _data.Select(d => d.AnioPeriodo).Distinct().OrderBy(y => y).ToList();
-            if (years.Count == 0) years = anios.Select(int.Parse).ToList();
-
+            if (years.Count == 0) years = new List<int> { DateTime.Today.Year };
             var items = new List<string> { "Todos" };
             items.AddRange(years.Select(y => y.ToString()));
             cboAnio.DataSource = items;
@@ -150,17 +150,14 @@ namespace InmoTech
             if (!string.Equals(anioSel, "Todos", StringComparison.OrdinalIgnoreCase) && int.TryParse(anioSel, out int anio))
                 query = query.Where(c => c.AnioPeriodo == anio);
 
-            var list = query
-                .OrderBy(c => c.NroCuota)
-                .ToList();
-
+            var list = query.OrderBy(c => c.NroCuota).ToList();
             _bs.DataSource = new BindingList<CuotaVm>(list);
             UpdatePager();
         }
 
         private static int InferYearFromPeriodo(string periodo, DateTime fallback)
         {
-            // Intentamos parsear "Mayo 2024" -> 2024
+            // "Mayo 2024" -> 2024
             var tokens = (periodo ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (tokens.Length >= 2 && int.TryParse(tokens[^1], out int y)) return y;
             return fallback.Year;
@@ -204,9 +201,8 @@ namespace InmoTech
             // Columna "Cuota" muestra "n / de"
             if (dgvCuotas.Columns[e.ColumnIndex].Name == "colCuota")
             {
-                int nro = 0, de = 0;
-                int.TryParse(row.Cells["colCuotaRaw"].Value?.ToString(), out nro);
-                int.TryParse(row.Cells["colDeCuotasRaw"].Value?.ToString(), out de);
+                int.TryParse(row.Cells["colCuotaRaw"].Value?.ToString(), out int nro);
+                int.TryParse(row.Cells["colDeCuotasRaw"].Value?.ToString(), out int de);
                 e.Value = $"{nro} / {de}";
                 e.FormattingApplied = true;
                 return;
@@ -241,7 +237,7 @@ namespace InmoTech
                 (int)textSize.Height + padY * 2
             );
 
-            // Colores por estado (en la línea del mock)
+            // Colores por estado
             Color back, border;
             if (estadoText.Equals("Pagada", StringComparison.OrdinalIgnoreCase))
             {
@@ -272,14 +268,54 @@ namespace InmoTech
             e.Paint(e.ClipBounds, DataGridViewPaintParts.Border);
         }
 
+        // ======= Click en botón Acciones =======
+        private void DgvCuotas_CellContentClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
+            var col = dgvCuotas.Columns[e.ColumnIndex];
+            if (col == null || col.Name != "colAccion") return;
+
+            var row = dgvCuotas.Rows[e.RowIndex];
+
+            // nro de cuota (desde raw "n")
+            if (!int.TryParse(row.Cells["colCuotaRaw"].Value?.ToString(), out int nroCuota))
+                return;
+
+            string estado = row.Cells["colEstado"].Value?.ToString() ?? string.Empty;
+
+            // leer periodo
+            string periodo = row.Cells["colPeriodo"]?.Value?.ToString() ?? "";
+
+            // leer monto (puede venir "50.000" o "$ 50.000")
+            decimal monto = 0m;
+            var montoText = (row.Cells["colMonto"]?.Value?.ToString() ?? "")
+                            .Replace("$", "").Trim();
+            decimal.TryParse(
+                montoText,
+                NumberStyles.Number | NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint,
+                CultureInfo.GetCultureInfo("es-AR"),
+                out monto);
+
+            // leer vencimiento
+            DateTime venc = DateTime.MinValue;
+            DateTime.TryParse(row.Cells["colVencimiento"]?.Value?.ToString(), out venc);
+
+            if (estado.Equals("Pagada", StringComparison.OrdinalIgnoreCase))
+                VerReciboClicked?.Invoke(this, (_numeroContrato, nroCuota));
+            else
+                PagarClicked?.Invoke(this, (_numeroContrato, nroCuota, periodo, monto, venc));
+        }
+
+        // ======= Utilitarios =======
         private static System.Drawing.Drawing2D.GraphicsPath RoundedRect(Rectangle bounds, int radius)
         {
             int d = radius * 2;
             var path = new System.Drawing.Drawing2D.GraphicsPath();
             path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
             path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
-            path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
             path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
+            path.AddArc(bounds.X, bounds.Bottom - d, d, d, 0, 90);
             path.CloseFigure();
             return path;
         }
@@ -309,29 +345,6 @@ namespace InmoTech
             lblPager.Text = visibles == 0 ? "0 de 0" : $"1 - {visibles} de {total}";
         }
 
-        private void dgvLink(object? sender, LinkLabelLinkClickedEventArgs e) => ShowTimelinePlaceholder();
-
-        private void dgvCuotas_CellContentClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
-            var col = dgvCuotas.Columns[e.ColumnIndex];
-            if (col == null || col.Name != "colAccion") return;
-
-            var row = dgvCuotas.Rows[e.RowIndex];
-
-            // null-safe
-            if (!int.TryParse(row.Cells["colCuotaRaw"].Value?.ToString(), out int nroCuota))
-                return;
-
-            string estado = row.Cells["colEstado"].Value?.ToString() ?? string.Empty;
-
-            if (estado.Equals("Pagada", StringComparison.OrdinalIgnoreCase))
-                VerReciboClicked?.Invoke(this, (_numeroContrato, nroCuota));
-            else
-                PagarClicked?.Invoke(this, (_numeroContrato, nroCuota));
-        }
-
         // ======= Demo opcional para ver algo sin BD =======
         private void LoadDemo()
         {
@@ -349,11 +362,11 @@ namespace InmoTech
 
             var demo = new List<(int, int, string, decimal, DateTime, string)>
             {
-                (1,12,"Mayo 2024", 50000, new DateTime(2024,05,10), "Pagada"),
-                (2,12,"Junio 2024",50000, new DateTime(2024,06,10), "Pagada"),
-                (3,12,"Julio 2024",50000, new DateTime(2024,07,10), "Vencida"),
-                (4,12,"Agosto 2024",50000, new DateTime(2024,08,10), "Pendiente"),
-                (5,12,"Septiembre 2024",50000, new DateTime(2024,09,10), "Pendiente"),
+                (1,12,"Mayo 2024",       50000, new DateTime(2024,05,10), "Pagada"),
+                (2,12,"Junio 2024",      50000, new DateTime(2024,06,10), "Pagada"),
+                (3,12,"Julio 2024",      50000, new DateTime(2024,07,10), "Vencida"),
+                (4,12,"Agosto 2024",     50000, new DateTime(2024,08,10), "Pendiente"),
+                (5,12,"Septiembre 2024", 50000, new DateTime(2024,09,10), "Pendiente"),
             };
             SetCuotas(demo);
         }

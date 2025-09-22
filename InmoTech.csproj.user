@@ -5,6 +5,9 @@
     <Compile Update="Controls\UcPagos_Cuotas.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Controls\UcPagos_PagarCuota.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Controls\UcPagos_Recibo.cs">
       <SubType>UserControl</SubType>
     </Compile>
