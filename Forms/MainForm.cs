@@ -55,7 +55,7 @@ namespace InmoTech
             [RolUsuario.Operador] = new()
             {
                 typeof(UcDashboard),
-                typeof(UcPagos),
+                typeof(UcPagos_Contratos),
                 typeof(UcContratos),
                 typeof(UcReportes)
             },
@@ -152,7 +152,7 @@ namespace InmoTech
                 { BInmuebles,  typeof(UcInmuebles)  },
                 { BInquilinos, typeof(UcInquilinos) },
                 { BContratos,  typeof(UcContratos)  },
-                { BPagos,      typeof(UcPagos)      },
+                { BPagos,      typeof(UcPagos_Contratos)},
                 { BReportes,   typeof(UcReportes)   }
             };
 
@@ -260,7 +260,7 @@ namespace InmoTech
         private void BInmuebles_Click(object sender, EventArgs e) => CargarVista<UcInmuebles>(BInmuebles);
         private void BInquilinos_Click(object sender, EventArgs e) => CargarVista<UcInquilinos>(BInquilinos);
         private void BContratos_Click(object sender, EventArgs e) => CargarVista<UcContratos>(BContratos);
-        private void BPagos_Click(object sender, EventArgs e) => CargarVista<UcPagos>(BPagos);
+        private void BPagos_Click(object sender, EventArgs e) => CargarVista<UcPagos_Contratos>(BPagos);
         private void BReportes_Click(object sender, EventArgs e) => CargarVista<UcReportes>(BReportes);
 
         private void BSalir_Click(object sender, EventArgs e)

@@ -13,7 +13,7 @@ namespace InmoTech.Data
         {
             var cs =
                 "Data Source=Ivan\\SQLEXPRESS;" +
-                "Initial Catalog=;inmotech;" +
+                "Initial Catalog=inmotech;" +
                 "Integrated Security=SSPI;" +
                 "Encrypt=True;" +
                 "TrustServerCertificate=True;" +
