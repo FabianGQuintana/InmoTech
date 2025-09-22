@@ -2,6 +2,9 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
+    <Compile Update="Controls\UcInquilinos.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Controls\UcPagos_Cuotas.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -24,9 +27,6 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcInmuebles.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="Controls\UcInquilinos.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcPagos_Contratos.cs">

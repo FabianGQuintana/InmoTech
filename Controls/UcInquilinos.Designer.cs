@@ -1,192 +1,311 @@
-﻿// UcInquilinos.Designer.cs
-using System.ComponentModel;
-using SWF = System.Windows.Forms;
-using SD = System.Drawing;
+﻿using System.ComponentModel;
+using System.Drawing;
+using System.Windows.Forms;
 
-namespace InmoTech
+namespace InmoTech.Controls
 {
     partial class UcInquilinos
     {
-        private IContainer components = null!;
-
-        // Root layout
-        private SWF.TableLayoutPanel root;
-        private SWF.Label lblTitle;
-
-        // Card Form
-        private SWF.Panel cardForm;
-        private SWF.TableLayoutPanel formGrid;
-        private SWF.TextBox txtName;
-        private SWF.TextBox txtLastName;
-        private SWF.TextBox txtDni;
-        private SWF.TextBox txtPhone;
-        private SWF.TextBox txtEmail;
-        private SWF.TextBox txtAddress;
-        private SWF.DateTimePicker dtpDate;
-        private SWF.CheckBox chkActive;
-        private SWF.Button btnNew;
-        private SWF.Button btnSave;
-        private SWF.Button btnCancel;
-
-        // Card List
-        private SWF.Panel cardList;
-        private SWF.TableLayoutPanel listHeader;
-        private SWF.TextBox txtSearch;
-        private SWF.ComboBox cbFilter;
-        private SWF.Label lblCount;
-        private SWF.DataGridView grid;
-
-        private SWF.ErrorProvider err;
+        private System.ComponentModel.IContainer components = null;
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null)) components.Dispose();
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
             base.Dispose(disposing);
         }
 
+        #region Código generado por el Diseñador de componentes
+
         private void InitializeComponent()
         {
-            components = new Container();
-            err = new SWF.ErrorProvider();
-
-            // === Root Table ===
-            root = new SWF.TableLayoutPanel();
-            root.ColumnCount = 1;
-            root.RowCount = 3;
-            root.Dock = SWF.DockStyle.Fill;
-            root.Padding = new SWF.Padding(16);
-            root.RowStyles.Add(new SWF.RowStyle(SWF.SizeType.AutoSize));          // header
-            root.RowStyles.Add(new SWF.RowStyle(SWF.SizeType.AutoSize));          // form
-            root.RowStyles.Add(new SWF.RowStyle(SWF.SizeType.Percent, 100));      // list fill
-
-            // Title
-            lblTitle = new SWF.Label();
-            lblTitle.Text = "Inquilinos";
-            lblTitle.AutoSize = true;
-            lblTitle.Margin = new SWF.Padding(0, 0, 0, 12);
-            root.Controls.Add(lblTitle, 0, 0);
-
-            // === Card Form ===
-            cardForm = new SWF.Panel();
-            cardForm.BackColor = SD.Color.White;
-            cardForm.BorderStyle = SWF.BorderStyle.FixedSingle;
-            cardForm.Dock = SWF.DockStyle.Top;
-            cardForm.Padding = new SWF.Padding(12);
-            cardForm.Margin = new SWF.Padding(0, 0, 0, 12);
-            cardForm.AutoSize = true;
-            cardForm.AutoSizeMode = SWF.AutoSizeMode.GrowAndShrink;
-
-
-            // Grid de formulario (8 cols x 4 filas)
-            formGrid = new SWF.TableLayoutPanel();
-            formGrid.ColumnCount = 8;
-            formGrid.RowCount = 4;
-            formGrid.Dock = SWF.DockStyle.Top;
-            formGrid.AutoSize = true;
-            formGrid.GrowStyle = SWF.TableLayoutPanelGrowStyle.AddRows;
-
-            // 👇 sin bucles aquí (Designer-friendly)
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-            formGrid.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 12.5f));
-
-            formGrid.RowStyles.Add(new SWF.RowStyle(SWF.SizeType.AutoSize)); // fila 0: labels 1ª línea
-            formGrid.RowStyles.Add(new SWF.RowStyle(SWF.SizeType.AutoSize)); // fila 1: inputs 1ª línea
-            formGrid.RowStyles.Add(new SWF.RowStyle(SWF.SizeType.AutoSize)); // fila 2: labels 2ª línea
-            formGrid.RowStyles.Add(new SWF.RowStyle(SWF.SizeType.AutoSize)); // fila 3: inputs 2ª línea
-
-            // ---- Fila 1: Nombre, Apellido, DNI, Teléfono ----
-            formGrid.Controls.Add(new SWF.Label { Text = "Nombre", AutoSize = true, Margin = new SWF.Padding(0, 0, 0, 2) }, 0, 0);
-            txtName = new SWF.TextBox { Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right, Margin = new SWF.Padding(0, 0, 6, 6) };
-            formGrid.Controls.Add(txtName, 0, 1); formGrid.SetColumnSpan(txtName, 2);
-
-            formGrid.Controls.Add(new SWF.Label { Text = "Apellido", AutoSize = true, Margin = new SWF.Padding(0, 0, 0, 2) }, 2, 0);
-            txtLastName = new SWF.TextBox { Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right, Margin = new SWF.Padding(0, 0, 6, 6) };
-            formGrid.Controls.Add(txtLastName, 2, 1); formGrid.SetColumnSpan(txtLastName, 2);
-
-            formGrid.Controls.Add(new SWF.Label { Text = "DNI", AutoSize = true, Margin = new SWF.Padding(0, 0, 0, 2) }, 4, 0);
-            txtDni = new SWF.TextBox { MaxLength = 10, Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right, Margin = new SWF.Padding(0, 0, 6, 6) };
-            formGrid.Controls.Add(txtDni, 4, 1);
-
-            formGrid.Controls.Add(new SWF.Label { Text = "Teléfono", AutoSize = true, Margin = new SWF.Padding(0, 0, 0, 2) }, 5, 0);
-            txtPhone = new SWF.TextBox { Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right, Margin = new SWF.Padding(0, 0, 0, 6) };
-            formGrid.Controls.Add(txtPhone, 5, 1); formGrid.SetColumnSpan(txtPhone, 3);
-
-            // ---- Fila 2: Email, Dirección, Fecha, Activo ----
-            formGrid.Controls.Add(new SWF.Label { Text = "Email", AutoSize = true, Margin = new SWF.Padding(0, 0, 0, 2) }, 0, 2);
-            txtEmail = new SWF.TextBox { Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right, Margin = new SWF.Padding(0, 0, 6, 0) };
-            formGrid.Controls.Add(txtEmail, 0, 3); formGrid.SetColumnSpan(txtEmail, 3);
-
-            formGrid.Controls.Add(new SWF.Label { Text = "Dirección", AutoSize = true, Margin = new SWF.Padding(0, 0, 0, 2) }, 3, 2);
-            txtAddress = new SWF.TextBox { Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right, Margin = new SWF.Padding(0, 0, 6, 0) };
-            formGrid.Controls.Add(txtAddress, 3, 3); formGrid.SetColumnSpan(txtAddress, 3);
-
-            formGrid.Controls.Add(new SWF.Label { Text = "Fecha de entrada", AutoSize = true, Margin = new SWF.Padding(0, 0, 0, 2) }, 6, 2);
-            dtpDate = new SWF.DateTimePicker { Format = SWF.DateTimePickerFormat.Custom, CustomFormat = "dd/MM/yyyy", Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right, Margin = new SWF.Padding(0, 0, 6, 0) };
-            formGrid.Controls.Add(dtpDate, 6, 3);
-
-            chkActive = new SWF.CheckBox { Text = "Activo", Checked = true, AutoSize = true, Anchor = SWF.AnchorStyles.Left, Margin = new SWF.Padding(0, 2, 0, 0) };
-            formGrid.Controls.Add(chkActive, 7, 3);
-
-            // Botones
-            var btnPanel = new SWF.FlowLayoutPanel { Dock = SWF.DockStyle.Top, AutoSize = true, FlowDirection = SWF.FlowDirection.LeftToRight, Margin = new SWF.Padding(0, 8, 0, 0) };
-            btnNew = new SWF.Button { Text = "Nuevo", Width = 90, FlatStyle = SWF.FlatStyle.Flat };
-            btnSave = new SWF.Button { Text = "Guardar", Width = 110, FlatStyle = SWF.FlatStyle.Flat };
-            btnCancel = new SWF.Button { Text = "Cancelar", Width = 110, FlatStyle = SWF.FlatStyle.Flat };
-            btnPanel.Controls.AddRange(new SWF.Control[] { btnNew, btnSave, btnCancel });
-
-            cardForm.Controls.Add(btnPanel);
-            cardForm.Controls.Add(formGrid);
-
-            root.Controls.Add(cardForm, 0, 1);
-
-            // === Card List ===
-            cardList = new SWF.Panel();
-            cardList.BackColor = SD.Color.White;
-            cardList.BorderStyle = SWF.BorderStyle.FixedSingle;
-            cardList.Dock = SWF.DockStyle.Fill;
-            cardList.Padding = new SWF.Padding(12);
-
-            // Encabezado listado
-            listHeader = new SWF.TableLayoutPanel();
-            listHeader.ColumnCount = 4;
-            listHeader.RowCount = 1;
-            listHeader.Dock = SWF.DockStyle.Top;
-            listHeader.AutoSize = true;
-            listHeader.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.AutoSize));        // "Buscar"
-            listHeader.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.Percent, 100f));   // textbox
-            listHeader.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.AutoSize));        // combo
-            listHeader.ColumnStyles.Add(new SWF.ColumnStyle(SWF.SizeType.AutoSize));        // contador
-
-            listHeader.Controls.Add(new SWF.Label { Text = "Buscar", AutoSize = true, Anchor = SWF.AnchorStyles.Left }, 0, 0);
-            txtSearch = new SWF.TextBox { Width = 260, Anchor = SWF.AnchorStyles.Left | SWF.AnchorStyles.Right };
-            listHeader.Controls.Add(txtSearch, 1, 0);
-
-            cbFilter = new SWF.ComboBox { DropDownStyle = SWF.ComboBoxStyle.DropDownList, Width = 130, Anchor = SWF.AnchorStyles.Left };
-            listHeader.Controls.Add(cbFilter, 2, 0);
-
-            lblCount = new SWF.Label { Text = "0 inquilino(s)", AutoSize = true, Anchor = SWF.AnchorStyles.Right, ForeColor = SD.Color.FromArgb(100, 116, 139) };
-            listHeader.Controls.Add(lblCount, 3, 0);
-
-            // Grid
-            grid = new SWF.DataGridView { Dock = SWF.DockStyle.Fill };
-
-            cardList.Controls.Add(grid);
-            cardList.Controls.Add(listHeader);
-
-            root.Controls.Add(cardList, 0, 2);
-
-            // Control root
-            this.Controls.Add(root);
-            this.Name = "UcInquilinos";
-
-            // ErrorProvider
-            err.ContainerControl = this;
+            panel1 = new Panel();
+            lblTitulo = new Label();
+            panel2 = new Panel();
+            label1 = new Label();
+            dateTimePicker1 = new DateTimePicker();
+            lblNombre = new Label();
+            txtNombre = new TextBox();
+            lblApellido = new Label();
+            txtApellido = new TextBox();
+            lblDni = new Label();
+            txtDni = new TextBox();
+            lblTelefono = new Label();
+            txtTelefono = new TextBox();
+            lblEmail = new Label();
+            txtEmail = new TextBox();
+            lblPass = new Label();
+            txtDireccion = new TextBox();
+            btnGuardar = new Button();
+            btnCancelar = new Button();
+            dataGridInquilinos = new DataGridView();
+            LListaInquilinos = new Label();
+            panel1.SuspendLayout();
+            panel2.SuspendLayout();
+            ((ISupportInitialize)dataGridInquilinos).BeginInit();
+            SuspendLayout();
+            // 
+            // panel1
+            // 
+            panel1.BackColor = Color.Teal;
+            panel1.Controls.Add(lblTitulo);
+            panel1.Location = new Point(15, 24);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1170, 70);
+            panel1.TabIndex = 0;
+            // 
+            // lblTitulo
+            // 
+            lblTitulo.AutoSize = true;
+            lblTitulo.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTitulo.Location = new Point(14, 15);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(162, 37);
+            lblTitulo.TabIndex = 1;
+            lblTitulo.Text = "Inquilinos";
+            // 
+            // panel2
+            // 
+            panel2.BackColor = Color.Teal;
+            panel2.Controls.Add(label1);
+            panel2.Controls.Add(dateTimePicker1);
+            panel2.Controls.Add(lblNombre);
+            panel2.Controls.Add(txtNombre);
+            panel2.Controls.Add(lblApellido);
+            panel2.Controls.Add(txtApellido);
+            panel2.Controls.Add(lblDni);
+            panel2.Controls.Add(txtDni);
+            panel2.Controls.Add(lblTelefono);
+            panel2.Controls.Add(txtTelefono);
+            panel2.Controls.Add(lblEmail);
+            panel2.Controls.Add(txtEmail);
+            panel2.Controls.Add(lblPass);
+            panel2.Controls.Add(txtDireccion);
+            panel2.Controls.Add(btnGuardar);
+            panel2.Controls.Add(btnCancelar);
+            panel2.Location = new Point(15, 112);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(1170, 270);
+            panel2.TabIndex = 1;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(24, 165);
+            label1.Name = "label1";
+            label1.Size = new Size(152, 25);
+            label1.TabIndex = 44;
+            label1.Text = "Fecha Nacimiento";
+            // 
+            // dateTimePicker1
+            // 
+            dateTimePicker1.Format = DateTimePickerFormat.Short;
+            dateTimePicker1.Location = new Point(24, 196);
+            dateTimePicker1.Name = "dateTimePicker1";
+            dateTimePicker1.Size = new Size(190, 31);
+            dateTimePicker1.TabIndex = 43;
+            // 
+            // lblNombre
+            // 
+            lblNombre.AutoSize = true;
+            lblNombre.Location = new Point(25, 23);
+            lblNombre.Name = "lblNombre";
+            lblNombre.Size = new Size(78, 25);
+            lblNombre.TabIndex = 45;
+            lblNombre.Text = "Nombre";
+            // 
+            // txtNombre
+            // 
+            txtNombre.Location = new Point(25, 54);
+            txtNombre.Name = "txtNombre";
+            txtNombre.Size = new Size(190, 31);
+            txtNombre.TabIndex = 46;
+            // 
+            // lblApellido
+            // 
+            lblApellido.AutoSize = true;
+            lblApellido.Location = new Point(244, 23);
+            lblApellido.Name = "lblApellido";
+            lblApellido.Size = new Size(78, 25);
+            lblApellido.TabIndex = 47;
+            lblApellido.Text = "Apellido";
+            // 
+            // txtApellido
+            // 
+            txtApellido.Location = new Point(244, 54);
+            txtApellido.Name = "txtApellido";
+            txtApellido.Size = new Size(190, 31);
+            txtApellido.TabIndex = 48;
+            // 
+            // lblDni
+            // 
+            lblDni.AutoSize = true;
+            lblDni.Location = new Point(244, 165);
+            lblDni.Name = "lblDni";
+            lblDni.Size = new Size(43, 25);
+            lblDni.TabIndex = 49;
+            lblDni.Text = "DNI";
+            // 
+            // txtDni
+            // 
+            txtDni.Location = new Point(244, 196);
+            txtDni.Name = "txtDni";
+            txtDni.Size = new Size(190, 31);
+            txtDni.TabIndex = 50;
+            // 
+            // lblTelefono
+            // 
+            lblTelefono.AutoSize = true;
+            lblTelefono.Location = new Point(24, 93);
+            lblTelefono.Name = "lblTelefono";
+            lblTelefono.Size = new Size(79, 25);
+            lblTelefono.TabIndex = 51;
+            lblTelefono.Text = "Teléfono";
+            // 
+            // txtTelefono
+            // 
+            txtTelefono.Location = new Point(24, 124);
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(190, 31);
+            txtTelefono.TabIndex = 52;
+            // 
+            // lblEmail
+            // 
+            lblEmail.AutoSize = true;
+            lblEmail.Location = new Point(244, 93);
+            lblEmail.Name = "lblEmail";
+            lblEmail.Size = new Size(54, 25);
+            lblEmail.TabIndex = 53;
+            lblEmail.Text = "Email";
+            // 
+            // txtEmail
+            // 
+            txtEmail.Location = new Point(244, 124);
+            txtEmail.Name = "txtEmail";
+            txtEmail.Size = new Size(190, 31);
+            txtEmail.TabIndex = 54;
+            // 
+            // lblPass
+            // 
+            lblPass.AutoSize = true;
+            lblPass.Location = new Point(463, 23);
+            lblPass.Name = "lblPass";
+            lblPass.Size = new Size(85, 25);
+            lblPass.TabIndex = 55;
+            lblPass.Text = "Direccion";
+            // 
+            // txtDireccion
+            // 
+            txtDireccion.Location = new Point(463, 54);
+            txtDireccion.Name = "txtDireccion";
+            txtDireccion.Size = new Size(190, 31);
+            txtDireccion.TabIndex = 62;
+            txtDireccion.UseSystemPasswordChar = true;
+            // 
+            // btnGuardar
+            // 
+            btnGuardar.BackColor = Color.White;
+            btnGuardar.Location = new Point(688, 198);
+            btnGuardar.Name = "btnGuardar";
+            btnGuardar.Size = new Size(100, 36);
+            btnGuardar.TabIndex = 63;
+            btnGuardar.Text = "Guardar";
+            btnGuardar.UseVisualStyleBackColor = false;
+            btnGuardar.Click += BtnGuardar_Click;
+            // 
+            // btnCancelar
+            // 
+            btnCancelar.BackColor = Color.White;
+            btnCancelar.Location = new Point(823, 198);
+            btnCancelar.Name = "btnCancelar";
+            btnCancelar.Size = new Size(100, 36);
+            btnCancelar.TabIndex = 64;
+            btnCancelar.Text = "Cancelar";
+            btnCancelar.UseVisualStyleBackColor = false;
+            btnCancelar.Click += BtnCancelar_Click;
+            // 
+            // dataGridInquilinos
+            // 
+            dataGridInquilinos.AllowUserToAddRows = false;
+            dataGridInquilinos.AllowUserToDeleteRows = false;
+            dataGridInquilinos.BackgroundColor = Color.Teal;
+            dataGridInquilinos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridInquilinos.Location = new Point(15, 422);
+            dataGridInquilinos.MultiSelect = false;
+            dataGridInquilinos.Name = "dataGridInquilinos";
+            dataGridInquilinos.ReadOnly = true;
+            dataGridInquilinos.RowHeadersWidth = 62;
+            dataGridInquilinos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dataGridInquilinos.Size = new Size(1170, 258);
+            dataGridInquilinos.TabIndex = 2;
+            dataGridInquilinos.CellContentClick += dataGridView1_CellContentClick;
+            dataGridInquilinos.CellDoubleClick += dataGridInquilinos_CellDoubleClick;
+            // 
+            // LListaInquilinos
+            // 
+            LListaInquilinos.AutoSize = true;
+            LListaInquilinos.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LListaInquilinos.Location = new Point(15, 385);
+            LListaInquilinos.Name = "LListaInquilinos";
+            LListaInquilinos.Size = new Size(188, 29);
+            LListaInquilinos.TabIndex = 3;
+            LListaInquilinos.Text = "Lista Inquilinos";
+            LListaInquilinos.Click += label1_Click;
+            // 
+            // UcInquilinos
+            // 
+            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.WhiteSmoke;
+            Controls.Add(LListaInquilinos);
+            Controls.Add(dataGridInquilinos);
+            Controls.Add(panel2);
+            Controls.Add(panel1);
+            Name = "UcInquilinos";
+            Size = new Size(1200, 699);
+            Load += UcInquilinos_Load;
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
+            ((ISupportInitialize)dataGridInquilinos).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
+
+        #endregion
+
+        private Panel panel1;
+        private Panel panel2;
+        private DataGridView dataGridInquilinos;
+        private Label LListaInquilinos;
+        private Label label1;
+        private DateTimePicker dateTimePicker1;
+        private Label lblNombre;
+        internal TextBox txtNombre;
+        private Label lblApellido;
+        internal TextBox txtApellido;
+        private Label lblDni;
+        internal TextBox txtDni;
+        private Label lblTelefono;
+        internal TextBox txtTelefono;
+        private Label lblEmail;
+        internal TextBox txtEmail;
+        private Label lblPass;
+        internal TextBox txtDireccion;
+        internal Button btnGuardar;
+        internal Button btnCancelar;
+        private Label lblTitulo;
+
+        // Columnas del grid
+        private DataGridViewTextBoxColumn colDni;
+        private DataGridViewTextBoxColumn colNombre;
+        private DataGridViewTextBoxColumn colApellido;
+        private DataGridViewTextBoxColumn colTelefono;
+        private DataGridViewTextBoxColumn colEmail;
+        private DataGridViewTextBoxColumn colDireccion;
+        private DataGridViewTextBoxColumn colFechaNacimiento;
     }
 }
