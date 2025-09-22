@@ -71,7 +71,7 @@
             chkMostrarPassword.AutoSize = true;
             chkMostrarPassword.Location = new Point(72, 181);
             chkMostrarPassword.Name = "chkMostrarPassword";
-            chkMostrarPassword.Size = new Size(212, 26);
+            chkMostrarPassword.Size = new Size(181, 22);
             chkMostrarPassword.TabIndex = 5;
             chkMostrarPassword.Text = "Mostrar Contraseña";
             chkMostrarPassword.UseVisualStyleBackColor = true;
@@ -91,7 +91,7 @@
             txtPassword.Location = new Point(72, 147);
             txtPassword.Margin = new Padding(4, 3, 4, 3);
             txtPassword.Name = "txtPassword";
-            txtPassword.Size = new Size(329, 28);
+            txtPassword.Size = new Size(329, 24);
             txtPassword.TabIndex = 3;
             // 
             // txtEmail
@@ -99,7 +99,7 @@
             txtEmail.Location = new Point(72, 58);
             txtEmail.Margin = new Padding(4, 3, 4, 3);
             txtEmail.Name = "txtEmail";
-            txtEmail.Size = new Size(329, 28);
+            txtEmail.Size = new Size(329, 24);
             txtEmail.TabIndex = 2;
             // 
             // label2
@@ -109,7 +109,7 @@
             label2.Location = new Point(173, 116);
             label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
-            label2.Size = new Size(113, 22);
+            label2.Size = new Size(95, 18);
             label2.TabIndex = 1;
             label2.Text = "Contraseña";
             // 
@@ -120,7 +120,7 @@
             label1.Location = new Point(146, 27);
             label1.Margin = new Padding(4, 0, 4, 0);
             label1.Name = "label1";
-            label1.Size = new Size(177, 22);
+            label1.Size = new Size(152, 18);
             label1.TabIndex = 0;
             label1.Text = "Correo Electronico";
             // 
@@ -128,17 +128,18 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Microsoft Sans Serif", 14F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label3.Location = new Point(196, 170);
+            label3.Location = new Point(207, 170);
             label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
-            label3.Size = new Size(147, 32);
+            label3.Size = new Size(129, 29);
             label3.TabIndex = 2;
             label3.Text = "InmoTech";
             // 
             // LoginForm
             // 
-            AutoScaleDimensions = new SizeF(11F, 22F);
+            AutoScaleDimensions = new SizeF(10F, 18F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = SystemColors.AppWorkspace;
             ClientSize = new Size(566, 541);
             Controls.Add(label3);
             Controls.Add(panel1);
@@ -146,6 +147,7 @@
             Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             Margin = new Padding(4, 3, 4, 3);
             Name = "LoginForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "LoginForm";
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             panel1.ResumeLayout(false);

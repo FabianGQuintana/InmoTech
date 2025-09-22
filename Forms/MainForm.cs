@@ -39,6 +39,9 @@ namespace InmoTech
         private Button? _botonLateralActivo;
         private readonly Dictionary<Type, UserControl> _cacheVistas = new();
 
+        // *** AGREGADO (del Main viejo): historial de vistas para navegación atrás ***
+        private readonly Stack<UserControl> _historial = new();
+
         private readonly Dictionary<RolUsuario, HashSet<Type>> _vistasPermitidasPorRol = new()
         {
             [RolUsuario.Administrador] = new()
@@ -91,6 +94,9 @@ namespace InmoTech
             AplicarEstiloMinimo();
             AplicarPermisosPorRol();
             CargarVista<UcDashboard>(BDashboard);
+
+            // *** AGREGADO (del Main viejo): enganchar flujo especial de Pagos sin tocar tu handler original ***
+            BPagos.Click += BPagos_Click_Ex; // se ejecuta después de tu BPagos_Click y muestra el flujo de contratos/cuotas
         }
 
         #endregion
@@ -216,10 +222,36 @@ namespace InmoTech
             pnlContent?.PerformLayout();
         }
 
+        // ===============================================
+        //  REGIÓN: Información de Usuario (UI)
+        // ===============================================
+        private void ActualizarInfoUsuario()
+        {
+            var u = InmoTech.Security.AuthService.CurrentUser;
+            var nombreCompleto = u is null
+                ? "Invitado"
+                : $"{(u?.Nombre ?? "").Trim()} {(u?.Apellido ?? "").Trim()}".Trim();
+
+            LUsuarioNombre.Text = string.IsNullOrWhiteSpace(nombreCompleto) ? "Invitado" : nombreCompleto;
+            LUsuarioEmail.Text = u?.Email ?? "—";
+            LUsuarioRol.Text = ObtenerNombreRol(u?.IdRol);
+        }
+
+        private string ObtenerNombreRol(int? idRol)
+        {
+            return idRol switch
+            {
+                1 => "Administrador",
+                2 => "Operador",
+                3 => "Propietario",
+                _ => "Sin rol"
+            };
+        }
+
         #endregion
 
         // ======================================================
-        //  REGIÓN: Handlers de Click
+        //  REGIÓN: Handlers de Click (tuyos)
         // ======================================================
         #region Handlers
 
@@ -415,6 +447,119 @@ namespace InmoTech
             g.DrawImage(original, new Rectangle(0, 0, bmp.Width, bmp.Height),
                         0, 0, original.Width, original.Height, GraphicsUnit.Pixel, ia);
             return bmp;
+        }
+
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: **Extras migrados del Main viejo**
+        //  (Aditivo: NO reemplaza tu lógica; complementa)
+        // ======================================================
+        #region ExtrasMigrados
+
+        /// <summary>
+        /// Muestra un Control en pnlContent guardando la vista anterior en el historial.
+        /// </summary>
+        private void ShowInContent(Control uc)
+        {
+            uc.Dock = DockStyle.Fill;
+
+            if (pnlContent.Controls.Count > 0 && pnlContent.Controls[0] is UserControl actual)
+                _historial.Push(actual);
+
+            pnlContent.SuspendLayout();
+            pnlContent.Controls.Clear();
+            pnlContent.Controls.Add(uc);
+            pnlContent.ResumeLayout();
+        }
+
+        /// <summary>
+        /// Handler adicional para Pagos que monta el flujo Contratos→Cuotas→Recibo.
+        /// Se suscribe en el constructor sin tocar tu BPagos_Click original.
+        /// </summary>
+        private void BPagos_Click_Ex(object? sender, EventArgs e)
+        {
+            // Marcamos activo (usa tu estilos de sidebar)
+            if (sender is Button btn) MarcarBotonLateralActivo(btn);
+
+            // Cacheamos UcPagos_Contratos y nos suscribimos 1 sola vez a VerCuotas
+            if (!_cacheVistas.TryGetValue(typeof(UcPagos_Contratos), out var vista))
+            {
+                var uc = new UcPagos_Contratos { Dock = DockStyle.Fill, AutoScroll = true };
+                uc.VerCuotasClicked += OnVerCuotas; // ⚠️ se ejecuta una vez
+                _cacheVistas[typeof(UcPagos_Contratos)] = uc;
+                vista = uc;
+            }
+
+            ShowInContent(vista);
+        }
+
+        /// <summary>
+        /// Navega a UcPagos_Cuotas y arma cabecera/colección. Luego permite ver recibo.
+        /// </summary>
+        private void OnVerCuotas(object? sender, string nroContrato)
+        {
+            var cuotas = new UcPagos_Cuotas();
+
+            // Intentamos recuperar inquilino/inmueble desde el origen (si está disponible)
+            string inquilino = "—";
+            string inmueble = "—";
+            if (sender is UcPagos_Contratos origen)
+            {
+                var header = origen.GetMinHeaderFor(nroContrato);
+                if (header.HasValue)
+                {
+                    inquilino = header.Value.Inquilino;
+                    inmueble = header.Value.Inmueble;
+                }
+            }
+
+            // Cabecera (demo hasta conectar BD real)
+            cuotas.LoadContrato(new UcPagos_Cuotas.CabeceraContratoVm
+            {
+                NumeroContrato = nroContrato,
+                Inquilino = inquilino,
+                Inmueble = inmueble,
+                Inicio = new DateTime(2024, 05, 01),
+                Fin = new DateTime(2025, 04, 30),
+                Total = 600000,
+                Atraso = 58000,
+                CantidadCuotas = 12
+            });
+
+            // Cuotas demo
+            cuotas.SetCuotas(new (int, int, string, decimal, DateTime, string)[]
+            {
+                (1,12,"Mayo 2024",       50000, new DateTime(2024,05,10), "Pagada"),
+                (2,12,"Junio 2024",      50000, new DateTime(2024,06,10), "Pagada"),
+                (3,12,"Julio 2024",      50000, new DateTime(2024,07,10), "Vencida"),
+                (4,12,"Agosto 2024",     50000, new DateTime(2024,08,10), "Pendiente"),
+                (5,12,"Septiembre 2024", 50000, new DateTime(2024,09,10), "Pendiente"),
+            });
+
+            // Acciones
+            cuotas.PagarClicked += (_, info) =>
+                MessageBox.Show($"Cobrar cuota {info.nroCuota} del contrato {info.contrato}");
+
+            cuotas.VerReciboClicked += (_, info) =>
+            {
+                var recibo = new UcPagos_Recibo();
+                recibo.LoadRecibo(new UcPagos_Recibo.ReciboVm
+                {
+                    NroRecibo = "R-2025-000123",
+                    Contrato = info.contrato,
+                    NroCuota = info.nroCuota,
+                    Periodo = "Junio 2024",
+                    FechaPago = new DateTime(2024, 06, 10),
+                    MedioPago = "Transferencia",
+                    Importe = 50000m,
+                    Inquilino = inquilino,
+                    Inmueble = inmueble
+                });
+                ShowInContent(recibo);
+            };
+
+            ShowInContent(cuotas);
         }
 
         #endregion

@@ -10,8 +10,17 @@ namespace InmoTech
         static void Main()
         {
             ApplicationConfiguration.Initialize();
+            
 
-            using (var login = new LoginForm())
+
+            Application.Run(new MainForm());
+        }
+    }
+}
+
+/*
+ 
+using (var login = new LoginForm())
             {
                 var result = login.ShowDialog();
                 if (result != DialogResult.OK)
@@ -20,8 +29,5 @@ namespace InmoTech
                     return;
                 }
             }
-
-            Application.Run(new MainForm());
-        }
-    }
-}
+ 
+ */
