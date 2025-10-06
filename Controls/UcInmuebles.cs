@@ -1,222 +1,314 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using InmoTech.Data.Repositories;
+using InmoTech.Domain.Models;
 
 namespace InmoTech
 {
     public partial class UcInmuebles : UserControl
     {
-        // ===== Modelo simple =====
-        private class Inmueble
-        {
-            public int id_inmueble { get; set; }
-            public string direccion { get; set; } = "";
-            public string tipo { get; set; } = "";
-            public string descripcion { get; set; } = "";
-            public string estado { get; set; } = "Disponible"; // Disponible / Ocupado / Inactivo
-            public int nro_ambientes { get; set; }
-            public bool amueblado { get; set; }
-            public byte[]? imagen { get; set; }
-        }
-
-        private readonly BindingList<Inmueble> _datos = new();
-        private int _nextId = 1;
+        private readonly InmuebleRepository _repo = new InmuebleRepository();
         private int? _editandoId = null;
+        private string _imagenPendiente = null; // ruta local seleccionada para guardar como portada
 
         public UcInmuebles()
         {
             InitializeComponent();
 
-            // Engancho eventos SOLO en runtime
             if (!IsDesigner())
             {
                 Load += UcInmuebles_Load;
                 btnGuardar.Click += BtnGuardar_Click;
-                btnCancelar.Click += BtnCancelar_Click;
+                btnCancelar.Click += (s, e) => LimpiarFormulario();
                 btnCargarImagen.Click += BtnCargarImagen_Click;
-                btnQuitarImagen.Click += BtnQuitarImagen_Click;
+                btnQuitarImagen.Click += (s, e) => { _imagenPendiente = null; pbFoto.Image = null; };
                 dgvInmuebles.CellClick += DgvInmuebles_CellClick;
             }
         }
 
-        private static bool IsDesigner()
-        {
-            return LicenseManager.UsageMode == LicenseUsageMode.Designtime ||
-                   System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv";
-        }
+        private static bool IsDesigner() =>
+            LicenseManager.UsageMode == LicenseUsageMode.Designtime ||
+            System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv";
 
-        // ====== Init ======
-        private void UcInmuebles_Load(object? sender, EventArgs e)
+        /* =========================
+           Init
+           ========================= */
+        private void UcInmuebles_Load(object sender, EventArgs e)
         {
             // Combos
             cboTipo.Items.Clear();
-            cboTipo.Items.AddRange(new object[]
-            {
-                "Casa", "Departamento", "PH", "Local", "Galpón", "Oficina", "Terreno"
-            });
+            cboTipo.Items.AddRange(new object[] { "Casa", "Departamento", "PH", "Local", "Galpón", "Oficina", "Terreno" });
 
             cboEstado.Items.Clear();
-            cboEstado.Items.AddRange(new object[]
-            {
-                "Disponible","Reservado","Ocupado","Inactivo"
-            });
-
+            cboEstado.Items.AddRange(new object[] { "Disponible", "Reservado", "Ocupado", "Inactivo" });
             cboTipo.SelectedIndex = -1;
             cboEstado.SelectedIndex = 0;
             nudAmbientes.Value = 0;
             chkAmueblado.Checked = false;
 
-            // Bind grid
+            // Grid
             RefrescarGrid();
         }
 
-        // ====== Botones ======
-        private void BtnCargarImagen_Click(object? sender, EventArgs e)
+        /* =========================
+           Acciones UI
+           ========================= */
+        private void BtnCargarImagen_Click(object sender, EventArgs e)
         {
-            using var ofd = new OpenFileDialog()
+            using (var ofd = new OpenFileDialog
             {
                 Title = "Seleccionar imagen",
-                Filter = "Imágenes|*.jpg;*.jpeg;*.png;*.bmp;*.gif"
-            };
-            if (ofd.ShowDialog() == DialogResult.OK)
+                Filter = "Imágenes|*.jpg;*.jpeg;*.png;*.webp"
+            })
             {
-                try
+                if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    using var img = Image.FromFile(ofd.FileName);
-                    pbFoto.Image = new Bitmap(img);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("No se pudo cargar la imagen.\n" + ex.Message, "Imagen", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    _imagenPendiente = ofd.FileName;
+                    pbFoto.Image = CargarBitmapSinLock(_imagenPendiente);
                 }
             }
         }
 
-        private void BtnQuitarImagen_Click(object? sender, EventArgs e)
+        private void BtnGuardar_Click(object sender, EventArgs e)
         {
-            pbFoto.Image = null;
-        }
-
-        private void BtnCancelar_Click(object? sender, EventArgs e)
-        {
-            LimpiarFormulario();
-        }
-
-        private void BtnGuardar_Click(object? sender, EventArgs e)
-        {
-            if (!ValidarFormulario(out string error))
+            if (!ValidarFormulario(out var error))
             {
                 MessageBox.Show(error, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var entidad = new Inmueble
+            try
             {
-                direccion = txtDireccion.Text.Trim(),
-                tipo = cboTipo.SelectedItem?.ToString() ?? "",
-                descripcion = txtDescripcion.Text.Trim(),
-                estado = cboEstado.SelectedItem?.ToString() ?? "Disponible",
-                nro_ambientes = (int)nudAmbientes.Value,
-                amueblado = chkAmueblado.Checked,
-                imagen = ImageToBytes(pbFoto.Image)
-            };
-
-            if (_editandoId == null)
-            {
-                // Alta
-                entidad.id_inmueble = _nextId++;
-                _datos.Add(entidad);
-            }
-            else
-            {
-                // Update
-                var existente = _datos.FirstOrDefault(x => x.id_inmueble == _editandoId.Value);
-                if (existente != null)
+                if (_editandoId == null)
                 {
-                    existente.direccion = entidad.direccion;
-                    existente.tipo = entidad.tipo;
-                    existente.descripcion = entidad.descripcion;
-                    existente.estado = entidad.estado;
-                    existente.nro_ambientes = entidad.nro_ambientes;
-                    existente.amueblado = entidad.amueblado;
-                    existente.imagen = entidad.imagen;
+                    // Alta
+                    var nuevo = LeerFormulario();
+                    int id = _repo.CrearInmueble(nuevo);
+                    if (!string.IsNullOrWhiteSpace(_imagenPendiente) && File.Exists(_imagenPendiente))
+                        _repo.AgregarImagenDesdeArchivo(id, _imagenPendiente, "Portada", true, 0);
                 }
-            }
+                else
+                {
+                    // Edición
+                    var entidad = LeerFormulario();
+                    entidad.IdInmueble = _editandoId.Value;
+                    _repo.Actualizar(entidad);
 
-            RefrescarGrid();
-            LimpiarFormulario();
+                    if (!string.IsNullOrWhiteSpace(_imagenPendiente) && File.Exists(_imagenPendiente))
+                        _repo.AgregarImagenDesdeArchivo(_editandoId.Value, _imagenPendiente, "Portada", true, 0);
+                }
+
+                LimpiarFormulario();
+                RefrescarGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al guardar.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        // ====== Grid ======
-        private void DgvInmuebles_CellClick(object? sender, DataGridViewCellEventArgs e)
+        private void DgvInmuebles_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
 
-            var id = (int)dgvInmuebles.Rows[e.RowIndex].Cells["id_inmueble"].Value;
+            int id = Convert.ToInt32(dgvInmuebles.Rows[e.RowIndex].Cells["colId"].Value);
+            var colName = dgvInmuebles.Columns[e.ColumnIndex].Name;
 
-            if (dgvInmuebles.Columns[e.ColumnIndex].Name == "editar")
+            if (string.Equals(colName, "colToggle", StringComparison.InvariantCultureIgnoreCase))
             {
-                Editar(id);
+                AlternarEstado(id);
             }
-            else if (dgvInmuebles.Columns[e.ColumnIndex].Name == "activar")
+            else
             {
-                CambiarEstado(id);
+                CargarParaEditar(id);
             }
         }
 
+        /* =========================
+           Lógica principal
+           ========================= */
         private void RefrescarGrid()
         {
-            dgvInmuebles.Rows.Clear();
-            foreach (var x in _datos)
+            try
             {
-                dgvInmuebles.Rows.Add(
-                    x.id_inmueble,
-                    x.direccion,
-                    x.tipo,
-                    x.nro_ambientes,
-                    x.amueblado,
-                    x.estado,
-                    BytesToThumb(x.imagen, 64, 48),
-                    "Editar",
-                    "Cambiar"
-                );
+                var lista = _repo.Listar(null, false); // muestro todos (activos e inactivos)
+
+                dgvInmuebles.Rows.Clear();
+                foreach (var x in lista)
+                {
+                    // portada
+                    Image thumb = null;
+                    var portada = _repo.ListarImagenes(x.IdInmueble).FirstOrDefault(im => im.EsPortada)
+                                  ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
+
+                    if (portada != null)
+                    {
+                        var abs = Path.IsPathRooted(portada.Ruta)
+                                  ? portada.Ruta
+                                  : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
+                        if (File.Exists(abs)) thumb = Escalar(CargarBitmapSinLock(abs), 64, 48);
+                    }
+
+                    dgvInmuebles.Rows.Add(
+                        x.IdInmueble,
+                        x.Direccion,
+                        x.Tipo,
+                        x.NroAmbientes ?? 0,
+                        x.Amueblado,
+                        EstadoToTexto(x.Estado),
+                        thumb,
+                        "Editar",
+                        "Cambiar"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al listar inmuebles.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void Editar(int id)
+        private void CargarParaEditar(int id)
         {
-            var x = _datos.FirstOrDefault(d => d.id_inmueble == id);
-            if (x == null) return;
+            try
+            {
+                var i = _repo.ObtenerPorId(id, true);
+                if (i == null) return;
 
-            _editandoId = id;
-            btnGuardar.Text = "Actualizar";
+                _editandoId = id;
+                btnGuardar.Text = "Actualizar";
+                _imagenPendiente = null;
 
-            txtDireccion.Text = x.direccion;
-            SelectItem(cboTipo, x.tipo);
-            txtDescripcion.Text = x.descripcion;
-            SelectItem(cboEstado, x.estado);
-            nudAmbientes.Value = Math.Min(Math.Max(nudAmbientes.Minimum, x.nro_ambientes), nudAmbientes.Maximum);
-            chkAmueblado.Checked = x.amueblado;
-            pbFoto.Image = BytesToImage(x.imagen);
+                txtDireccion.Text = i.Direccion;
+                SelectItem(cboTipo, i.Tipo);
+                txtDescripcion.Text = i.Descripcion ?? "";
+                SelectItem(cboEstado, EstadoToTexto(i.Estado));
+                nudAmbientes.Value = Math.Max(nudAmbientes.Minimum, Math.Min(nudAmbientes.Maximum, i.NroAmbientes ?? 0));
+                chkAmueblado.Checked = i.Amueblado;
+
+                pbFoto.Image = null;
+                var portada = i.Imagenes.FirstOrDefault(im => im.EsPortada) ?? i.Imagenes.FirstOrDefault();
+                if (portada != null)
+                {
+                    var abs = Path.IsPathRooted(portada.Ruta) ? portada.Ruta : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
+                    if (File.Exists(abs)) pbFoto.Image = CargarBitmapSinLock(abs);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cargar inmueble.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        private void CambiarEstado(int id)
+        private void AlternarEstado(int id)
         {
-            var x = _datos.FirstOrDefault(d => d.id_inmueble == id);
-            if (x == null) return;
+            try
+            {
+                var i = _repo.ObtenerPorId(id);
+                if (i == null) return;
 
-            x.estado = x.estado == "Inactivo" ? "Disponible" : "Inactivo";
-            RefrescarGrid();
+                // Toggle simple entre Disponible(1) e Inactivo(0)
+                i.Estado = (byte)(i.Estado == 0 ? 1 : 0);
+                _repo.Actualizar(i);
+
+                // Si estábamos editando, reflejarlo
+                if (_editandoId == id) SelectItem(cboEstado, EstadoToTexto(i.Estado));
+
+                RefrescarGrid();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No se pudo cambiar el estado.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        // ====== Helpers ======
+        /* =========================
+           Mapeo UI ↔ Modelo
+           ========================= */
+        private Inmueble LeerFormulario()
+        {
+            return new Inmueble
+            {
+                Direccion = (txtDireccion.Text ?? "").Trim(),
+                Tipo = cboTipo.SelectedItem?.ToString() ?? "",
+                Descripcion = (txtDescripcion.Text ?? "").Trim(),
+                Condiciones = "N/A", // agregá txtCondiciones si lo sumás al UI
+                NroAmbientes = (int)nudAmbientes.Value,
+                Amueblado = chkAmueblado.Checked,
+                Estado = TextoToEstado(cboEstado.SelectedItem?.ToString() ?? "Disponible")
+            };
+        }
+
+        private bool ValidarFormulario(out string error)
+        {
+            error = "";
+            var direccion = (txtDireccion.Text ?? "").Trim();
+            var tipoSel = cboTipo.SelectedItem?.ToString() ?? "";
+            var estadoSel = cboEstado.SelectedItem?.ToString() ?? "";
+            var ambientes = (int)nudAmbientes.Value;
+
+            if (direccion.Length == 0) { error = "La dirección es obligatoria."; txtDireccion.Focus(); return false; }
+            if (string.IsNullOrWhiteSpace(tipoSel)) { error = "Seleccioná un tipo de inmueble."; cboTipo.Focus(); return false; }
+            if (ambientes < 1) { error = "El número de ambientes debe ser al menos 1."; nudAmbientes.Focus(); return false; }
+            if (string.IsNullOrWhiteSpace(estadoSel)) { error = "Seleccioná un estado."; cboEstado.Focus(); return false; }
+
+            return true;
+        }
+
+        /* =========================
+           Utilidades
+           ========================= */
+        private static void SelectItem(ComboBox cbo, string value)
+        {
+            for (int i = 0; i < cbo.Items.Count; i++)
+            {
+                var s = cbo.Items[i]?.ToString() ?? "";
+                if (string.Equals(s, value ?? "", StringComparison.InvariantCultureIgnoreCase))
+                { cbo.SelectedIndex = i; return; }
+            }
+            cbo.SelectedIndex = -1;
+        }
+
+        // 0=Inactivo, 1=Disponible, 2=Reservado, 3=Ocupado
+        private static string EstadoToTexto(byte estado)
+        {
+            switch (estado)
+            {
+                case 0: return "Inactivo";
+                case 2: return "Reservado";
+                case 3: return "Ocupado";
+                default: return "Disponible";
+            }
+        }
+
+        private static byte TextoToEstado(string texto)
+        {
+            if (string.Equals(texto, "Inactivo", StringComparison.InvariantCultureIgnoreCase)) return 0;
+            if (string.Equals(texto, "Reservado", StringComparison.InvariantCultureIgnoreCase)) return 2;
+            if (string.Equals(texto, "Ocupado", StringComparison.InvariantCultureIgnoreCase)) return 3;
+            return 1; // Disponible
+        }
+
+        private static Bitmap CargarBitmapSinLock(string path)
+        {
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var img = Image.FromStream(fs))
+                return new Bitmap(img);
+        }
+
+        private static Image Escalar(Image img, int w, int h) =>
+            img == null ? null : new Bitmap(img, new Size(w, h));
+
+        // Limpia el formulario y deja el control listo para un alta
         private void LimpiarFormulario()
         {
             _editandoId = null;
+            _imagenPendiente = null;
+
             btnGuardar.Text = "Guardar";
 
             txtDireccion.Clear();
@@ -225,73 +317,16 @@ namespace InmoTech
             cboEstado.SelectedIndex = 0;
             nudAmbientes.Value = 0;
             chkAmueblado.Checked = false;
-            pbFoto.Image = null;
 
+            pbFoto.Image = null;
             txtDireccion.Focus();
         }
 
-        private bool ValidarFormulario(out string error)
-        {
-            error = "";
-
-            if (string.IsNullOrWhiteSpace(txtDireccion.Text))
-                error = "La dirección es obligatoria.";
-
-            else if (cboTipo.SelectedIndex < 0)
-                error = "Seleccioná un tipo de inmueble.";
-
-            else if (nudAmbientes.Value < 1)
-                error = "El número de ambientes debe ser al menos 1.";
-
-            else if (txtDescripcion.Text.Length > 300)
-                error = "La descripción no puede superar los 300 caracteres.";
-
-            return string.IsNullOrEmpty(error);
-        }
-
-        private static void SelectItem(ComboBox cbo, string value)
-        {
-            for (int i = 0; i < cbo.Items.Count; i++)
-                if (string.Equals(cbo.Items[i]?.ToString(), value, StringComparison.InvariantCultureIgnoreCase))
-                { cbo.SelectedIndex = i; return; }
-            cbo.SelectedIndex = -1;
-        }
-
-        private static byte[]? ImageToBytes(Image? img)
-        {
-            if (img == null) return null;
-            using var ms = new MemoryStream();
-            img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-            return ms.ToArray();
-        }
-
-        private static Image? BytesToImage(byte[]? bytes)
-        {
-            if (bytes == null || bytes.Length == 0) return null;
-            using var ms = new MemoryStream(bytes);
-            return Image.FromStream(ms);
-        }
-
-        private static Image? BytesToThumb(byte[]? bytes, int w, int h)
-        {
-            var img = BytesToImage(bytes);
-            if (img == null) return null;
-            return new Bitmap(img, new Size(w, h));
-        }
-
-        private void dgvInmuebles_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
+        // El diseñador tiene: gbCrear.Enter += gbCrear_Enter;
         private void gbCrear_Enter(object sender, EventArgs e)
         {
-
+            // Nada por ahora (stub para evitar error de compilación)
         }
 
-        private void lblTitulo_Click(object sender, EventArgs e)
-        {
-
-        }
     }
 }
