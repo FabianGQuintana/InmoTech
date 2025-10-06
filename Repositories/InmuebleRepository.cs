@@ -12,13 +12,30 @@ namespace InmoTech.Data.Repositories
     public class InmuebleRepository
     {
         // Carpeta base para imágenes: <carpeta app>\Resources\inmuebles\<id_inmueble>\
-        private static string GetResourcesInmueblesDir(int idInmueble)
+        private string GetResourcesInmueblesDir(int idInmueble)
         {
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            var root = Path.Combine(baseDir, "Resources", "inmuebles", idInmueble.ToString());
-            if (!Directory.Exists(root)) Directory.CreateDirectory(root);
-            return root;
+            // 📍 Buscar la raíz del proyecto (donde está el .csproj)
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            // Si el ejecutable está en bin\Debug o bin\Release, sube 2 niveles
+            var dirInfo = new DirectoryInfo(baseDir);
+            while (dirInfo != null && dirInfo.Name != "InmoTech")
+            {
+                dirInfo = dirInfo.Parent;
+            }
+
+            if (dirInfo == null)
+                throw new Exception("No se pudo ubicar la carpeta raíz del proyecto InmoTech.");
+
+            // Carpeta final dentro de Resources/inmuebles/<id>
+            string recursosDir = Path.Combine(dirInfo.FullName, "Resources", "inmuebles", idInmueble.ToString());
+
+            if (!Directory.Exists(recursosDir))
+                Directory.CreateDirectory(recursosDir);
+
+            return recursosDir;
         }
+
 
         private static string GetMimeByExtension(string ext)
         {
