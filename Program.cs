@@ -26,16 +26,3 @@ namespace InmoTech
     }
 }
 
-/*
- 
-using (var login = new LoginForm())
-            {
-                var result = login.ShowDialog();
-                if (result != DialogResult.OK)
-                {
-                    // Si el usuario cierra o falla el login, salimos
-                    return;
-                }
-            }
- 
- */

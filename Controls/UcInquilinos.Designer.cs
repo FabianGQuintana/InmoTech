@@ -196,7 +196,7 @@ namespace InmoTech.Controls
             lblPass.Name = "lblPass";
             lblPass.Size = new Size(85, 25);
             lblPass.TabIndex = 55;
-            lblPass.Text = "Direccion";
+            lblPass.Text = "Dirección";
             // 
             // txtDireccion
             // 
@@ -204,7 +204,7 @@ namespace InmoTech.Controls
             txtDireccion.Name = "txtDireccion";
             txtDireccion.Size = new Size(190, 31);
             txtDireccion.TabIndex = 62;
-            txtDireccion.UseSystemPasswordChar = true;
+            txtDireccion.UseSystemPasswordChar = false; // <-- corregido
             // 
             // btnGuardar
             // 
@@ -243,7 +243,7 @@ namespace InmoTech.Controls
             dataGridInquilinos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridInquilinos.Size = new Size(1170, 258);
             dataGridInquilinos.TabIndex = 2;
-            dataGridInquilinos.CellContentClick += dataGridView1_CellContentClick;
+            dataGridInquilinos.CellContentClick += dataGridInquilinos_CellContentClick; // <-- corregido
             dataGridInquilinos.CellDoubleClick += dataGridInquilinos_CellDoubleClick;
             // 
             // LListaInquilinos
@@ -302,13 +302,7 @@ namespace InmoTech.Controls
         internal Button btnCancelar;
         private Label lblTitulo;
 
-        // Columnas del grid
-        private DataGridViewTextBoxColumn colDni;
-        private DataGridViewTextBoxColumn colNombre;
-        private DataGridViewTextBoxColumn colApellido;
-        private DataGridViewTextBoxColumn colTelefono;
-        private DataGridViewTextBoxColumn colEmail;
-        private DataGridViewTextBoxColumn colDireccion;
-        private DataGridViewTextBoxColumn colFechaNacimiento;
+        // NOTA: las columnas del grid se crean por código en ConfigurarGrilla()
+        
     }
 }
