@@ -42,7 +42,8 @@ namespace InmoTech
         private DataGridViewTextBoxColumn colTipo;
         private DataGridViewTextBoxColumn colAmb;
         private DataGridViewCheckBoxColumn colAmueb;
-        private DataGridViewTextBoxColumn colEstado;
+        private DataGridViewTextBoxColumn colEstado;  // ahora muestra "Condiciones"
+        private DataGridViewCheckBoxColumn colActivo; // NUEVA: bit (baja lógica)
         private DataGridViewImageColumn colImg;
         private DataGridViewButtonColumn colEditar;
         private DataGridViewButtonColumn colToggle;
@@ -85,6 +86,7 @@ namespace InmoTech
             colAmb = new DataGridViewTextBoxColumn();
             colAmueb = new DataGridViewCheckBoxColumn();
             colEstado = new DataGridViewTextBoxColumn();
+            colActivo = new DataGridViewCheckBoxColumn();
             colImg = new DataGridViewImageColumn();
             colEditar = new DataGridViewButtonColumn();
             colToggle = new DataGridViewButtonColumn();
@@ -165,7 +167,7 @@ namespace InmoTech
             gbCrear.Margin = new Padding(0, 8, 0, 8);
             gbCrear.Name = "gbCrear";
             gbCrear.Padding = new Padding(12);
-            gbCrear.Size = new Size(1176, 267);
+            gbCrear.Size = new Size(1176, 299);
             gbCrear.TabIndex = 1;
             gbCrear.TabStop = false;
             gbCrear.Text = "Crear / Editar Inmueble";
@@ -207,7 +209,7 @@ namespace InmoTech
             // lblAmbientes
             // 
             lblAmbientes.AutoSize = true;
-            lblAmbientes.Location = new Point(640, 28);
+            lblAmbientes.Location = new Point(330, 108);
             lblAmbientes.Name = "lblAmbientes";
             lblAmbientes.Size = new Size(131, 22);
             lblAmbientes.TabIndex = 4;
@@ -215,7 +217,7 @@ namespace InmoTech
             // 
             // nudAmbientes
             // 
-            nudAmbientes.Location = new Point(640, 56);
+            nudAmbientes.Location = new Point(330, 138);
             nudAmbientes.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
             nudAmbientes.Name = "nudAmbientes";
             nudAmbientes.Size = new Size(120, 28);
@@ -224,7 +226,7 @@ namespace InmoTech
             // lblDescripcion
             // 
             lblDescripcion.AutoSize = true;
-            lblDescripcion.Location = new Point(15, 154);
+            lblDescripcion.Location = new Point(15, 180);
             lblDescripcion.Name = "lblDescripcion";
             lblDescripcion.Size = new Size(104, 22);
             lblDescripcion.TabIndex = 6;
@@ -232,27 +234,28 @@ namespace InmoTech
             // 
             // txtDescripcion
             // 
-            txtDescripcion.Location = new Point(15, 188);
+            txtDescripcion.Location = new Point(15, 216);
             txtDescripcion.MaxLength = 300;
             txtDescripcion.Multiline = true;
             txtDescripcion.Name = "txtDescripcion";
             txtDescripcion.ScrollBars = ScrollBars.Vertical;
-            txtDescripcion.Size = new Size(560, 60);
+            txtDescripcion.Size = new Size(595, 60);
             txtDescripcion.TabIndex = 7;
+            txtDescripcion.TextChanged += txtDescripcion_TextChanged;
             // 
             // lblEstado
             // 
             lblEstado.AutoSize = true;
-            lblEstado.Location = new Point(330, 102);
+            lblEstado.Location = new Point(15, 108);
             lblEstado.Name = "lblEstado";
-            lblEstado.Size = new Size(66, 22);
+            lblEstado.Size = new Size(109, 22);
             lblEstado.TabIndex = 8;
-            lblEstado.Text = "Estado";
+            lblEstado.Text = "Condiciones";
             // 
             // cboEstado
             // 
             cboEstado.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboEstado.Location = new Point(330, 130);
+            cboEstado.Location = new Point(16, 136);
             cboEstado.Name = "cboEstado";
             cboEstado.Size = new Size(280, 30);
             cboEstado.TabIndex = 9;
@@ -260,7 +263,7 @@ namespace InmoTech
             // lblAmueblado
             // 
             lblAmueblado.AutoSize = true;
-            lblAmueblado.Location = new Point(640, 108);
+            lblAmueblado.Location = new Point(510, 108);
             lblAmueblado.Name = "lblAmueblado";
             lblAmueblado.Size = new Size(100, 22);
             lblAmueblado.TabIndex = 10;
@@ -269,7 +272,7 @@ namespace InmoTech
             // chkAmueblado
             // 
             chkAmueblado.AutoSize = true;
-            chkAmueblado.Location = new Point(640, 136);
+            chkAmueblado.Location = new Point(546, 141);
             chkAmueblado.Name = "chkAmueblado";
             chkAmueblado.Size = new Size(22, 21);
             chkAmueblado.TabIndex = 11;
@@ -277,7 +280,7 @@ namespace InmoTech
             // lblImagen
             // 
             lblImagen.AutoSize = true;
-            lblImagen.Location = new Point(940, 23);
+            lblImagen.Location = new Point(708, 28);
             lblImagen.Name = "lblImagen";
             lblImagen.Size = new Size(68, 22);
             lblImagen.TabIndex = 12;
@@ -287,7 +290,7 @@ namespace InmoTech
             // 
             pbFoto.BackColor = Color.Honeydew;
             pbFoto.BorderStyle = BorderStyle.FixedSingle;
-            pbFoto.Location = new Point(940, 54);
+            pbFoto.Location = new Point(655, 56);
             pbFoto.Name = "pbFoto";
             pbFoto.Size = new Size(180, 120);
             pbFoto.SizeMode = PictureBoxSizeMode.Zoom;
@@ -297,7 +300,7 @@ namespace InmoTech
             // btnCargarImagen
             // 
             btnCargarImagen.BackColor = Color.White;
-            btnCargarImagen.Location = new Point(940, 180);
+            btnCargarImagen.Location = new Point(655, 192);
             btnCargarImagen.Name = "btnCargarImagen";
             btnCargarImagen.Size = new Size(180, 30);
             btnCargarImagen.TabIndex = 14;
@@ -307,7 +310,7 @@ namespace InmoTech
             // btnQuitarImagen
             // 
             btnQuitarImagen.BackColor = Color.White;
-            btnQuitarImagen.Location = new Point(940, 216);
+            btnQuitarImagen.Location = new Point(655, 228);
             btnQuitarImagen.Name = "btnQuitarImagen";
             btnQuitarImagen.Size = new Size(180, 30);
             btnQuitarImagen.TabIndex = 15;
@@ -318,7 +321,7 @@ namespace InmoTech
             // 
             btnGuardar.BackColor = Color.White;
             btnGuardar.ForeColor = SystemColors.ControlText;
-            btnGuardar.Location = new Point(640, 216);
+            btnGuardar.Location = new Point(942, 190);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(120, 32);
             btnGuardar.TabIndex = 16;
@@ -328,7 +331,7 @@ namespace InmoTech
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.White;
-            btnCancelar.Location = new Point(776, 216);
+            btnCancelar.Location = new Point(942, 228);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(120, 32);
             btnCancelar.TabIndex = 17;
@@ -339,7 +342,7 @@ namespace InmoTech
             // 
             lblLista.AutoSize = true;
             lblLista.Font = new Font("Microsoft Sans Serif", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblLista.Location = new Point(12, 378);
+            lblLista.Location = new Point(12, 410);
             lblLista.Margin = new Padding(0, 8, 0, 6);
             lblLista.Name = "lblLista";
             lblLista.Size = new Size(196, 29);
@@ -353,16 +356,16 @@ namespace InmoTech
             dgvInmuebles.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvInmuebles.BackgroundColor = Color.Teal;
             dgvInmuebles.ColumnHeadersHeight = 34;
-            dgvInmuebles.Columns.AddRange(new DataGridViewColumn[] { colId, colDir, colTipo, colAmb, colAmueb, colEstado, colImg, colEditar, colToggle });
+            dgvInmuebles.Columns.AddRange(new DataGridViewColumn[] { colId, colDir, colTipo, colAmb, colAmueb, colEstado, colActivo, colImg, colEditar, colToggle });
             dgvInmuebles.Dock = DockStyle.Fill;
             dgvInmuebles.GridColor = Color.White;
-            dgvInmuebles.Location = new Point(15, 416);
+            dgvInmuebles.Location = new Point(15, 448);
             dgvInmuebles.MultiSelect = false;
             dgvInmuebles.Name = "dgvInmuebles";
             dgvInmuebles.RowHeadersVisible = false;
             dgvInmuebles.RowHeadersWidth = 62;
             dgvInmuebles.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvInmuebles.Size = new Size(1170, 269);
+            dgvInmuebles.Size = new Size(1170, 237);
             dgvInmuebles.TabIndex = 3;
             // 
             // colId
@@ -401,10 +404,17 @@ namespace InmoTech
             // 
             // colEstado
             // 
-            colEstado.FillWeight = 80F;
-            colEstado.HeaderText = "Estado";
+            colEstado.FillWeight = 90F;
+            colEstado.HeaderText = "Condiciones";
             colEstado.MinimumWidth = 8;
             colEstado.Name = "colEstado";
+            // 
+            // colActivo
+            // 
+            colActivo.FillWeight = 55F;
+            colActivo.HeaderText = "Activo";
+            colActivo.MinimumWidth = 8;
+            colActivo.Name = "colActivo";
             // 
             // colImg
             // 

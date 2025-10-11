@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace InmoTech.Domain.Models
 {
@@ -9,15 +8,15 @@ namespace InmoTech.Domain.Models
         public string Direccion { get; set; } = "";
         public string Tipo { get; set; } = "";
         public string Descripcion { get; set; } = "";
-        public string Condiciones { get; set; } = "";
+        public string Condiciones { get; set; } = ""; // Disponible/Reservado/Ocupado/Inactivo
         public int? NroAmbientes { get; set; }
         public bool Amueblado { get; set; }
-        /// <summary>
-        /// 1 = Activo, 0 = Inactivo (baja lógica)
-        /// </summary>
-        public byte Estado { get; set; } = 1;
 
-        // Opcional: para traer la galería
+        /// <summary>
+        /// Activo = true (1) / Inactivo = false (0) — baja lógica.
+        /// </summary>
+        public bool Estado { get; set; } = true;
+
         public List<InmuebleImagen> Imagenes { get; set; } = new List<InmuebleImagen>();
     }
 }

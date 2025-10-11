@@ -43,6 +43,7 @@ namespace InmoTech
             cboTipo.Items.Clear();
             cboTipo.Items.AddRange(new object[] { "Casa", "Departamento", "PH", "Local", "Galpón", "Oficina", "Terreno" });
 
+            // Este combo ahora representa CONDICIONES (estado comercial)
             cboEstado.Items.Clear();
             cboEstado.Items.AddRange(new object[] { "Disponible", "Reservado", "Ocupado", "Inactivo" });
             cboTipo.SelectedIndex = -1;
@@ -122,6 +123,10 @@ namespace InmoTech
             {
                 AlternarEstado(id);
             }
+            else if (string.Equals(colName, "colEditar", StringComparison.InvariantCultureIgnoreCase))
+            {
+                CargarParaEditar(id);
+            }
             else
             {
                 CargarParaEditar(id);
@@ -153,13 +158,15 @@ namespace InmoTech
                         if (File.Exists(abs)) thumb = Escalar(CargarBitmapSinLock(abs), 64, 48);
                     }
 
+                    // IMPORTANTE: ahora mostramos Condiciones (texto) y Activo (bit) en columnas separadas
                     dgvInmuebles.Rows.Add(
                         x.IdInmueble,
                         x.Direccion,
                         x.Tipo,
                         x.NroAmbientes ?? 0,
                         x.Amueblado,
-                        EstadoToTexto(x.Estado),
+                        x.Condiciones, // colEstado (renombrada visualmente a "Condiciones")
+                        x.Estado,      // colActivo (checkbox)
                         thumb,
                         "Editar",
                         "Cambiar"
@@ -186,7 +193,8 @@ namespace InmoTech
                 txtDireccion.Text = i.Direccion;
                 SelectItem(cboTipo, i.Tipo);
                 txtDescripcion.Text = i.Descripcion ?? "";
-                SelectItem(cboEstado, EstadoToTexto(i.Estado));
+                // el combo ahora refleja Condiciones
+                SelectItem(cboEstado, i.Condiciones);
                 nudAmbientes.Value = Math.Max(nudAmbientes.Minimum, Math.Min(nudAmbientes.Maximum, i.NroAmbientes ?? 0));
                 chkAmueblado.Checked = i.Amueblado;
 
@@ -211,13 +219,18 @@ namespace InmoTech
                 var i = _repo.ObtenerPorId(id);
                 if (i == null) return;
 
-                // Toggle simple entre Disponible(1) e Inactivo(0)
-                i.Estado = (byte)(i.Estado == 0 ? 1 : 0);
+                // Confirmación de baja/alta lógica
+                var activar = !i.Estado; // si está inactivo => activar
+                var msg = activar
+                    ? "¿Deseás ACTIVAR este inmueble?"
+                    : "¿Deseás realizar la BAJA LÓGICA (inactivar) de este inmueble?";
+                var resp = MessageBox.Show(msg, "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (resp != DialogResult.Yes) return;
+
+                i.Estado = activar; // true (1) = activo, false (0) = inactivo
                 _repo.Actualizar(i);
 
-                // Si estábamos editando, reflejarlo
-                if (_editandoId == id) SelectItem(cboEstado, EstadoToTexto(i.Estado));
-
+                // Si estábamos editando, no cambiamos el combo (el combo es de Condiciones)
                 RefrescarGrid();
             }
             catch (Exception ex)
@@ -236,10 +249,12 @@ namespace InmoTech
                 Direccion = (txtDireccion.Text ?? "").Trim(),
                 Tipo = cboTipo.SelectedItem?.ToString() ?? "",
                 Descripcion = (txtDescripcion.Text ?? "").Trim(),
-                Condiciones = "N/A", // agregá txtCondiciones si lo sumás al UI
+                // el combo "cboEstado" ahora guarda CONDICIONES
+                Condiciones = cboEstado.SelectedItem?.ToString() ?? "Disponible",
                 NroAmbientes = (int)nudAmbientes.Value,
                 Amueblado = chkAmueblado.Checked,
-                Estado = TextoToEstado(cboEstado.SelectedItem?.ToString() ?? "Disponible")
+                // alta => activo por defecto (bit = 1)
+                Estado = true
             };
         }
 
@@ -248,13 +263,13 @@ namespace InmoTech
             error = "";
             var direccion = (txtDireccion.Text ?? "").Trim();
             var tipoSel = cboTipo.SelectedItem?.ToString() ?? "";
-            var estadoSel = cboEstado.SelectedItem?.ToString() ?? "";
+            var condicionesSel = cboEstado.SelectedItem?.ToString() ?? "";
             var ambientes = (int)nudAmbientes.Value;
 
             if (direccion.Length == 0) { error = "La dirección es obligatoria."; txtDireccion.Focus(); return false; }
             if (string.IsNullOrWhiteSpace(tipoSel)) { error = "Seleccioná un tipo de inmueble."; cboTipo.Focus(); return false; }
-            if (ambientes < 1) { error = "El número de ambientes debe ser al menos 1."; nudAmbientes.Focus(); return false; }
-            if (string.IsNullOrWhiteSpace(estadoSel)) { error = "Seleccioná un estado."; cboEstado.Focus(); return false; }
+            if (ambientes < 0) { error = "El número de ambientes no puede ser negativo."; nudAmbientes.Focus(); return false; }
+            if (string.IsNullOrWhiteSpace(condicionesSel)) { error = "Seleccioná un estado (Condiciones)."; cboEstado.Focus(); return false; }
 
             return true;
         }
@@ -274,6 +289,7 @@ namespace InmoTech
         }
 
         // 0=Inactivo, 1=Disponible, 2=Reservado, 3=Ocupado
+        // (Se mantiene para compatibilidad, aunque ya no se usa para 'estado' bit)
         private static string EstadoToTexto(byte estado)
         {
             switch (estado)
@@ -328,5 +344,9 @@ namespace InmoTech
             // Nada por ahora (stub para evitar error de compilación)
         }
 
+        private void txtDescripcion_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

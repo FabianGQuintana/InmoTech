@@ -11,100 +11,6 @@ namespace InmoTech.Repositories
     {
         public List<Inquilino> ObtenerInquilinos()
         {
-            var lista = new List<Inquilino>();
-            using var cn = BDGeneral.GetConnection();
-            const string sql = @"
-SELECT Dni, Nombre, Apellido, Telefono, Email, Direccion, FechaNacimiento, Estado
-FROM Inquilino
-ORDER BY Apellido, Nombre;";
-            using var cmd = new SqlCommand(sql, cn);
-            using var rd = cmd.ExecuteReader();
-            while (rd.Read())
-            {
-                lista.Add(new Inquilino
-                {
-                    Dni = rd.GetInt32(0),
-                    Nombre = rd.GetString(1),
-                    Apellido = rd.GetString(2),
-                    Telefono = rd.GetString(3),
-                    Email = rd.GetString(4),
-                    Direccion = rd.GetString(5),
-                    FechaNacimiento = rd.GetDateTime(6),
-                    Estado = rd.GetBoolean(7)
-                });
-            }
-            return lista;
-        }
-
-        public int AgregarInquilino(Inquilino i)
-        {
-            using var cn = BDGeneral.GetConnection();
-            const string sql = @"
-INSERT INTO Inquilino
-(Dni, Nombre, Apellido, Telefono, Email, Direccion, FechaNacimiento, Estado)
-VALUES
-(@Dni, @Nombre, @Apellido, @Telefono, @Email, @Direccion, @FechaNacimiento, 1);";
-            using var cmd = new SqlCommand(sql, cn);
-            cmd.Parameters.Add("@Dni", SqlDbType.Int).Value = i.Dni;
-            cmd.Parameters.Add("@Nombre", SqlDbType.NVarChar, 200).Value = i.Nombre;
-            cmd.Parameters.Add("@Apellido", SqlDbType.NVarChar, 200).Value = i.Apellido;
-            cmd.Parameters.Add("@Telefono", SqlDbType.NVarChar, 50).Value = i.Telefono;
-            cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 200).Value = i.Email;
-            cmd.Parameters.Add("@Direccion", SqlDbType.NVarChar, 300).Value = i.Direccion;
-            cmd.Parameters.Add("@FechaNacimiento", SqlDbType.Date).Value = i.FechaNacimiento;
-            return cmd.ExecuteNonQuery();
-        }
-
-        public int ActualizarInquilino(Inquilino i)
-        {
-            using var cn = BDGeneral.GetConnection();
-            const string sql = @"
-UPDATE Inquilino SET
-  Nombre=@Nombre,
-  Apellido=@Apellido,
-  Telefono=@Telefono,
-  Email=@Email,
-  Direccion=@Direccion,
-  FechaNacimiento=@FechaNacimiento
-WHERE Dni=@Dni;";
-            using var cmd = new SqlCommand(sql, cn);
-            cmd.Parameters.Add("@Nombre", SqlDbType.NVarChar, 200).Value = i.Nombre;
-            cmd.Parameters.Add("@Apellido", SqlDbType.NVarChar, 200).Value = i.Apellido;
-            cmd.Parameters.Add("@Telefono", SqlDbType.NVarChar, 50).Value = i.Telefono;
-            cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 200).Value = i.Email;
-            cmd.Parameters.Add("@Direccion", SqlDbType.NVarChar, 300).Value = i.Direccion;
-            cmd.Parameters.Add("@FechaNacimiento", SqlDbType.Date).Value = i.FechaNacimiento;
-            cmd.Parameters.Add("@Dni", SqlDbType.Int).Value = i.Dni;
-            return cmd.ExecuteNonQuery();
-        }
-
-        public int ActualizarEstado(int dni, bool nuevoEstado)
-        {
-            using var cn = BDGeneral.GetConnection();
-            const string sql = @"UPDATE Inquilino SET Estado=@Estado WHERE Dni=@Dni;";
-            using var cmd = new SqlCommand(sql, cn);
-            cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = nuevoEstado;
-            cmd.Parameters.Add("@Dni", SqlDbType.Int).Value = dni;
-            return cmd.ExecuteNonQuery();
-        }
-    }
-}
-
-
-//ESTE CODIGO ES PARA LA TABLA DE PERSONA... seguro te sirve este
-/*
-  using InmoTech.Models;
-using Microsoft.Data.SqlClient;
-using System;
-using System.Collections.Generic;
-using System.Data;
-
-namespace InmoTech.Repositories
-{
-    public class InquilinoRepository
-    {
-        public List<Inquilino> ObtenerInquilinos()
-        {
             var list = new List<Inquilino>();
             using var cn = BDGeneral.GetConnection();
             const string sql = @"
@@ -188,8 +94,6 @@ WHERE dni=@dni;";
         }
     }
 }
-*/
-
 
 /*
  POSIBLES PARCHES PARA EL SQL.

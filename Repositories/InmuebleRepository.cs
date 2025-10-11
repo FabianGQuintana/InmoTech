@@ -49,38 +49,39 @@ namespace InmoTech.Data.Repositories
         /* =========================
            CRUD INMUEBLE
            ========================= */
-
+        // ------------------- CRUD Inmueble -------------------
         public int CrearInmueble(Inmueble i)
         {
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand(@"
-            INSERT INTO dbo.inmueble (direccion, tipo, descripcion, condiciones, nro_ambientes, amueblado, estado)
-            VALUES (@direccion, @tipo, @descripcion, @condiciones, @nro_ambientes, @amueblado, @estado);
-            SELECT CAST(SCOPE_IDENTITY() AS int);
+                INSERT INTO dbo.inmueble
+                  (direccion, tipo, descripcion, condiciones, nro_ambientes, amueblado, estado)
+                VALUES
+                  (@direccion, @tipo, @descripcion, @condiciones, @nro_ambientes, @amueblado, @estado);
+                SELECT CAST(SCOPE_IDENTITY() AS int);
             ", cn))
             {
                 cmd.Parameters.Add("@direccion", SqlDbType.VarChar, 200).Value = i.Direccion;
                 cmd.Parameters.Add("@tipo", SqlDbType.VarChar, 80).Value = i.Tipo;
                 cmd.Parameters.Add("@descripcion", SqlDbType.VarChar, 1000).Value = (object)i.Descripcion ?? DBNull.Value;
-                cmd.Parameters.Add("@condiciones", SqlDbType.VarChar, 150).Value = i.Condiciones;
+                cmd.Parameters.Add("@condiciones", SqlDbType.NVarChar, 255).Value = i.Condiciones;
                 cmd.Parameters.Add("@nro_ambientes", SqlDbType.Int).Value = (object)i.NroAmbientes ?? DBNull.Value;
                 cmd.Parameters.Add("@amueblado", SqlDbType.Bit).Value = i.Amueblado;
-                cmd.Parameters.Add("@estado", SqlDbType.TinyInt).Value = i.Estado;
+                cmd.Parameters.Add("@estado", SqlDbType.Bit).Value = i.Estado; // bit
 
-                var newId = (int)cmd.ExecuteScalar();
-                return newId;
+                return (int)cmd.ExecuteScalar();
             }
         }
 
         public Inmueble ObtenerPorId(int idInmueble, bool incluirImagenes = false)
         {
             Inmueble res = null;
-
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand(@"
-            SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones, nro_ambientes, amueblado, estado
-            FROM dbo.inmueble
-            WHERE id_inmueble = @id;", cn))
+                SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones,
+                       nro_ambientes, amueblado, estado
+                FROM dbo.inmueble
+                WHERE id_inmueble = @id;", cn))
             {
                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
                 using (var rd = cmd.ExecuteReader())
@@ -96,15 +97,11 @@ namespace InmoTech.Data.Repositories
                             Condiciones = rd.GetString(4),
                             NroAmbientes = rd.IsDBNull(5) ? (int?)null : rd.GetInt32(5),
                             Amueblado = rd.GetBoolean(6),
-                            Estado = rd.GetByte(7)
+                            Estado = rd.GetBoolean(7) // bit
                         };
                     }
                 }
-
-                if (res != null && incluirImagenes)
-                {
-                    res.Imagenes = ListarImagenes(idInmueble);
-                }
+                if (res != null && incluirImagenes) res.Imagenes = ListarImagenes(idInmueble);
             }
             return res;
         }
@@ -112,16 +109,14 @@ namespace InmoTech.Data.Repositories
         public List<Inmueble> Listar(string filtroTexto = null, bool soloActivos = true)
         {
             var lista = new List<Inmueble>();
-
             var sql = @"
-            SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones, nro_ambientes, amueblado, estado
-            FROM dbo.inmueble
-            WHERE (1=1)";
-
+                SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones,
+                       nro_ambientes, amueblado, estado
+                FROM dbo.inmueble
+                WHERE (1=1)";
             if (soloActivos) sql += " AND estado = 1";
             if (!string.IsNullOrWhiteSpace(filtroTexto))
                 sql += " AND (direccion LIKE @q OR tipo LIKE @q OR condiciones LIKE @q)";
-
             sql += " ORDER BY id_inmueble DESC";
 
             using (var cn = BDGeneral.GetConnection())
@@ -134,7 +129,7 @@ namespace InmoTech.Data.Repositories
                 {
                     while (rd.Read())
                     {
-                        var i = new Inmueble
+                        lista.Add(new Inmueble
                         {
                             IdInmueble = rd.GetInt32(0),
                             Direccion = rd.GetString(1),
@@ -143,9 +138,8 @@ namespace InmoTech.Data.Repositories
                             Condiciones = rd.GetString(4),
                             NroAmbientes = rd.IsDBNull(5) ? (int?)null : rd.GetInt32(5),
                             Amueblado = rd.GetBoolean(6),
-                            Estado = rd.GetByte(7)
-                        };
-                        lista.Add(i);
+                            Estado = rd.GetBoolean(7)
+                        });
                     }
                 }
             }
@@ -155,53 +149,30 @@ namespace InmoTech.Data.Repositories
         public int Actualizar(Inmueble i)
         {
             using (var cn = BDGeneral.GetConnection())
-            using (var cmd = new SqlCommand(@"UPDATE dbo.inmueble
-            SET direccion=@direccion, tipo=@tipo, descripcion=@descripcion, condiciones=@condiciones,
-                nro_ambientes=@nro_ambientes, amueblado=@amueblado, estado=@estado
-            WHERE id_inmueble=@id;", cn))
+            using (var cmd = new SqlCommand(@"
+                UPDATE dbo.inmueble
+                   SET direccion=@direccion, tipo=@tipo, descripcion=@descripcion,
+                       condiciones=@condiciones, nro_ambientes=@nro_ambientes,
+                       amueblado=@amueblado, estado=@estado
+                 WHERE id_inmueble=@id;", cn))
             {
                 cmd.Parameters.Add("@direccion", SqlDbType.VarChar, 200).Value = i.Direccion;
                 cmd.Parameters.Add("@tipo", SqlDbType.VarChar, 80).Value = i.Tipo;
                 cmd.Parameters.Add("@descripcion", SqlDbType.VarChar, 1000).Value = (object)i.Descripcion ?? DBNull.Value;
-                cmd.Parameters.Add("@condiciones", SqlDbType.VarChar, 150).Value = i.Condiciones;
+                cmd.Parameters.Add("@condiciones", SqlDbType.NVarChar, 255).Value = i.Condiciones;
                 cmd.Parameters.Add("@nro_ambientes", SqlDbType.Int).Value = (object)i.NroAmbientes ?? DBNull.Value;
                 cmd.Parameters.Add("@amueblado", SqlDbType.Bit).Value = i.Amueblado;
-                cmd.Parameters.Add("@estado", SqlDbType.TinyInt).Value = i.Estado;
+                cmd.Parameters.Add("@estado", SqlDbType.Bit).Value = i.Estado;
                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = i.IdInmueble;
-
                 return cmd.ExecuteNonQuery();
             }
         }
 
-        /// <summary>
-        /// Baja lógica: estado = 0
-        /// </summary>
+        /// <summary> Baja lógica: estado = 0 (false). </summary>
         public int DarDeBaja(int idInmueble)
         {
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand("UPDATE dbo.inmueble SET estado = 0 WHERE id_inmueble = @id;", cn))
-            {
-                cmd.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
-                return cmd.ExecuteNonQuery();
-            }
-        }
-
-        /// <summary>
-        /// Eliminación física total (incluye imágenes por ON DELETE CASCADE).
-        /// </summary>
-        public int EliminarFisico(int idInmueble)
-        {
-            // 1) Borrar carpeta física si existe
-            try
-            {
-                var dir = GetResourcesInmueblesDir(idInmueble);
-                if (Directory.Exists(dir)) Directory.Delete(dir, true);
-            }
-            catch { /* opcional: log */ }
-
-            // 2) Borrar filas
-            using (var cn = BDGeneral.GetConnection())
-            using (var cmd = new SqlCommand("DELETE FROM dbo.inmueble WHERE id_inmueble=@id;", cn))
             {
                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
                 return cmd.ExecuteNonQuery();

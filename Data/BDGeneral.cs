@@ -12,8 +12,8 @@ namespace InmoTech.Data
         public static SqlConnection GetConnection()
         {
             var cs =
-                "Data Source=localhost\\MSSQLSERVER04;" +
-                "Initial Catalog=InmoTechDB;" +
+                "Data Source=Ivan\\SQLEXPRESS;" +
+                "Initial Catalog=inmotech;" +
                 "Integrated Security=SSPI;" +
                 "Encrypt=True;" +
                 "TrustServerCertificate=True;" +
@@ -25,5 +25,5 @@ namespace InmoTech.Data
         }
     }
 }
-//inmotech
-//Ivan\\SQLEXPRESS;
+//InmoTechDB
+//localhost\\MSSQLSERVER04;
