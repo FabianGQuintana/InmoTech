@@ -425,5 +425,75 @@ namespace InmoTech.Data.Repositories
                 return path + Path.DirectorySeparatorChar;
             return path;
         }
+
+        public (List<InmuebleLite> items, int total) BuscarPaginado(
+            string term, bool? soloActivos, int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+
+            var lista = new List<InmuebleLite>();
+            var sql = @"
+            ;WITH q AS (
+               SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
+               FROM dbo.inmueble
+               WHERE (@term='' 
+                      OR direccion   LIKE @like
+                      OR tipo        LIKE @like
+                      OR condiciones LIKE @like)
+                 AND (@estado IS NULL OR estado = @estado)
+            )
+            SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
+            FROM q
+            ORDER BY direccion
+            OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY;
+
+            SELECT COUNT(1)
+            FROM dbo.inmueble
+            WHERE (@term='' 
+                   OR direccion   LIKE @like
+                   OR tipo        LIKE @like
+                   OR condiciones LIKE @like)
+              AND (@estado IS NULL OR estado = @estado);";
+
+            using (var cn = BDGeneral.GetConnection())
+            using (var cmd = new Microsoft.Data.SqlClient.SqlCommand(sql, cn))
+            {
+                var like = string.IsNullOrWhiteSpace(term) ? "" : $"%{term.Trim()}%";
+                cmd.Parameters.Add("@term", SqlDbType.VarChar, 200).Value = string.IsNullOrWhiteSpace(term) ? "" : term.Trim();
+                cmd.Parameters.Add("@like", SqlDbType.VarChar, 200).Value = like;
+                cmd.Parameters.Add("@estado", SqlDbType.Bit).Value = (object?)soloActivos ?? DBNull.Value;
+                cmd.Parameters.Add("@skip", SqlDbType.Int).Value = (page - 1) * pageSize;
+                cmd.Parameters.Add("@take", SqlDbType.Int).Value = pageSize;
+
+                using var rd = cmd.ExecuteReader();
+                while (rd.Read())
+                {
+                    lista.Add(new InmuebleLite
+                    {
+                        IdInmueble = rd.GetInt32(0),
+                        Direccion = rd.GetString(1),
+                        Tipo = rd.GetString(2),
+                        NroAmbientes = rd.IsDBNull(3) ? (int?)null : rd.GetInt32(3),
+                        Amueblado = rd.GetBoolean(4),
+                        Estado = rd.GetBoolean(5)
+                    });
+                }
+                rd.NextResult(); rd.Read();
+                var total = rd.GetInt32(0);
+                return (lista, total);
+            }
+        }
+    }
+
+    // DTO liviano para la grilla del buscador
+    public sealed class InmuebleLite
+    {
+        public int IdInmueble { get; set; }
+        public string Direccion { get; set; } = "";
+        public string Tipo { get; set; } = "";
+        public int? NroAmbientes { get; set; }
+        public bool Amueblado { get; set; }
+        public bool Estado { get; set; }  // true=Activo
     }
 }

@@ -1,111 +1,190 @@
-﻿// UcContratos.cs
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
 using System.Windows.Forms;
+using InmoTech.Forms;
+using InmoTech.Models;
+using InmoTech.Repositories;
+using InmoTech.Security;
 
 namespace InmoTech.Controls
 {
     public partial class UcContratos : UserControl
     {
-        // ViewModel para el grid
-        public class ContratoVm
-        {
-            public string NumeroContrato { get; set; } = "";
-            public string Inquilino { get; set; } = "";
-            public string Inmueble { get; set; } = "";
-            public DateTime Inicio { get; set; }
-            public DateTime Fin { get; set; }
-            public decimal Monto { get; set; }
-            public string Estado { get; set; } = "";
-            public bool Activo { get; set; }
-        }
-
         private readonly BindingSource _bs = new BindingSource();
+        private readonly ContratoRepository _repo = new ContratoRepository();
+        private readonly InquilinoRepository _repoInquilino = new InquilinoRepository();
+
+        private int? _selPersonaId = null;   // FK persona
+        private int? _selInmuebleId = null;  // FK inmueble
 
         public UcContratos()
         {
             InitializeComponent();
 
-            // === Binding listo (sin datos inicialmente)
-            _bs.DataSource = new BindingList<ContratoVm>();
+            _bs.DataSource = new BindingList<Contrato>();
+            dataGridView1.AutoGenerateColumns = false;
             dataGridView1.DataSource = _bs;
 
-            // NO formateamos 'Activo' como texto porque ahora es CheckBox
-            // Podés dejar este evento si querés dar formato extra a otras columnas:
-            // dataGridView1.CellFormatting += DataGridView1_CellFormatting;
+            Load += UcContratos_Load;
+            dataGridView1.CellFormatting += DataGridView1_CellFormatting;
+            dataGridView1.CellContentClick += DataGridView1_CellContentClick;
 
-            // ===== Datos de prueba =====
-            var demo = new List<ContratoVm>
-            {
-                new ContratoVm {
-                    NumeroContrato = "C-001",
-                    Inquilino = "Juan Pérez",
-                    Inmueble = "Depto 2A",
-                    Inicio = new DateTime(2025, 1, 1),
-                    Fin = new DateTime(2025, 12, 31),
-                    Monto = 250000m,
-                    Estado = "Vigente",
-                    Activo = true
-                },
-                new ContratoVm {
-                    NumeroContrato = "C-002",
-                    Inquilino = "María López",
-                    Inmueble = "Casa 5",
-                    Inicio = new DateTime(2024, 6, 1),
-                    Fin = new DateTime(2025, 5, 31),
-                    Monto = 300000m,
-                    Estado = "Finalizado",
-                    Activo = false
-                },
-                new ContratoVm {
-                    NumeroContrato = "C-003",
-                    Inquilino = "Carlos Gómez",
-                    Inmueble = "Local Comercial",
-                    Inicio = new DateTime(2025, 3, 15),
-                    Fin = new DateTime(2026, 3, 14),
-                    Monto = 450000m,
-                    Estado = "Vigente",
-                    Activo = true
-                }
-            };
-
-            CargarDatos(demo);
+            btnBuscarInmueble.Click += BtnBuscarInmueble_Click;
+            btnGuardar.Click += BtnGuardar_Click;
+            btnCancelar.Click += (s, e) => LimpiarFormulario();
         }
 
-        // Ejemplo de formateo opcional (si querés afinar fechas/moneda por código)
-        private void DataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
-        {
-            // Dejar vacío o personalizar si necesitás algo puntual
-        }
+        private void UcContratos_Load(object? sender, EventArgs e) => RefrescarGrilla();
 
-        // API pública para cargar/recargar datos reales desde tu repo/servicio
-        public void CargarDatos(IEnumerable<ContratoVm> items)
+        private void RefrescarGrilla()
         {
-            if (_bs.DataSource is BindingList<ContratoVm> list)
+            // Si hay usuario autenticado, filtramos por su DNI; si no, mostramos todo (opcional).
+            int? dniFiltro = AuthService.IsAuthenticated ? AuthService.CurrentUser!.Dni : (int?)null;
+
+            var contratos = _repo.ObtenerContratos(dniFiltro);
+
+            var list = (BindingList<Contrato>)_bs.DataSource;
+            list.Clear();
+            foreach (var c in contratos) list.Add(c);
+
+            // Formatos
+            dataGridView1.Columns["colInicio"].DefaultCellStyle.Format = "dd/MM/yyyy";
+            dataGridView1.Columns["colFin"].DefaultCellStyle.Format = "dd/MM/yyyy";
+            dataGridView1.Columns["colMonto"].DefaultCellStyle.Format = "C2";
+            dataGridView1.Columns["colFechaCreacion"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
+
+            // Texto del botón según estado
+            foreach (DataGridViewRow row in dataGridView1.Rows)
             {
-                list.Clear();
-                foreach (var it in items)
-                    list.Add(it);
+                if (row.DataBoundItem is Contrato contrato)
+                    row.Cells["colAccion"].Value = contrato.Estado ? "Dar de baja" : "Restaurar";
             }
         }
 
-        // API para limpiar
-        public void LimpiarDatos()
+        private void DataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (_bs.DataSource is BindingList<ContratoVm> list)
-                list.Clear();
+            if (e.RowIndex < 0) return;
+
+            if (dataGridView1.Columns[e.ColumnIndex].Name == "colEstado")
+            {
+                var contrato = (Contrato)_bs[e.RowIndex];
+                e.Value = contrato.Estado ? "Activo" : "Inactivo";
+                e.FormattingApplied = true;
+            }
         }
 
-        // ==== Handlers de ejemplo (dejados vacíos) ====
+        private void BtnBuscarInmueble_Click(object? sender, EventArgs e)
+        {
+            using var dlg = new FrmBuscarInmueble();
+            if (dlg.ShowDialog(this) == DialogResult.OK && dlg.Seleccionado != null)
+            {
+                _selInmuebleId = dlg.Seleccionado.IdInmueble;
+                txtInmueble.Text = $"{dlg.Seleccionado.Direccion} ({dlg.Seleccionado.Tipo})";
+            }
+        }
+
+        private void btnBuscarInquilino_Click(object sender, EventArgs e)
+        {
+            using var dlg = new FrmBuscarInquilino();
+            if (dlg.ShowDialog(this) == DialogResult.OK && dlg.Seleccionado != null)
+            {
+                _selPersonaId = _repoInquilino.ObtenerIdPersonaPorDni(dlg.Seleccionado.Dni);
+                if (_selPersonaId == null)
+                {
+                    MessageBox.Show("No se encontró el inquilino en la tabla persona.", "Atención",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                txtInquilino.Text = $"{dlg.Seleccionado.Apellido} {dlg.Seleccionado.Nombre}";
+            }
+        }
+
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
-            // Lógica de guardado
+            if (_selInmuebleId is null)
+            {
+                MessageBox.Show("Seleccioná un inmueble antes de guardar.", "Atención",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (_selPersonaId is null)
+            {
+                MessageBox.Show("Seleccioná un inquilino válido antes de guardar.", "Atención",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!AuthService.IsAuthenticated)
+            {
+                MessageBox.Show("Debés iniciar sesión para registrar contratos.", "Atención",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var nuevo = new Contrato
+            {
+                FechaInicio = dtpInicio.Value.Date,
+                FechaFin = dtpFin.Value.Date,
+                Monto = nudMonto.Value,
+                Condiciones = null,
+                IdInmueble = _selInmuebleId.Value,
+                IdPersona = _selPersonaId.Value,
+                FechaCreacion = DateTime.Now,
+                DniUsuario = AuthService.CurrentUser!.Dni,
+                Estado = chkActivo.Checked
+            };
+
+            try
+            {
+                var filas = _repo.AgregarContrato(nuevo);
+                if (filas > 0)
+                {
+                    MessageBox.Show("Contrato guardado correctamente.", "OK",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    RefrescarGrilla();
+                    LimpiarFormulario();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al guardar el contrato:\n{ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        private void BtnCancelar_Click(object? sender, EventArgs e)
+        private void LimpiarFormulario()
         {
-            // Lógica de cancelación
+            _selPersonaId = null;
+            txtInquilino.Text = "...";
+            _selInmuebleId = null;
+            txtInmueble.Text = "...";
+            dtpInicio.Value = DateTime.Today;
+            dtpFin.Value = DateTime.Today;
+            nudMonto.Value = 0;
+            chkActivo.Checked = true;
+        }
+
+        private void DataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (dataGridView1.Columns[e.ColumnIndex].Name != "colAccion") return;
+
+            var contrato = (Contrato)_bs[e.RowIndex];
+            var id = contrato.IdContrato;
+
+            if (contrato.Estado)
+            {
+                var confirm = MessageBox.Show($"¿Desea dar de baja el contrato #{id}?",
+                    "Confirmar baja", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (confirm != DialogResult.Yes) return;
+
+                _repo.ActualizarEstado(id, false);
+            }
+            else
+            {
+                _repo.ActualizarEstado(id, true);
+            }
+
+            RefrescarGrilla();
         }
     }
 }

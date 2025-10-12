@@ -26,6 +26,12 @@
     <Compile Update="Controls\UcReportesAdmin.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Forms\FrmBuscarInmueble.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\FrmBuscarInquilino.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
