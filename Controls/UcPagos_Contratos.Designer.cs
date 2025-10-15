@@ -31,14 +31,14 @@ namespace InmoTech.Controls
 
         private System.Windows.Forms.Timer timerBuscar;
 
-        // Columnas
+        // Columnas visibles (sin Condiciones, IdInmueble ni IdPersona)
         private DataGridViewTextBoxColumn colId;
         private DataGridViewTextBoxColumn colInquilino;
         private DataGridViewTextBoxColumn colInmueble;
         private DataGridViewTextBoxColumn colInicio;
         private DataGridViewTextBoxColumn colFin;
         private DataGridViewTextBoxColumn colMonto;
-        private DataGridViewTextBoxColumn colEstado;
+        private DataGridViewTextBoxColumn colEstado;   // texto (Activo/Inactivo), no CheckBox
         private DataGridViewTextBoxColumn colUsuario;
 
         protected override void Dispose(bool disposing)
@@ -194,6 +194,73 @@ namespace InmoTech.Controls
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.Size = new Size(900, 329);
             dgv.TabIndex = 0;
+
+            // Usaremos columnas definidas (evita warnings y oculta las no deseadas)
+            dgv.AutoGenerateColumns = false;
+
+            // --- Definición de columnas visibles ---
+            // colId
+            colId = new DataGridViewTextBoxColumn();
+            colId.Name = "colId";
+            colId.HeaderText = "N° Contrato";
+            colId.DataPropertyName = "IdContrato";
+            colId.ReadOnly = true;
+
+            // colInquilino
+            colInquilino = new DataGridViewTextBoxColumn();
+            colInquilino.Name = "colInquilino";
+            colInquilino.HeaderText = "Inquilino";
+            colInquilino.DataPropertyName = "NombreInquilino";
+            colInquilino.ReadOnly = true;
+
+            // colInmueble (descriptivo, NO IdInmueble)
+            colInmueble = new DataGridViewTextBoxColumn();
+            colInmueble.Name = "colInmueble";
+            colInmueble.HeaderText = "Inmueble";
+            colInmueble.DataPropertyName = "DireccionInmueble";
+            colInmueble.ReadOnly = true;
+
+            // colInicio
+            colInicio = new DataGridViewTextBoxColumn();
+            colInicio.Name = "colInicio";
+            colInicio.HeaderText = "Inicio";
+            colInicio.DataPropertyName = "FechaInicio";
+            colInicio.ReadOnly = true;
+
+            // colFin
+            colFin = new DataGridViewTextBoxColumn();
+            colFin.Name = "colFin";
+            colFin.HeaderText = "Fin";
+            colFin.DataPropertyName = "FechaFin";
+            colFin.ReadOnly = true;
+
+            // colMonto
+            colMonto = new DataGridViewTextBoxColumn();
+            colMonto.Name = "colMonto";
+            colMonto.HeaderText = "Monto";
+            colMonto.DataPropertyName = "Monto";
+            colMonto.ReadOnly = true;
+
+            // colEstado - texto (se formatea a "Activo"/"Inactivo" en CellFormatting)
+            colEstado = new DataGridViewTextBoxColumn();
+            colEstado.Name = "colEstado";
+            colEstado.HeaderText = "Estado";
+            colEstado.DataPropertyName = "Estado"; // bool -> formateado a texto
+            colEstado.ReadOnly = true;
+
+            // colUsuario
+            colUsuario = new DataGridViewTextBoxColumn();
+            colUsuario.Name = "colUsuario";
+            colUsuario.HeaderText = "Usuario";
+            colUsuario.DataPropertyName = "NombreUsuario";
+            colUsuario.ReadOnly = true;
+
+            // Agregar columnas al grid
+            dgv.Columns.AddRange(new DataGridViewColumn[]
+            {
+                colId, colInquilino, colInmueble, colInicio, colFin, colMonto, colEstado, colUsuario
+            });
+
             // 
             // pnlBottom
             // 

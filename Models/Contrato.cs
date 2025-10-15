@@ -7,6 +7,7 @@ namespace InmoTech.Models
         public int IdContrato { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }   // NOT NULL
+
         public decimal Monto { get; set; }
         public string? Condiciones { get; set; }
         public int IdInmueble { get; set; }

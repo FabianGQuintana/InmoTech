@@ -18,9 +18,6 @@ namespace InmoTech.Controls
         private Label lblMetodoPago;
         private ComboBox cboMetodoPago;
 
-        private Label lblComprobante;
-        private TextBox txtComprobante;
-
         private Label lblObservaciones;
         private TextBox txtObservaciones;
 
@@ -54,9 +51,6 @@ namespace InmoTech.Controls
 
             lblMetodoPago = new Label();
             cboMetodoPago = new ComboBox();
-
-            lblComprobante = new Label();
-            txtComprobante = new TextBox();
 
             lblObservaciones = new Label();
             txtObservaciones = new TextBox();
@@ -109,20 +103,12 @@ namespace InmoTech.Controls
             cboMetodoPago.Location = new Point(240, 190);
             cboMetodoPago.Width = 220;
 
-            // Comprobante
-            lblComprobante.AutoSize = true;
-            lblComprobante.Location = new Point(36, 235);
-            lblComprobante.Text = "Número de comprobante";
-
-            txtComprobante.Location = new Point(36, 255);
-            txtComprobante.Width = 424;
-
             // Observaciones
             lblObservaciones.AutoSize = true;
-            lblObservaciones.Location = new Point(36, 300);
+            lblObservaciones.Location = new Point(36, 235);
             lblObservaciones.Text = "Observaciones";
 
-            txtObservaciones.Location = new Point(36, 320);
+            txtObservaciones.Location = new Point(36, 255);
             txtObservaciones.Multiline = true;
             txtObservaciones.ScrollBars = ScrollBars.Vertical;
             txtObservaciones.Size = new Size(640, 140);
@@ -141,25 +127,25 @@ namespace InmoTech.Controls
 
             // Recibo
             chkEmitirRecibo.AutoSize = true;
-            chkEmitirRecibo.Location = new Point(36, 478);
+            chkEmitirRecibo.Location = new Point(36, 420);
             chkEmitirRecibo.Text = "Emitir recibo automáticamente";
 
             lnkVistaPrevia.AutoSize = true;
-            lnkVistaPrevia.Location = new Point(36, 505);
+            lnkVistaPrevia.Location = new Point(36, 447);
             lnkVistaPrevia.Text = "Vista previa del recibo";
 
             // Botones
             btnCancelar.Text = "Cancelar";
             btnCancelar.BackColor = Color.WhiteSmoke;
             btnCancelar.FlatStyle = FlatStyle.Flat;
-            btnCancelar.Location = new Point(480, 540);
+            btnCancelar.Location = new Point(480, 480);
             btnCancelar.Size = new Size(120, 36);
 
             btnGuardar.Text = "Guardar pago";
             btnGuardar.BackColor = Color.FromArgb(46, 204, 113);
             btnGuardar.ForeColor = Color.White;
             btnGuardar.FlatStyle = FlatStyle.Flat;
-            btnGuardar.Location = new Point(610, 540);
+            btnGuardar.Location = new Point(610, 480);
             btnGuardar.Size = new Size(150, 36);
 
             // Control
@@ -169,30 +155,21 @@ namespace InmoTech.Controls
             Controls.Add(lblLinea1);
             Controls.Add(lblLinea2);
             Controls.Add(lblLinea3);
-
             Controls.Add(lblFechaPago);
             Controls.Add(dtpFechaPago);
-
             Controls.Add(lblMetodoPago);
             Controls.Add(cboMetodoPago);
-
-            Controls.Add(lblComprobante);
-            Controls.Add(txtComprobante);
-
             Controls.Add(lblObservaciones);
             Controls.Add(txtObservaciones);
-
             Controls.Add(lblMonto);
             Controls.Add(nudMonto);
-
             Controls.Add(chkEmitirRecibo);
             Controls.Add(lnkVistaPrevia);
-
             Controls.Add(btnCancelar);
             Controls.Add(btnGuardar);
 
             Name = "UcPagos_PagarCuota";
-            Size = new Size(800, 600);
+            Size = new Size(800, 550);
 
             ResumeLayout(false);
             PerformLayout();

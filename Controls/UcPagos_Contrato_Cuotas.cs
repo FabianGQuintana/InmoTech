@@ -16,12 +16,16 @@ namespace InmoTech.Controls
         #region Campos y Eventos
         private readonly Contrato _contrato;
         private readonly CuotaRepository _repoCuotas = new CuotaRepository();
+
+        // --- REPOSITORIO AÑADIDO ---
+        private readonly ReciboRepository _repoRecibo = new ReciboRepository();
+
         private List<Cuota> _cuotas = new();
 
         public event EventHandler? Volver;
-
-        // NUEVO: evento para solicitar el flujo de pago de una cuota
         public event EventHandler<(Contrato contrato, Cuota cuota)>? PagarCuotaSolicitado;
+
+        // El evento VerReciboSolicitado ya no es necesario aquí.
         #endregion
 
         // ======================================================
@@ -37,30 +41,24 @@ namespace InmoTech.Controls
         #endregion
 
         // ======================================================
-        //  REGIÓN: Eventos y Métodos
+        //  REGIÓN: Carga de Datos y Configuración
         // ======================================================
-        #region Eventos de Carga
+        #region Carga y Configuración
         private void UcPagos_Contrato_Cuotas_Load(object? sender, EventArgs e)
         {
             CargarCabeceraContrato();
             CargarCuotas();
             ConfigurarGrilla();
         }
-        #endregion
 
-        // ======================================================
-        //  REGIÓN: Metodos de Carga de Datos
-        // ======================================================
-        #region Métodos de Carga de Datos
         private void CargarCabeceraContrato()
         {
             lblContrato.Text = $"Contrato C-{_contrato.IdContrato}";
             lblInquilino.Text = $"Inquilino: {_contrato.NombreInquilino}";
             lblInmueble.Text = $"Inmueble: {_contrato.DireccionInmueble}";
-            lblFechas.Text = $"Inicio – Fin:  {_contrato.FechaInicio:dd/MM/yyyy} – {_contrato.FechaFin:dd/MM/yyyy}";
+            lblFechas.Text = $"Inicio – Fin:  {_contrato.FechaInicio:dd/MM/yyyy} – {_contrato.FechaFin:dd/MM/yyyy}";
             lblTotal.Text = $"{_contrato.Monto * ObtenerCantidadMeses():N0}";
             lblCuotas.Text = ObtenerCantidadMeses().ToString();
-
             ActualizarResumen();
         }
 
@@ -74,47 +72,23 @@ namespace InmoTech.Controls
         // ======================================================
         //  REGIÓN: Configuración y Eventos de Grilla
         // ======================================================
-        #region Configuración de Grilla
+        #region Configuración y Eventos de Grilla
         private void ConfigurarGrilla()
         {
             dgvCuotas.AutoGenerateColumns = false;
             dgvCuotas.Columns.Clear();
 
-            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Cuota",
-                DataPropertyName = "NroCuota",
-                Width = 80
-            });
-            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Período",
-                DataPropertyName = "FechaVencimiento",
-                Width = 140
-            });
-            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Monto",
-                DataPropertyName = "Importe",
-                Width = 120
-            });
-            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Vencimiento",
-                DataPropertyName = "FechaVencimiento",
-                Width = 130
-            });
-            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Estado",
-                DataPropertyName = "Estado",
-                Width = 120
-            });
+            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cuota", DataPropertyName = "NroCuota", Width = 80 });
+            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Período", DataPropertyName = "FechaVencimiento", Width = 140 });
+            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Monto", DataPropertyName = "Importe", Width = 120 });
+            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Vencimiento", DataPropertyName = "FechaVencimiento", Width = 130 });
+            dgvCuotas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Estado", DataPropertyName = "Estado", Width = 120 });
+
             var colAccion = new DataGridViewButtonColumn
             {
                 HeaderText = "Acciones",
-                Text = "Pagar",
-                UseColumnTextForButtonValue = true,
+                Name = "colAccion",
+                UseColumnTextForButtonValue = false,
                 Width = 120
             };
             dgvCuotas.Columns.Add(colAccion);
@@ -122,88 +96,119 @@ namespace InmoTech.Controls
             dgvCuotas.CellFormatting += DgvCuotas_CellFormatting;
             dgvCuotas.CellContentClick += DgvCuotas_CellContentClick;
         }
-        #endregion
 
-        // ======================================================
-        //  REGIÓN: Eventos de Grilla
-        // ======================================================
-        #region Eventos de Grilla
         private void DgvCuotas_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
+            var cuota = _cuotas[e.RowIndex];
 
-            if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "FechaVencimiento" && e.Value is DateTime dt)
-            {
-                e.Value = dt.ToString("dd/MM/yyyy");
-            }
-            else if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "Importe" && e.Value is decimal dec)
-            {
-                e.Value = $"$ {dec:N0}";
-            }
+            // Formato de fecha y monto
+            if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "FechaVencimiento" && e.Value is DateTime dt) { e.Value = dt.ToString("dd/MM/yyyy"); }
+            else if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "Importe" && e.Value is decimal dec) { e.Value = $"$ {dec:N0}"; }
 
+            // Formato de color de celda por estado
             if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "Estado")
             {
                 string estado = e.Value?.ToString() ?? "";
                 var cell = dgvCuotas.Rows[e.RowIndex].Cells[e.ColumnIndex];
                 cell.Style.ForeColor = Color.Black;
+                if (estado == "Pagada") { cell.Style.BackColor = Color.FromArgb(210, 243, 223); }
+                else if (estado == "Vencida") { cell.Style.BackColor = Color.FromArgb(255, 230, 150); }
+                else if (estado == "Pendiente") { cell.Style.BackColor = Color.FromArgb(255, 245, 200); }
+            }
 
-                if (estado == "Pagada")
-                {
-                    cell.Style.BackColor = Color.FromArgb(210, 243, 223); // verde suave
-                }
-                else if (estado == "Vencida")
-                {
-                    cell.Style.BackColor = Color.FromArgb(255, 230, 150);
-                }
-                else if (estado == "Pendiente")
-                {
-                    cell.Style.BackColor = Color.FromArgb(255, 245, 200);
-                }
+            // Lógica para el texto del botón
+            if (dgvCuotas.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
+            {
+                var buttonCell = (DataGridViewButtonCell)dgvCuotas.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                buttonCell.Value = (cuota.Estado == "Pagada") ? "Ver Recibo" : "Pagar";
             }
         }
 
         private void DgvCuotas_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || !(dgvCuotas.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
 
-            // si se hace click en el botón "Pagar", disparamos el evento hacia el MainForm
-            if (dgvCuotas.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
+            var cuota = _cuotas[e.RowIndex];
+
+            if (cuota.Estado == "Pagada")
             {
-                var cuota = _cuotas[e.RowIndex];
-
-                if (cuota.Estado == "Pagada")
+                if (cuota.IdPago.HasValue)
                 {
-                    MessageBox.Show("La cuota ya está pagada.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
+                    // --- CAMBIO PRINCIPAL: Llama al método local para mostrar el recibo ---
+                    MostrarVistaRecibo(cuota.IdPago.Value);
                 }
-
-                // Nada de actualizar estado acá: delegamos al flujo de pago
+                else
+                {
+                    MessageBox.Show("Esta cuota está pagada pero no tiene un pago asociado.", "Error de Datos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            else // Si no está pagada, dispara el evento para pagarla (como antes)
+            {
                 PagarCuotaSolicitado?.Invoke(this, (_contrato, cuota));
             }
         }
         #endregion
 
         // ======================================================
-        //  REGIÓN: Metodos Auxiliares
+        //  REGIÓN: Métodos Auxiliares
         // ======================================================
         #region Métodos Auxiliares
+
+        // --- MÉTODO NUEVO PARA MOSTRAR LA VISTA FLOTANTE ---
+        private void MostrarVistaRecibo(int idPago)
+        {
+            try
+            {
+                var recibo = _repoRecibo.ObtenerPorIdPago(idPago);
+                if (recibo != null)
+                {
+                    var ucRecibo = new UcRecibo();
+                    ucRecibo.CargarDatos(recibo);
+
+                    var formFlotante = new Form
+                    {
+                        Text = "Visor de Recibo",
+                        StartPosition = FormStartPosition.CenterParent,
+
+                        // --- CAMBIO 1: Usar un borde fijo para que no se pueda redimensionar y se vea mejor ---
+                        FormBorderStyle = FormBorderStyle.FixedToolWindow,
+
+                        // --- CAMBIO 2 (EL MÁS IMPORTANTE): Calcular el tamaño dinámicamente ---
+                        Size = new System.Drawing.Size(ucRecibo.Width + 20, ucRecibo.Height + 40),
+
+                        MaximizeBox = false,
+                        MinimizeBox = false
+                    };
+
+                    ucRecibo.CerrarSolicitado += (s, ev) => formFlotante.Close();
+                    formFlotante.Controls.Add(ucRecibo);
+                    ucRecibo.Dock = DockStyle.Fill;
+
+                    formFlotante.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show("No se pudo encontrar el recibo asociado a este pago.", "Recibo no encontrado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ocurrió un error al intentar mostrar el recibo:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void ActualizarResumen()
         {
-            int pagadas = _cuotas.Count(c => c.Estado == "Pagada");
-            int vencidas = _cuotas.Count(c => c.Estado == "Vencida");
-            int pendientes = _cuotas.Count(c => c.Estado == "Pendiente");
-
             decimal totalPagado = _cuotas.Where(c => c.Estado == "Pagada").Sum(c => c.Importe);
             decimal totalPendiente = _cuotas.Where(c => c.Estado != "Pagada").Sum(c => c.Importe);
-
             lblAtraso.Text = $"{totalPendiente:N0}";
             lblTotal.Text = $"{totalPagado + totalPendiente:N0}";
         }
 
         private int ObtenerCantidadMeses()
         {
-            return ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12) +
-                       (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
+            return ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12) + (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
         }
         #endregion
 

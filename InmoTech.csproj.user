@@ -20,6 +20,9 @@
     <Compile Update="Controls\UcPagos_PagarCuota.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Controls\UcRecibo.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Controls\UcReportesOperador.cs">
       <SubType>UserControl</SubType>
     </Compile>
