@@ -178,10 +178,6 @@ namespace InmoTech.Controls
             MostrarRecibo(reciboPrevio);
         }
 
-        /// <summary>
-        /// Crea un objeto Recibo a partir de los datos actuales en el formulario.
-        /// </summary>
-        // ... dentro de la clase UcPagos_PagarCuota ...
 
         /// <summary>
         /// Crea un objeto Recibo a partir de los datos actuales en el formulario.

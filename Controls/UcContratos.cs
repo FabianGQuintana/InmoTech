@@ -39,13 +39,14 @@ namespace InmoTech.Controls
 
             // Handlers de la grilla
             dataGridView1.CellFormatting += DataGridView1_CellFormatting;
-            dataGridView1.CellContentClick += DataGridView1_CellContentClick;
+            dataGridView1.SelectionChanged += DataGridView1_SelectionChanged;
 
             // Handlers de la UI (Formulario)
             btnBuscarInmueble.Click += BtnBuscarInmueble_Click;
-            btnBuscarInquilino.Click += btnBuscarInquilino_Click; // Ya estaba fuera del constructor en el código original, lo mantengo aquí por cohesión
+            // btnBuscarInquilino.Click += btnBuscarInquilino_Click; // LÍNEA ELIMINADA
             btnGuardar.Click += BtnGuardar_Click;
             btnCancelar.Click += (s, e) => LimpiarFormulario();
+            BEstado.Click += BEstado_Click;
         }
         #endregion
 
@@ -57,9 +58,7 @@ namespace InmoTech.Controls
 
         private void RefrescarGrilla()
         {
-            // Si hay usuario autenticado, filtramos por su DNI; si no, mostramos todo (opcional).
             int? dniFiltro = AuthService.IsAuthenticated ? AuthService.CurrentUser!.Dni : (int?)null;
-
             var contratos = _repo.ObtenerContratos(dniFiltro);
 
             var list = (BindingList<Contrato>)_bs.DataSource;
@@ -72,12 +71,10 @@ namespace InmoTech.Controls
             dataGridView1.Columns["colMonto"].DefaultCellStyle.Format = "C2";
             dataGridView1.Columns["colFechaCreacion"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
 
-            // Texto del botón según estado
-            foreach (DataGridViewRow row in dataGridView1.Rows)
-            {
-                if (row.DataBoundItem is Contrato contrato)
-                    row.Cells["colAccion"].Value = contrato.Estado ? "Dar de baja" : "Restaurar";
-            }
+            // Se elimina el bucle que seteaba el texto del botón en la celda
+
+            // Forzar actualización del estado del botón después de refrescar
+            DataGridView1_SelectionChanged(this, EventArgs.Empty);
         }
         #endregion
 
@@ -85,6 +82,28 @@ namespace InmoTech.Controls
         //  REGIÓN:Manejadores de Eventos de la Grilla (DataGridView)
         // ======================================================
         #region Manejadores de Eventos de la Grilla (DataGridView)
+
+        // MÉTODO NUEVO: Se ejecuta cada vez que el usuario selecciona una fila diferente
+        private void DataGridView1_SelectionChanged(object? sender, EventArgs e)
+        {
+            // Si hay al menos una fila seleccionada
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                // Habilitamos el botón
+                BEstado.Enabled = true;
+                // Obtenemos el contrato de la fila seleccionada
+                var contrato = (Contrato)dataGridView1.SelectedRows[0].DataBoundItem;
+                // Cambiamos el texto del botón según el estado del contrato
+                BEstado.Text = contrato.Estado ? "Anular" : "Restaurar";
+            }
+            else
+            {
+                // Si no hay ninguna fila seleccionada, deshabilitamos el botón
+                BEstado.Enabled = false;
+                BEstado.Text = "Anular"; // Texto por defecto
+            }
+        }
+
         private void DataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -97,35 +116,47 @@ namespace InmoTech.Controls
             }
         }
 
-        private void DataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-            if (dataGridView1.Columns[e.ColumnIndex].Name != "colAccion") return;
-
-            var contrato = (Contrato)_bs[e.RowIndex];
-            var id = contrato.IdContrato;
-
-            if (contrato.Estado)
-            {
-                var confirm = MessageBox.Show($"¿Desea dar de baja el contrato #{id}?",
-                    "Confirmar baja", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (confirm != DialogResult.Yes) return;
-
-                _repo.ActualizarEstado(id, false);
-            }
-            else
-            {
-                _repo.ActualizarEstado(id, true);
-            }
-
-            RefrescarGrilla();
-        }
+        // MÉTODO ELIMINADO: DataGridView1_CellContentClick ya no se usa
         #endregion
 
         // ======================================================
         //  REGIÓN: Manejadores de Eventos del Formulario (Botones)
         // ======================================================
         #region Manejadores de Eventos del Formulario (Botones)
+
+        // MÉTODO NUEVO: Lógica centralizada para anular o restaurar
+        private void BEstado_Click(object? sender, EventArgs e)
+        {
+            // Verificamos si hay una fila seleccionada
+            if (dataGridView1.SelectedRows.Count == 0) return;
+
+            // Obtenemos el contrato seleccionado
+            var contrato = (Contrato)dataGridView1.SelectedRows[0].DataBoundItem;
+            var id = contrato.IdContrato;
+
+            // Si el contrato está Activo, queremos anularlo
+            if (contrato.Estado)
+            {
+                var confirm = MessageBox.Show($"¿Está seguro que desea anular el contrato N°{id}?",
+                    "Confirmar Anulación", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (confirm == DialogResult.Yes)
+                {
+                    _repo.ActualizarEstado(id, false); // Damos de baja
+                    MessageBox.Show("El contrato ha sido anulado.", "Operación Exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            // Si el contrato está Inactivo, queremos restaurarlo
+            else
+            {
+                _repo.ActualizarEstado(id, true); // Damos de alta
+                MessageBox.Show("El contrato ha sido restaurado.", "Operación Exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+            // Refrescamos la grilla para que se vean los cambios
+            RefrescarGrilla();
+        }
+
         private void BtnBuscarInmueble_Click(object? sender, EventArgs e)
         {
             using var dlg = new FrmBuscarInmueble();

@@ -31,13 +31,14 @@ namespace InmoTech.Controls
             colEstado = new DataGridViewTextBoxColumn();
             colUsuario = new DataGridViewTextBoxColumn();
             colFechaCreacion = new DataGridViewTextBoxColumn();
-            colAccion = new DataGridViewButtonColumn();
+            // colAccion ha sido eliminada
             LListaInquilinos = new Label();
             panel2 = new Panel();
             btnBuscarInquilino = new Button();
             txtInquilino = new Label();
             label1 = new Label();
             btnBuscarInmueble = new Button();
+            btnCancelar = new Button();
             dtpInicio = new DateTimePicker();
             chkActivo = new CheckBox();
             lblInquilino = new Label();
@@ -48,7 +49,7 @@ namespace InmoTech.Controls
             lblMonto = new Label();
             nudMonto = new NumericUpDown();
             btnGuardar = new Button();
-            btnCancelar = new Button();
+            BEstado = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             panel2.SuspendLayout();
@@ -83,7 +84,8 @@ namespace InmoTech.Controls
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.BackgroundColor = Color.Teal;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colId, colNumero, colInquilino, colInmueble, colInicio, colFin, colMonto, colEstado, colUsuario, colFechaCreacion, colAccion });
+            // La columna colAccion fue removida de la siguiente línea
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colId, colNumero, colInquilino, colInmueble, colInicio, colFin, colMonto, colEstado, colUsuario, colFechaCreacion });
             dataGridView1.Location = new Point(16, 366);
             dataGridView1.MultiSelect = false;
             dataGridView1.Name = "dataGridView1";
@@ -174,13 +176,6 @@ namespace InmoTech.Controls
             colFechaCreacion.Name = "colFechaCreacion";
             colFechaCreacion.ReadOnly = true;
             // 
-            // colAccion
-            // 
-            colAccion.HeaderText = "Acción";
-            colAccion.MinimumWidth = 100;
-            colAccion.Name = "colAccion";
-            colAccion.ReadOnly = true;
-            // 
             // LListaInquilinos
             // 
             LListaInquilinos.AutoSize = true;
@@ -195,6 +190,7 @@ namespace InmoTech.Controls
             // 
             panel2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             panel2.BackColor = Color.Teal;
+            panel2.Controls.Add(BEstado);
             panel2.Controls.Add(btnBuscarInquilino);
             panel2.Controls.Add(txtInquilino);
             panel2.Controls.Add(label1);
@@ -251,6 +247,16 @@ namespace InmoTech.Controls
             btnBuscarInmueble.TabIndex = 3;
             btnBuscarInmueble.Text = "Buscar";
             btnBuscarInmueble.UseVisualStyleBackColor = true;
+            // 
+            // btnCancelar
+            // 
+            btnCancelar.BackColor = Color.White;
+            btnCancelar.Location = new Point(904, 97);
+            btnCancelar.Name = "btnCancelar";
+            btnCancelar.Size = new Size(157, 36);
+            btnCancelar.TabIndex = 14;
+            btnCancelar.Text = "Cancelar";
+            btnCancelar.UseVisualStyleBackColor = false;
             // 
             // dtpInicio
             // 
@@ -334,22 +340,22 @@ namespace InmoTech.Controls
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.White;
-            btnGuardar.Location = new Point(904, 69);
+            btnGuardar.Location = new Point(904, 54);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(157, 37);
             btnGuardar.TabIndex = 13;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
             // 
-            // btnCancelar
+            // BEstado
             // 
-            btnCancelar.BackColor = Color.White;
-            btnCancelar.Location = new Point(904, 112);
-            btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(157, 36);
-            btnCancelar.TabIndex = 14;
-            btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = false;
+            BEstado.BackColor = Color.White;
+            BEstado.Location = new Point(904, 139);
+            BEstado.Name = "BEstado";
+            BEstado.Size = new Size(157, 36);
+            BEstado.TabIndex = 15;
+            BEstado.Text = "Anular";
+            BEstado.UseVisualStyleBackColor = false;
             // 
             // UcContratos
             // 
@@ -393,7 +399,6 @@ namespace InmoTech.Controls
         private Label label1;
         private Button btnBuscarInquilino;
         private Label txtInquilino;
-
         private DataGridViewTextBoxColumn colId;
         private DataGridViewTextBoxColumn colNumero;
         private DataGridViewTextBoxColumn colInquilino;
@@ -403,7 +408,8 @@ namespace InmoTech.Controls
         private DataGridViewTextBoxColumn colMonto;
         private DataGridViewTextBoxColumn colEstado;
         private DataGridViewTextBoxColumn colUsuario;
-        private DataGridViewTextBoxColumn colFechaCreacion; // NUEVA
-        private DataGridViewButtonColumn colAccion;
+        private DataGridViewTextBoxColumn colFechaCreacion;
+        // La declaración de colAccion también ha sido eliminada
+        private Button BEstado;
     }
 }
