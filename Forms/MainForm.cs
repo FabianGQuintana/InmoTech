@@ -104,10 +104,6 @@ namespace InmoTech
             // Vista inicial
             CargarVista<UcDashboard>(BDashboard);
 
-            // Flujo especial de Pagos → Contratos → Cuotas, sin tocar tu handler original
-            BPagos.Click -= BPagos_Click_Ex; // evitar doble suscripción por si el diseñador engancha varias veces
-            BPagos.Click += BPagos_Click_Ex;
-
             // Backup (solo vista por ahora)
             BBackup.Click -= BBackup_Click;
             BBackup.Click += BBackup_Click;
@@ -353,7 +349,94 @@ namespace InmoTech
         private void BInmuebles_Click(object sender, EventArgs e) => CargarVista<UcInmuebles>(BInmuebles);
         private void BInquilinos_Click(object sender, EventArgs e) => CargarVista<UcInquilinos>(BInquilinos);
         private void BContratos_Click(object sender, EventArgs e) => CargarVista<UcContratos>(BContratos);
-        private void BPagos_Click(object sender, EventArgs e) => CargarVista<UcPagos_Contratos>(BPagos);
+        private void BPagos_Click(object sender, EventArgs e)
+        {
+            // Usamos un flujo especial (sin CargarVista) para poder cablear eventos
+            MarcarBotonLateralActivo(BPagos);
+            MostrarPagosSeleccionContratos();
+        }
+
+        /// <summary>
+        /// Muestra la vista para seleccionar contrato para pagos.
+        /// </summary>
+        private void MostrarPagosSeleccionContratos()
+        {
+            // Si querés filtrar por el usuario logueado (opcional):
+            int? dniUsuarioFiltro = InmoTech.Security.AuthService.CurrentUser?.Dni;
+
+            var selector = new InmoTech.Controls.UcPagos_Contratos
+            {
+                Dock = DockStyle.Fill,
+                DniUsuarioFiltro = dniUsuarioFiltro
+            };
+
+            // Cuando eligen contrato -> vamos a Cuotas
+            selector.ContratoElegido += (s, e) => MostrarPagosCuotas(e.Contrato);
+
+            // Si cancelan -> definí el comportamiento que quieras:
+            selector.Cancelado += (s, e) =>
+            {
+                // Opción A: volver al Dashboard
+                CargarVista<UcDashboard>(BDashboard);
+
+                // Opción B: volver al historial (si venías de otra vista)
+                // VolverAAnterior();
+
+                // Opción C: limpiar el panel
+                // pnlContent.Controls.Clear();
+            };
+
+            // Mostramos el selector en el panel principal
+            ShowInContent(selector);
+        }
+
+
+        private void MostrarPagosCuotas(InmoTech.Models.Contrato contrato)
+        {
+            var cuotasUC = new InmoTech.Controls.UcPagos_Contrato_Cuotas(contrato);
+            cuotasUC.Volver += (s, e) => MostrarPagosSeleccionContratos();
+
+            // 👉 escuchar el pedido de pagar
+            cuotasUC.PagarCuotaSolicitado += (s, data) =>
+            {
+                MostrarPagarCuota(data.contrato, data.cuota);
+            };
+
+            ShowInContent(cuotasUC);
+        }
+
+        private void MostrarPagarCuota(InmoTech.Models.Contrato contrato, InmoTech.Models.Cuota cuota)
+        {
+            var pagarUC = new InmoTech.Controls.UcPagos_PagarCuota(contrato, cuota);
+
+            pagarUC.Cancelado += (s, e) =>
+            {
+                // volver a la grilla de cuotas del contrato
+                MostrarPagosCuotas(contrato);
+            };
+
+            pagarUC.PagoGuardado += (s, idPago) =>
+            {
+                // después de guardar, volvemos a la grilla refrescada
+                MostrarPagosCuotas(contrato);
+                // si querés, podés abrir la vista de recibo acá usando idPago
+            };
+
+            ShowInContent(pagarUC);
+        }
+
+
+        private void VolverAAnterior()
+        {
+            if (_historial.Count == 0) return;
+
+            var anterior = _historial.Pop();
+            pnlContent.SuspendLayout();
+            pnlContent.Controls.Clear();
+            anterior.Dock = DockStyle.Fill;
+            pnlContent.Controls.Add(anterior);
+            pnlContent.ResumeLayout();
+        }
 
         // ⬇️ MODIFICADO: Reportes abre la vista según rol
         private void BReportes_Click(object sender, EventArgs e)
@@ -594,175 +677,5 @@ namespace InmoTech
 
         #endregion
 
-        // ======================================================
-        //  REGIÓN: Flujo Pagos → Contratos → Cuotas → Recibo
-        // ======================================================
-        #region FlujoPagos
-
-        /// <summary>
-        /// Handler adicional para Pagos que monta el flujo Contratos→Cuotas→Recibo.
-        /// Se suscribe en el constructor sin tocar tu BPagos_Click original.
-        /// </summary>
-        private void BPagos_Click_Ex(object? sender, EventArgs e)
-        {
-            if (sender is Button btn) MarcarBotonLateralActivo(btn);
-
-            UcPagos_Contratos uc;
-            if (_cacheVistas.TryGetValue(typeof(UcPagos_Contratos), out var vistaExistente))
-            {
-                uc = (UcPagos_Contratos)vistaExistente;
-            }
-            else
-            {
-                uc = new UcPagos_Contratos { Dock = DockStyle.Fill, AutoScroll = true };
-                _cacheVistas[typeof(UcPagos_Contratos)] = uc;
-            }
-
-            // 👉 Siempre asegurar suscripción
-            uc.VerCuotasClicked -= OnVerCuotas;
-            uc.VerCuotasClicked += OnVerCuotas;
-
-            ShowInContent(uc);
-        }
-
-
-        /// <summary>
-        /// Navega a UcPagos_Cuotas y arma cabecera/colección. Luego permite ver recibo.
-        /// </summary>
-        private void OnVerCuotas(object? sender, string nroContrato)
-        {
-            var cuotas = new UcPagos_Cuotas();
-
-            // Intentamos recuperar inquilino/inmueble desde el origen (si está disponible)
-            string inquilino = "—";
-            string inmueble = "—";
-            if (sender is UcPagos_Contratos origen)
-            {
-                var header = origen.GetMinHeaderFor(nroContrato);
-                if (header.HasValue)
-                {
-                    inquilino = header.Value.Inquilino;
-                    inmueble = header.Value.Inmueble;
-                }
-            }
-
-            // Cabecera (demo hasta conectar BD real)
-            cuotas.LoadContrato(new UcPagos_Cuotas.CabeceraContratoVm
-            {
-                NumeroContrato = nroContrato,
-                Inquilino = inquilino,
-                Inmueble = inmueble,
-                Inicio = new DateTime(2024, 05, 01),
-                Fin = new DateTime(2025, 04, 30),
-                Total = 600000,
-                Atraso = 58000,
-                CantidadCuotas = 12
-            });
-
-            // Cuotas demo
-            cuotas.SetCuotas(new (int, int, string, decimal, DateTime, string)[]
-            {
-                (1,12,"Mayo 2024",       50000, new DateTime(2024,05,10), "Pagada"),
-                (2,12,"Junio 2024",      50000, new DateTime(2024,06,10), "Pagada"),
-                (3,12,"Julio 2024",      50000, new DateTime(2024,07,10), "Vencida"),
-                (4,12,"Agosto 2024",     50000, new DateTime(2024,08,10), "Pendiente"),
-                (5,12,"Septiembre 2024", 50000, new DateTime(2024,09,10), "Pendiente"),
-            });
-
-            cuotas.PagarClicked += (_, info) =>
-            {
-                // info: (string contrato, int nroCuota, string periodo, decimal monto, DateTime vencimiento)
-                var pagar = new UcPagos_PagarCuota();
-
-                pagar.LoadHeader(new UcPagos_PagarCuota.HeaderCuota
-                {
-                    Contrato = info.contrato,
-                    Inquilino = inquilino,   // viene del header que armamos arriba en OnVerCuotas
-                    Inmueble = inmueble,    // idem
-                    NroCuota = info.nroCuota,
-                    CantCuotas = 12,          // si ya lo tenés, poné el real
-                    Periodo = info.periodo,
-                    Monto = info.monto
-                });
-
-                // Guardar
-                pagar.GuardarPagoClicked += (_, pago) =>
-                {
-                    // TODO: guardar en BD.
-
-                    // Si quiere recibo automático o previa, mostramos Recibo
-                    if (pago.EmitirRecibo)
-                    {
-                        var recibo = new UcPagos_Recibo();
-                        recibo.LoadRecibo(new UcPagos_Recibo.ReciboVm
-                        {
-                            NroRecibo = "R-2025-000124",
-                            Contrato = pago.Contrato,
-                            NroCuota = pago.NroCuota,
-                            Periodo = pago.Periodo,
-                            FechaPago = pago.FechaPago,
-                            MedioPago = pago.MedioPago,
-                            Importe = pago.Monto,
-                            Inquilino = inquilino,
-                            Inmueble = inmueble
-                        });
-                        ShowInContent(recibo);
-                    }
-                    else
-                    {
-                        // Volvemos a la vista de cuotas para que se vea actualizado
-                        ShowInContent(cuotas);
-                        // Opcional: refrescar grilla de cuotas acá
-                    }
-                };
-
-                // Vista previa del recibo (sin guardar)
-                pagar.VistaPreviaReciboClicked += (_, pago) =>
-                {
-                    var recibo = new UcPagos_Recibo();
-                    recibo.LoadRecibo(new UcPagos_Recibo.ReciboVm
-                    {
-                        NroRecibo = "R-2025-000123",
-                        Contrato = pago.Contrato,
-                        NroCuota = pago.NroCuota,
-                        Periodo = pago.Periodo,
-                        FechaPago = pago.FechaPago,
-                        MedioPago = pago.MedioPago,
-                        Importe = 50000m,
-                        Inquilino = inquilino,
-                        Inmueble = inmueble
-                    });
-                    ShowInContent(recibo);
-                };
-
-                // Cancelar: volvemos a cuotas
-                pagar.CancelarClicked += (_, __) => ShowInContent(cuotas);
-
-                ShowInContent(pagar);
-            };
-
-
-            cuotas.VerReciboClicked += (_, info) =>
-            {
-                var recibo = new UcPagos_Recibo();
-                recibo.LoadRecibo(new UcPagos_Recibo.ReciboVm
-                {
-                    NroRecibo = "R-2025-000123",
-                    Contrato = info.contrato,
-                    NroCuota = info.nroCuota,
-                    Periodo = "Junio 2024",
-                    FechaPago = new DateTime(2024, 06, 10),
-                    MedioPago = "Transferencia",
-                    Importe = 50000m,
-                    Inquilino = "—",
-                    Inmueble = "—"
-                });
-                ShowInContent(recibo);
-            };
-
-            ShowInContent(cuotas);
-        }
-
-        #endregion
     }
 }

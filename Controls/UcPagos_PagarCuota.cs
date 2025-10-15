@@ -1,115 +1,143 @@
 ﻿using System;
-using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
+using InmoTech.Models;
+using InmoTech.Repositories;
 
-namespace InmoTech
+namespace InmoTech.Controls
 {
     public partial class UcPagos_PagarCuota : UserControl
     {
-        // --------- Tipos expuestos ----------
-        public sealed class HeaderCuota
-        {
-            public string Contrato { get; init; } = "";
-            public string Inquilino { get; init; } = "";
-            public string Inmueble { get; init; } = "";
-            public int NroCuota { get; init; }
-            public int CantCuotas { get; init; }
-            public string Periodo { get; init; } = "";
-            public decimal Monto { get; init; }
-        }
+        private readonly Contrato _contrato;
+        private readonly Cuota _cuota;
 
-        public sealed class PagoInput
-        {
-            public string Contrato { get; init; } = "";
-            public int NroCuota { get; init; }
-            public DateTime FechaPago { get; init; }
-            public string MedioPago { get; init; } = "";
-            public string? Comprobante { get; init; }
-            public string? Observaciones { get; init; }
-            public bool EmitirRecibo { get; init; }
-            public decimal Monto { get; init; }
-            public string Periodo { get; init; } = "";
-        }
+        private readonly MetodoPagoRepository _repoMetodos = new MetodoPagoRepository();
+        private readonly PagoRepository _repoPago = new PagoRepository();
+        private readonly CuotaRepository _repoCuota = new CuotaRepository();
 
-        // --------- Eventos ----------
-        public event EventHandler<PagoInput>? GuardarPagoClicked;
-        public event EventHandler? CancelarClicked;
-        public event EventHandler<PagoInput>? VistaPreviaReciboClicked;
+        public event EventHandler? Cancelado;
+        public event EventHandler<int>? PagoGuardado; // devuelve id_pago
 
-        // --------- Estado ----------
-        private HeaderCuota? _header;
-
-        public UcPagos_PagarCuota()
+        public UcPagos_PagarCuota(Contrato contrato, Cuota cuota)
         {
             InitializeComponent();
+            _contrato = contrato;
+            _cuota = cuota;
+            Load += UcPagos_PagarCuota_Load;
+        }
 
-            // Defaults
-            dtpFechaPago.Value = DateTime.Today;
-            if (cboMedioPago.Items.Count > 0) cboMedioPago.SelectedIndex = 0;
+        private void UcPagos_PagarCuota_Load(object? sender, EventArgs e)
+        {
+            // Cabecera
+            lblTituloContrato.Text = $"Contrato N°: C-{_contrato.IdContrato}";
+            lblLinea1.Text = $"Inquilino: {_contrato.NombreInquilino ?? "—"}";
+            lblLinea2.Text = $"Inmueble: {_contrato.DireccionInmueble ?? "—"}";
+            lblLinea3.Text = $"Cuota: {_cuota.NroCuota} / {CalcularMesesContrato()}   |   " +
+                             $"Período: {_cuota.FechaVencimiento:MMMM yyyy}   |   Monto: $ {_cuota.Importe:N0}";
 
-            // Eventos UI
-            btnGuardar.Click += (_, __) => OnGuardar();
-            btnCancelar.Click += (_, __) => CancelarClicked?.Invoke(this, EventArgs.Empty);
-            lnkVistaPrevia.LinkClicked += (_, __) =>
+            // Campos
+            dtpFechaPago.Value = DateTime.Now.Date;
+            nudMonto.Value = _cuota.Importe;
+            txtComprobante.PlaceholderText = "Opcional";
+            txtObservaciones.PlaceholderText = "Opcional";
+
+            // Métodos de pago
+            var metodos = _repoMetodos.ObtenerTodos();
+            cboMetodoPago.DataSource = metodos;
+            cboMetodoPago.DisplayMember = nameof(Models.MetodoPago.TipoPago);
+            cboMetodoPago.ValueMember = nameof(Models.MetodoPago.IdMetodoPago);
+
+            // Seleccionar Efectivo (id 1) si existe
+            var idxEfectivo = metodos.FindIndex(m => m.IdMetodoPago == 1);
+            cboMetodoPago.SelectedIndex = idxEfectivo >= 0 ? idxEfectivo : 0;
+
+            // Botones
+            btnCancelar.Click += (s, ev) => Cancelado?.Invoke(this, EventArgs.Empty);
+            btnGuardar.Click += BtnGuardar_Click;
+            lnkVistaPrevia.Click += (s, ev) => MessageBox.Show("Vista previa del recibo (pendiente de implementación).", "Recibo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void BtnGuardar_Click(object? sender, EventArgs e)
+        {
+            // Validaciones mínimas
+            if (cboMetodoPago.SelectedItem is null)
             {
-                var inp = BuildInput(validate: false);
-                if (inp != null) VistaPreviaReciboClicked?.Invoke(this, inp);
-            };
-        }
-
-        // --------- API pública ----------
-        public void LoadHeader(HeaderCuota h)
-        {
-            _header = h;
-
-            lblTitulo.Text = $"Contrato Nº: {h.Contrato}";
-            lblLinea1.Text = $"Inquilino: {h.Inquilino}";
-            lblLinea2.Text = $"Inmueble: {h.Inmueble}";
-
-            var montoFmt = string.Format(CultureInfo.GetCultureInfo("es-AR"), "$ {0:N0}", h.Monto);
-            lblLinea3.Text = $"Cuota: {h.NroCuota} / {h.CantCuotas}    |    Período: {h.Periodo}    |    Monto: {montoFmt}";
-        }
-
-        // --------- Lógica ----------
-        private void OnGuardar()
-        {
-            var input = BuildInput(validate: true);
-            if (input == null) return;
-
-            // Emitir evento con todos los datos para que MainForm guarde en BD
-            GuardarPagoClicked?.Invoke(this, input);
-        }
-
-        private PagoInput? BuildInput(bool validate)
-        {
-            if (_header == null)
+                MessageBox.Show("Seleccione un método de pago.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (nudMonto.Value <= 0)
             {
-                MessageBox.Show("No se cargó la cabecera de la cuota.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
+                MessageBox.Show("El monto debe ser mayor a cero.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
-            if (validate)
+            // Datos del usuario actual
+            var usr = InmoTech.Security.AuthService.CurrentUser;
+            if (usr is null)
             {
-                if (cboMedioPago.SelectedIndex < 0)
+                MessageBox.Show("No hay un usuario autenticado.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                // 1) Insertar pago
+                var pago = new Models.Pago
                 {
-                    MessageBox.Show("Seleccioná un método de pago.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    cboMedioPago.Focus();
-                    return null;
-                }
-            }
+                    FechaPago = dtpFechaPago.Value.Date,
+                    MontoTotal = nudMonto.Value,
+                    IdUsuario = usr.Dni, // asumo que Dni = PK usuario (por tu repo)
+                    IdMetodoPago = (int)cboMetodoPago.SelectedValue,
+                    IdContrato = _contrato.IdContrato,
+                    NroCuota = _cuota.NroCuota,
+                    Detalle = ConstruirDetalle(txtComprobante.Text, txtObservaciones.Text),
+                    Estado = Models.PagoEstados.Pagado,
+                    FechaRegistro = DateTime.Now,
+                    IdPersona = _contrato.IdPersona,
+                    UsuarioCreador = $"{usr.Apellido} {usr.Nombre}".Trim(),
+                    Activo = true
+                };
 
-            return new PagoInput
+                int nuevoIdPago = _repoPago.Agregar(pago);
+
+                // 2) Actualizar cuota -> id_pago + estado Pagada
+                _repoCuota.AsignarPago(_contrato.IdContrato, _cuota.NroCuota, nuevoIdPago);
+                _repoCuota.ActualizarEstado(_contrato.IdContrato, _cuota.NroCuota, "Pagada");
+
+                // 3) Emitir recibo (opcional)
+                if (chkEmitirRecibo.Checked)
+                {
+                    // Acá podrías abrir/emitir el recibo real
+                    // Por ahora, mostramos un aviso
+                    MessageBox.Show("Recibo emitido (demo).", "Recibo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+
+                MessageBox.Show("Pago registrado correctamente.", "Pagos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                PagoGuardado?.Invoke(this, nuevoIdPago);
+            }
+            catch (Exception ex)
             {
-                Contrato = _header.Contrato,
-                NroCuota = _header.NroCuota,
-                FechaPago = dtpFechaPago.Value.Date,
-                MedioPago = cboMedioPago.SelectedItem?.ToString() ?? "",
-                Comprobante = string.IsNullOrWhiteSpace(txtComprobante.Text) ? null : txtComprobante.Text.Trim(),
-                Observaciones = string.IsNullOrWhiteSpace(txtObservaciones.Text) ? null : txtObservaciones.Text.Trim(),
-                EmitirRecibo = chkEmitirRecibo.Checked,
-                Monto = _header.Monto,
-                Periodo = _header.Periodo
-            };
+                MessageBox.Show($"Error al registrar el pago:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private string? ConstruirDetalle(string nroComprobante, string obs)
+        {
+            var partes = new[]
+            {
+                string.IsNullOrWhiteSpace(nroComprobante) ? null : $"Comprobante: {nroComprobante}",
+                string.IsNullOrWhiteSpace(obs) ? null : obs.Trim()
+            }.Where(x => x != null);
+
+            var texto = string.Join(" | ", partes);
+            return string.IsNullOrWhiteSpace(texto) ? null : texto;
+        }
+
+        private int CalcularMesesContrato()
+        {
+            var m = ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12)
+                    + (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
+            return Math.Max(1, m);
         }
     }
 }

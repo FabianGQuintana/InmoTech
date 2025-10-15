@@ -11,13 +11,13 @@
     <Compile Update="Controls\UcInquilinos.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Controls\UcPagos_Cuotas.cs">
+    <Compile Update="Controls\UcPagos_Contratos.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UcPagos_Contrato_Cuotas.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcPagos_PagarCuota.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="Controls\UcPagos_Recibo.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcReportesOperador.cs">
@@ -42,9 +42,6 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcInmuebles.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="Controls\UcPagos_Contratos.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcReportesPropietario.cs">

@@ -1,332 +1,193 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
+using InmoTech.Models;
+using InmoTech.Repositories;
 
-namespace InmoTech
+namespace InmoTech.Controls
 {
     public partial class UcPagos_Contratos : UserControl
     {
-        // ================================
-        // ViewModel simple para la grilla
-        // ================================
-        private class ContratoVm
-        {
-            public string Contrato { get; set; } = "";
-            public string Inquilino { get; set; } = "";
-            public string Inmueble { get; set; } = "";
-            public string Estado { get; set; } = "Activo"; // Activo / Inactivo
-        }
+        private readonly ContratoRepository _repo = new ContratoRepository();
+        private readonly BindingList<Contrato> _pageBinding = new BindingList<Contrato>();
+        private List<Contrato> _contratos = new();
+        private List<Contrato> _filtrados = new();
 
-        private readonly BindingList<ContratoVm> _data = new();
-        private readonly BindingSource _bs = new();
+        private int _page = 1;
+        private int _pageSize = 20;
 
-        // Evento público para que el contenedor navegue a la vista de cuotas
-        public event EventHandler<string>? VerCuotasClicked; // string = Nro de contrato
+        public int? DniUsuarioFiltro { get; set; } = null;
+
+        public Contrato? SelectedContrato => dgv.CurrentRow?.DataBoundItem as Contrato;
+
+        public event EventHandler<ContratoSelectedEventArgs>? ContratoElegido;
+        public event EventHandler? Cancelado;
 
         public UcPagos_Contratos()
         {
             InitializeComponent();
 
-            // Evita parpadeo
-            SetDoubleBuffered(this);
-            SetDoubleBuffered(dgvContratos);
-
             if (!DesignMode)
             {
-                // Datasource base
-                _bs.DataSource = _data;
+                // Asegurar “Activos” por defecto
+                if (cboEstado.Items.Count > 1 && cboEstado.SelectedIndex < 0)
+                    cboEstado.SelectedIndex = 1;
 
-                // Grilla
-                dgvContratos.AutoGenerateColumns = false;
-                EnsureColumns();                 // crea columnas si faltan
-                dgvContratos.DataSource = _bs;
-
-                // Estilo y eventos
-                StyleDataGridView();
-                dgvContratos.CellPainting += DgvContratos_CellPainting; // chip Estado
-                dgvContratos.CellClick += DgvContratos_CellClick;    // click seguro en botón
-                dgvContratos.CellContentClick += DgvContratos_CellContentClick;
-
-                // Búsqueda y filtros
-                txtBuscar.TextChanged += (_, __) => ApplyFilter();
-                btnFiltrar.Click += (_, __) => OnFiltrarClick();
-
-                // Datos demo (borrar cuando conectes BD)
-                CargarEjemplos();
+                WireEvents();
+                CargarContratos();
             }
         }
 
-        // =========================================
-        // Columnas necesarias (creadas por código)
-        // =========================================
-        private void EnsureColumns()
+        private void WireEvents()
         {
-            if (dgvContratos.Columns.Count > 0)
-                return;
-
-            // Contrato
-            var cContrato = new DataGridViewTextBoxColumn
+            txtBuscar.TextChanged += (s, e) => { timerBuscar.Stop(); timerBuscar.Start(); };
+            timerBuscar.Tick += (s, e) =>
             {
-                Name = "colContrato",
-                HeaderText = "Contrato",
-                DataPropertyName = "Contrato",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells,
-                ReadOnly = true
+                timerBuscar.Stop();
+                _page = 1;
+                AplicarFiltrosYBind();
             };
 
-            // Inquilino
-            var cInquilino = new DataGridViewTextBoxColumn
+            cboEstado.SelectedIndexChanged += (s, e) =>
             {
-                Name = "colInquilino",
-                HeaderText = "Inquilino",
-                DataPropertyName = "Inquilino",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly = true
+                _page = 1;
+                AplicarFiltrosYBind();
             };
 
-            // Inmueble
-            var cInmueble = new DataGridViewTextBoxColumn
+            btnAnterior.Click += (s, e) =>
             {
-                Name = "colInmueble",
-                HeaderText = "Inmueble",
-                DataPropertyName = "Inmueble",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ReadOnly = true
+                if (_page > 1) { _page--; BindPagina(); }
+            };
+            btnSiguiente.Click += (s, e) =>
+            {
+                if (_page * _pageSize < _filtrados.Count) { _page++; BindPagina(); }
             };
 
-            // Estado (lo pintamos en CellPainting, pero ligamos el valor)
-            var cEstado = new DataGridViewTextBoxColumn
+            btnElegir.Click += (s, e) => ElegirActual();
+            btnCancelar.Click += (s, e) => Cancelado?.Invoke(this, EventArgs.Empty);
+            dgv.CellDoubleClick += (s, e) => ElegirActual();
+            dgv.KeyDown += (s, e) =>
             {
-                Name = "colEstado",
-                HeaderText = "Estado",
-                DataPropertyName = "Estado",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells,
-                ReadOnly = true
+                if (e.KeyCode == Keys.Enter) { e.Handled = true; ElegirActual(); }
             };
 
-            // Botón Acciones
-            var cAcciones = new DataGridViewButtonColumn
-            {
-                Name = "colAcciones",
-                HeaderText = "Acciones",
-                Text = "Ver cuotas",
-                UseColumnTextForButtonValue = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
-            };
-
-            dgvContratos.Columns.AddRange(cContrato, cInquilino, cInmueble, cEstado, cAcciones);
+            dgv.CellFormatting += Dgv_CellFormatting;
+            dgv.DataError += (s, e) => { e.ThrowException = false; };
         }
 
-        // =========================================
-        // Filtros
-        // =========================================
-        private void OnFiltrarClick()
-        {
-            // Hook para filtros avanzados (fecha, estado, etc.)
-            MessageBox.Show("Aquí abriremos el panel de filtros…", "Filtros",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void ApplyFilter()
-        {
-            string q = (txtBuscar.Text ?? "").Trim().ToLowerInvariant();
-            if (string.IsNullOrWhiteSpace(q))
-            {
-                _bs.DataSource = _data;
-                return;
-            }
-
-            var filtrados = _data
-                .Where(c =>
-                    c.Contrato.ToLower().Contains(q) ||
-                    c.Inquilino.ToLower().Contains(q) ||
-                    c.Inmueble.ToLower().Contains(q) ||
-                    c.Estado.ToLower().Contains(q))
-                .ToList();
-
-            _bs.DataSource = new BindingList<ContratoVm>(filtrados);
-        }
-
-        // =========================================
-        // Click en botón "Ver cuotas"
-        // =========================================
-        private void DgvContratos_CellClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
-            var col = dgvContratos.Columns[e.ColumnIndex];
-            if (col is DataGridViewButtonColumn && col.Name == "colAcciones")
-            {
-                var contrato = dgvContratos.Rows[e.RowIndex].Cells["colContrato"].Value?.ToString() ?? "";
-                if (!string.IsNullOrWhiteSpace(contrato))
-                    VerCuotasClicked?.Invoke(this, contrato);
-            }
-        }
-
-        // (Opcional) Si apretás justo sobre el texto del botón, también funciona
-        private void DgvContratos_CellContentClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
-            if (dgvContratos.Columns[e.ColumnIndex].Name == "colAcciones")
-            {
-                var contrato = dgvContratos.Rows[e.RowIndex].Cells["colContrato"].Value?.ToString() ?? "";
-                if (!string.IsNullOrWhiteSpace(contrato))
-                    VerCuotasClicked?.Invoke(this, contrato);
-            }
-        }
-
-        // =========================================
-        // Dibuja un "badge" redondeado para Estado
-        // =========================================
-        private void DgvContratos_CellPainting(object? sender, DataGridViewCellPaintingEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            if (dgvContratos.Columns[e.ColumnIndex].Name == "colEstado" && e.Value is string estadoText)
-            {
-                e.Handled = true;
-                e.PaintBackground(e.CellBounds, true);
-
-                var g = e.Graphics;
-                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-                var text = estadoText;
-                var font = e.CellStyle.Font ?? dgvContratos.Font;
-
-                // Medir texto y definir rect del "pill"
-                var textSize = g.MeasureString(text, font);
-                int padX = 10, padY = 4;
-                var rect = new Rectangle(
-                    e.CellBounds.X + (e.CellBounds.Width - (int)textSize.Width - padX * 2) / 2,
-                    e.CellBounds.Y + (e.CellBounds.Height - (int)textSize.Height - padY * 2) / 2,
-                    (int)textSize.Width + padX * 2,
-                    (int)textSize.Height + padY * 2
-                );
-
-                // Colores según estado
-                bool activo = text.Equals("Activo", StringComparison.OrdinalIgnoreCase);
-                Color back = activo ? Color.FromArgb(216, 245, 224) : Color.FromArgb(234, 236, 239);
-                Color border = activo ? Color.FromArgb(163, 230, 186) : Color.FromArgb(208, 213, 221);
-                Color ink = Color.FromArgb(42, 42, 42);
-
-                using var path = RoundedRect(rect, 10);
-                using var b = new SolidBrush(back);
-                using var p = new Pen(border);
-                using var tb = new SolidBrush(ink);
-                var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-
-                g.FillPath(b, path);
-                g.DrawPath(p, path);
-                g.DrawString(text, font, tb, rect, format);
-
-                // Borde de celda (opcional)
-                e.Paint(e.ClipBounds, DataGridViewPaintParts.Border);
-            }
-        }
-
-        // Helpers de dibujo
-        private static System.Drawing.Drawing2D.GraphicsPath RoundedRect(Rectangle bounds, int radius)
-        {
-            int d = radius * 2;
-            var path = new System.Drawing.Drawing2D.GraphicsPath();
-            path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
-            path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
-            path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
-            path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
-        }
-
-        // =========================================
-        // Estilo de la grilla
-        // =========================================
-        private void StyleDataGridView()
-        {
-            dgvContratos.EnableHeadersVisualStyles = false;
-            dgvContratos.BackgroundColor = Color.White;
-            dgvContratos.BorderStyle = BorderStyle.None;
-            dgvContratos.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dgvContratos.RowHeadersVisible = false;
-            dgvContratos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvContratos.MultiSelect = false;
-            dgvContratos.AllowUserToAddRows = false;
-            dgvContratos.AllowUserToDeleteRows = false;
-            dgvContratos.AllowUserToResizeRows = false;
-            dgvContratos.ReadOnly = true;
-
-            dgvContratos.ColumnHeadersDefaultCellStyle.BackColor = Color.White;
-            dgvContratos.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(30, 30, 30);
-            dgvContratos.ColumnHeadersDefaultCellStyle.Font = new Font(dgvContratos.Font, FontStyle.Bold);
-            dgvContratos.ColumnHeadersDefaultCellStyle.Padding = new Padding(0, 6, 0, 6);
-
-            dgvContratos.DefaultCellStyle.SelectionBackColor = Color.FromArgb(232, 244, 234);
-            dgvContratos.DefaultCellStyle.SelectionForeColor = Color.FromArgb(30, 30, 30);
-            dgvContratos.DefaultCellStyle.ForeColor = Color.FromArgb(45, 45, 45);
-            dgvContratos.DefaultCellStyle.BackColor = Color.White;
-            dgvContratos.RowTemplate.Height = 36;
-        }
-
-        private static void SetDoubleBuffered(Control control)
+        public void CargarContratos()
         {
             try
             {
-                PropertyInfo? prop = typeof(Control).GetProperty("DoubleBuffered",
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-                prop?.SetValue(control, true, null);
+                _contratos = _repo.ObtenerContratos(DniUsuarioFiltro);
+                _page = 1;
+                AplicarFiltrosYBind();
             }
-            catch { /* ignore */ }
-        }
-
-        // =========================================
-        // API pública para datos reales
-        // =========================================
-        public void SetContratos(IEnumerable<(string contrato, string inquilino, string inmueble, string estado)> contratos)
-        {
-            _data.Clear();
-            foreach (var (contrato, inquilino, inmueble, estado) in contratos)
-                _data.Add(new ContratoVm { Contrato = contrato, Inquilino = inquilino, Inmueble = inmueble, Estado = estado });
-            ApplyFilter();
-        }
-
-        /// <summary>
-        /// Devuelve (Inquilino, Inmueble) del contrato mostrado en la grilla.
-        /// </summary>
-        public (string Inquilino, string Inmueble)? GetMinHeaderFor(string nroContrato)
-        {
-            var row = dgvContratos.Rows
-                .Cast<DataGridViewRow>()
-                .FirstOrDefault(r => string.Equals(
-                    r.Cells["colContrato"].Value?.ToString(),
-                    nroContrato,
-                    StringComparison.OrdinalIgnoreCase));
-
-            if (row == null) return null;
-
-            string inquilino = row.Cells["colInquilino"].Value?.ToString() ?? "";
-            string inmueble = row.Cells["colInmueble"].Value?.ToString() ?? "";
-            return (inquilino, inmueble);
-        }
-
-        // =========================================
-        // Datos demo (borrar cuando conectes BD)
-        // =========================================
-        private void CargarEjemplos()
-        {
-            var ej = new List<ContratoVm>
+            catch (Exception ex)
             {
-                new(){ Contrato="C-1024", Inquilino="Juan Pérez",    Inmueble="Calle 123 — Dpto 4B", Estado="Activo"},
-                new(){ Contrato="C-1025", Inquilino="Ana Gómez",     Inmueble="Calle 123 — Dpto 4B", Estado="Activo"},
-                new(){ Contrato="C-1027", Inquilino="Sofía Méndez",  Inmueble="Avenida 456 — Casa",  Estado="Inactivo"},
-                new(){ Contrato="C-1028", Inquilino="María López",   Inmueble="Calle 999 — PH",      Estado="Activo"},
-                new(){ Contrato="C-1026", Inquilino="Carlos Ortega", Inmueble="Avenida 456 — Casa",  Estado="Activo"},
-                new(){ Contrato="C-1029", Inquilino="Luis Romero",   Inmueble="Boulevard 12 — 1°A",  Estado="Inactivo"},
-            };
-            foreach (var c in ej) _data.Add(c);
+                MessageBox.Show($"Error al cargar contratos:\n{ex.Message}",
+                    "InmoTech", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
+        private void AplicarFiltrosYBind()
+        {
+            string q = (txtBuscar.Text ?? "").Trim().ToLowerInvariant();
+            bool? est = EstadoSeleccionado();
+
+            _filtrados = _contratos
+                .Where(c =>
+                    (est is null || c.Estado == est.Value) &&
+                    (string.IsNullOrEmpty(q) ||
+                     c.IdContrato.ToString().Contains(q) ||
+                     (c.NombreInquilino ?? "").ToLower().Contains(q) ||
+                     (c.DireccionInmueble ?? "").ToLower().Contains(q) ||
+                     (c.NombreUsuario ?? "").ToLower().Contains(q)))
+                .OrderByDescending(c => c.FechaInicio)
+                .ToList();
+
+            BindPagina();
+        }
+
+        private void BindPagina()
+        {
+            _page = Math.Max(1, _page);
+            int total = _filtrados.Count;
+            int skip = (_page - 1) * _pageSize;
+            var pageItems = _filtrados.Skip(skip).Take(_pageSize).ToList();
+
+            _pageBinding.Clear();
+            foreach (var it in pageItems) _pageBinding.Add(it);
+
+            dgv.DataSource = _pageBinding;
+
+            int desde = total == 0 ? 0 : skip + 1;
+            int hasta = Math.Min(skip + _pageSize, total);
+            lblInfo.Text = $"Mostrando {desde}-{hasta} de {total}";
+
+            btnAnterior.Enabled = _page > 1;
+            btnSiguiente.Enabled = (_page * _pageSize) < total;
+        }
+
+        private bool? EstadoSeleccionado() =>
+            cboEstado.SelectedIndex switch
+            {
+                0 => (bool?)null,
+                1 => true,
+                2 => false,
+                _ => null
+            };
+
+        private void ElegirActual()
+        {
+            if (SelectedContrato is null) return;
+            ContratoElegido?.Invoke(this, new ContratoSelectedEventArgs(SelectedContrato));
+        }
+
+        private void Dgv_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (dgv.Columns[e.ColumnIndex] is not DataGridViewTextBoxColumn) return;
+
+            var prop = dgv.Columns[e.ColumnIndex].DataPropertyName;
+
+            if ((prop == "FechaInicio" || prop == "FechaFin") && e.Value is DateTime dt)
+            {
+                e.Value = dt.ToString("dd/MM/yyyy");
+                e.FormattingApplied = true;
+            }
+            else if (prop == "Monto" && e.Value is decimal dec)
+            {
+                e.Value = dec.ToString("N2");
+                e.FormattingApplied = true;
+            }
+            else if (prop == "Estado" && e.Value is bool b)
+            {
+                e.Value = b ? "Activo" : "Inactivo";
+                e.FormattingApplied = true;
+            }
+        }
+
+        public void SetPageSize(int size)
+        {
+            _pageSize = Math.Max(5, size);
+            _page = 1;
+            BindPagina();
+        }
+
+        public void Refrescar() => AplicarFiltrosYBind();
+
+        private void tlpFiltros_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+    }
+
+    public sealed class ContratoSelectedEventArgs : EventArgs
+    {
+        public Contrato Contrato { get; }
+        public ContratoSelectedEventArgs(Contrato c) => Contrato = c;
     }
 }

@@ -1,178 +1,324 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
 
-namespace InmoTech
+namespace InmoTech.Controls
 {
     partial class UcPagos_Contratos
     {
         private System.ComponentModel.IContainer components = null;
-        private Panel headerPanel;
-        private Label lblTitle;
-        private Label lblSubTitle;
-        private TextBox txtBuscar;
-        private Button btnFiltrar;
-        private DataGridView dgvContratos;
 
-        private DataGridViewTextBoxColumn colContrato;
+        private Panel pnlTop;
+        private Label lblTitulo;
+
+        private Panel pnlFiltros;
+        private TableLayoutPanel tlpFiltros;
+        private Label lblBuscar;
+        private TextBox txtBuscar;
+        private Label lblEstado;
+        private ComboBox cboEstado;
+
+        private DataGridView dgv;
+
+        private Panel pnlBottom;
+        private TableLayoutPanel tlpBottom;
+        private Label lblInfo;
+        private FlowLayoutPanel flpNav;
+        private Button btnAnterior;
+        private Button btnSiguiente;
+        private FlowLayoutPanel flpAcciones;
+        private Button btnElegir;
+        private Button btnCancelar;
+
+        private System.Windows.Forms.Timer timerBuscar;
+
+        // Columnas
+        private DataGridViewTextBoxColumn colId;
         private DataGridViewTextBoxColumn colInquilino;
         private DataGridViewTextBoxColumn colInmueble;
+        private DataGridViewTextBoxColumn colInicio;
+        private DataGridViewTextBoxColumn colFin;
+        private DataGridViewTextBoxColumn colMonto;
         private DataGridViewTextBoxColumn colEstado;
-        private DataGridViewButtonColumn colAcciones;
+        private DataGridViewTextBoxColumn colUsuario;
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null)) components.Dispose();
+            if (disposing && (components != null))
+                components.Dispose();
             base.Dispose(disposing);
         }
 
-        #region Código generado por el Diseñador de Windows Forms
+        #region Código generado por el Diseñador de componentes
         private void InitializeComponent()
         {
-            headerPanel = new Panel();
-            lblTitle = new Label();
-            lblSubTitle = new Label();
+            components = new System.ComponentModel.Container();
+            pnlTop = new Panel();
+            lblTitulo = new Label();
+            pnlFiltros = new Panel();
+            tlpFiltros = new TableLayoutPanel();
+            lblBuscar = new Label();
+            lblEstado = new Label();
+            cboEstado = new ComboBox();
             txtBuscar = new TextBox();
-            btnFiltrar = new Button();
-            dgvContratos = new DataGridView();
-            colContrato = new DataGridViewTextBoxColumn();
-            colInquilino = new DataGridViewTextBoxColumn();
-            colInmueble = new DataGridViewTextBoxColumn();
-            colEstado = new DataGridViewTextBoxColumn();
-            colAcciones = new DataGridViewButtonColumn();
-            headerPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvContratos).BeginInit();
+            dgv = new DataGridView();
+            pnlBottom = new Panel();
+            tlpBottom = new TableLayoutPanel();
+            lblInfo = new Label();
+            flpNav = new FlowLayoutPanel();
+            btnAnterior = new Button();
+            btnSiguiente = new Button();
+            flpAcciones = new FlowLayoutPanel();
+            btnElegir = new Button();
+            btnCancelar = new Button();
+            timerBuscar = new System.Windows.Forms.Timer(components);
+            pnlTop.SuspendLayout();
+            pnlFiltros.SuspendLayout();
+            tlpFiltros.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgv).BeginInit();
+            pnlBottom.SuspendLayout();
+            tlpBottom.SuspendLayout();
+            flpNav.SuspendLayout();
+            flpAcciones.SuspendLayout();
             SuspendLayout();
             // 
-            // headerPanel
+            // pnlTop
             // 
-            headerPanel.BackColor = Color.Teal;
-            headerPanel.Controls.Add(lblTitle);
-            headerPanel.Controls.Add(lblSubTitle);
-            headerPanel.Controls.Add(txtBuscar);
-            headerPanel.Controls.Add(btnFiltrar);
-            headerPanel.Dock = DockStyle.Top;
-            headerPanel.Location = new Point(0, 0);
-            headerPanel.Name = "headerPanel";
-            headerPanel.Padding = new Padding(24, 16, 24, 16);
-            headerPanel.Size = new Size(1000, 96);
-            headerPanel.TabIndex = 1;
+            pnlTop.BackColor = Color.Teal;
+            pnlTop.Controls.Add(lblTitulo);
+            pnlTop.Dock = DockStyle.Top;
+            pnlTop.Location = new Point(0, 0);
+            pnlTop.Name = "pnlTop";
+            pnlTop.Padding = new Padding(16);
+            pnlTop.Size = new Size(900, 75);
+            pnlTop.TabIndex = 3;
             // 
-            // lblTitle
+            // lblTitulo
             // 
-            lblTitle.AutoSize = true;
-            lblTitle.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
-            lblTitle.ForeColor = Color.FromArgb(30, 30, 30);
-            lblTitle.Location = new Point(24, 20);
-            lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(101, 41);
-            lblTitle.TabIndex = 0;
-            lblTitle.Text = "Pagos";
+            lblTitulo.AutoSize = true;
+            lblTitulo.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
+            lblTitulo.ForeColor = Color.White;
+            lblTitulo.Location = new Point(8, 16);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(447, 40);
+            lblTitulo.TabIndex = 0;
+            lblTitulo.Text = "Seleccionar contrato para pago";
             // 
-            // lblSubTitle
+            // pnlFiltros
             // 
-            lblSubTitle.AutoSize = true;
-            lblSubTitle.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            lblSubTitle.ForeColor = Color.FromArgb(30, 30, 30);
-            lblSubTitle.Location = new Point(24, 58);
-            lblSubTitle.Name = "lblSubTitle";
-            lblSubTitle.Size = new Size(126, 32);
-            lblSubTitle.TabIndex = 1;
-            lblSubTitle.Text = "Contratos";
+            pnlFiltros.Controls.Add(tlpFiltros);
+            pnlFiltros.Dock = DockStyle.Top;
+            pnlFiltros.Location = new Point(0, 75);
+            pnlFiltros.Name = "pnlFiltros";
+            pnlFiltros.Padding = new Padding(12, 8, 12, 8);
+            pnlFiltros.Size = new Size(900, 68);
+            pnlFiltros.TabIndex = 2;
+            // 
+            // tlpFiltros
+            // 
+            tlpFiltros.ColumnCount = 4;
+            tlpFiltros.ColumnStyles.Add(new ColumnStyle());
+            tlpFiltros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlpFiltros.ColumnStyles.Add(new ColumnStyle());
+            tlpFiltros.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 170F));
+            tlpFiltros.Controls.Add(lblBuscar, 0, 0);
+            tlpFiltros.Controls.Add(lblEstado, 2, 0);
+            tlpFiltros.Controls.Add(cboEstado, 3, 0);
+            tlpFiltros.Controls.Add(txtBuscar, 1, 0);
+            tlpFiltros.Dock = DockStyle.Fill;
+            tlpFiltros.Location = new Point(12, 8);
+            tlpFiltros.Name = "tlpFiltros";
+            tlpFiltros.Padding = new Padding(0, 6, 0, 6);
+            tlpFiltros.RowCount = 1;
+            tlpFiltros.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tlpFiltros.Size = new Size(876, 52);
+            tlpFiltros.TabIndex = 0;
+            tlpFiltros.Paint += tlpFiltros_Paint;
+            // 
+            // lblBuscar
+            // 
+            lblBuscar.AutoSize = true;
+            lblBuscar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblBuscar.Location = new Point(0, 16);
+            lblBuscar.Margin = new Padding(0, 10, 8, 0);
+            lblBuscar.Name = "lblBuscar";
+            lblBuscar.Size = new Size(138, 25);
+            lblBuscar.TabIndex = 0;
+            lblBuscar.Text = "Buscar (texto):";
+            // 
+            // lblEstado
+            // 
+            lblEstado.AutoSize = true;
+            lblEstado.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblEstado.Location = new Point(624, 16);
+            lblEstado.Margin = new Padding(0, 10, 8, 0);
+            lblEstado.Name = "lblEstado";
+            lblEstado.Size = new Size(74, 25);
+            lblEstado.TabIndex = 2;
+            lblEstado.Text = "Estado:";
+            // 
+            // cboEstado
+            // 
+            cboEstado.Anchor = AnchorStyles.Right;
+            cboEstado.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
+            cboEstado.Location = new Point(706, 12);
+            cboEstado.Margin = new Padding(0, 6, 0, 0);
+            cboEstado.Name = "cboEstado";
+            cboEstado.Size = new Size(170, 33);
+            cboEstado.TabIndex = 3;
             // 
             // txtBuscar
             // 
-            txtBuscar.BorderStyle = BorderStyle.FixedSingle;
-            txtBuscar.Font = new Font("Segoe UI", 10F);
-            txtBuscar.Location = new Point(180, 60);
+            txtBuscar.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            txtBuscar.Location = new Point(146, 13);
+            txtBuscar.Margin = new Padding(0, 6, 16, 0);
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.PlaceholderText = "Buscar contratos…";
-            txtBuscar.Size = new Size(280, 30);
-            txtBuscar.TabIndex = 2;
+            txtBuscar.Size = new Size(462, 31);
+            txtBuscar.TabIndex = 1;
             // 
-            // btnFiltrar
+            // dgv
             // 
-            btnFiltrar.Font = new Font("Segoe UI", 10F);
-            btnFiltrar.Location = new Point(470, 60);
-            btnFiltrar.Name = "btnFiltrar";
-            btnFiltrar.Size = new Size(90, 28);
-            btnFiltrar.TabIndex = 3;
-            btnFiltrar.Text = "Filtrar";
+            dgv.AllowUserToAddRows = false;
+            dgv.AllowUserToDeleteRows = false;
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgv.BackgroundColor = Color.White;
+            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgv.Dock = DockStyle.Fill;
+            dgv.Location = new Point(0, 143);
+            dgv.MultiSelect = false;
+            dgv.Name = "dgv";
+            dgv.ReadOnly = true;
+            dgv.RowHeadersVisible = false;
+            dgv.RowHeadersWidth = 62;
+            dgv.RowTemplate.Height = 28;
+            dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgv.Size = new Size(900, 329);
+            dgv.TabIndex = 0;
             // 
-            // dgvContratos
+            // pnlBottom
             // 
-            dgvContratos.AllowUserToAddRows = false;
-            dgvContratos.AllowUserToDeleteRows = false;
-            dgvContratos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgvContratos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvContratos.Columns.AddRange(new DataGridViewColumn[] { colContrato, colInquilino, colInmueble, colEstado, colAcciones });
-            dgvContratos.Dock = DockStyle.Fill;
-            dgvContratos.GridColor = Color.FromArgb(235, 235, 235);
-            dgvContratos.Location = new Point(0, 96);
-            dgvContratos.Name = "dgvContratos";
-            dgvContratos.ReadOnly = true;
-            dgvContratos.RowHeadersVisible = false;
-            dgvContratos.RowHeadersWidth = 51;
-            dgvContratos.Size = new Size(1000, 544);
-            dgvContratos.TabIndex = 0;
+            pnlBottom.Controls.Add(tlpBottom);
+            pnlBottom.Dock = DockStyle.Bottom;
+            pnlBottom.Location = new Point(0, 472);
+            pnlBottom.Name = "pnlBottom";
+            pnlBottom.Padding = new Padding(12, 10, 12, 10);
+            pnlBottom.Size = new Size(900, 84);
+            pnlBottom.TabIndex = 1;
             // 
-            // colContrato
+            // tlpBottom
             // 
-            colContrato.DataPropertyName = "Contrato";
-            colContrato.FillWeight = 90F;
-            colContrato.HeaderText = "Contrato";
-            colContrato.MinimumWidth = 6;
-            colContrato.Name = "colContrato";
-            colContrato.ReadOnly = true;
+            tlpBottom.ColumnCount = 3;
+            tlpBottom.ColumnStyles.Add(new ColumnStyle());
+            tlpBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlpBottom.ColumnStyles.Add(new ColumnStyle());
+            tlpBottom.Controls.Add(lblInfo, 0, 0);
+            tlpBottom.Controls.Add(flpNav, 1, 0);
+            tlpBottom.Controls.Add(flpAcciones, 2, 0);
+            tlpBottom.Dock = DockStyle.Fill;
+            tlpBottom.Location = new Point(12, 10);
+            tlpBottom.Name = "tlpBottom";
+            tlpBottom.RowCount = 1;
+            tlpBottom.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tlpBottom.Size = new Size(876, 64);
+            tlpBottom.TabIndex = 0;
             // 
-            // colInquilino
+            // lblInfo
             // 
-            colInquilino.DataPropertyName = "Inquilino";
-            colInquilino.FillWeight = 140F;
-            colInquilino.HeaderText = "Inquilino";
-            colInquilino.MinimumWidth = 6;
-            colInquilino.Name = "colInquilino";
-            colInquilino.ReadOnly = true;
+            lblInfo.AutoSize = true;
+            lblInfo.Location = new Point(0, 6);
+            lblInfo.Margin = new Padding(0, 6, 0, 0);
+            lblInfo.Name = "lblInfo";
+            lblInfo.Size = new Size(220, 25);
+            lblInfo.TabIndex = 0;
+            lblInfo.Text = "Mostrando 0-0 de 0 ítems";
             // 
-            // colInmueble
+            // flpNav
             // 
-            colInmueble.DataPropertyName = "Inmueble";
-            colInmueble.FillWeight = 170F;
-            colInmueble.HeaderText = "Inmueble";
-            colInmueble.MinimumWidth = 6;
-            colInmueble.Name = "colInmueble";
-            colInmueble.ReadOnly = true;
+            flpNav.Anchor = AnchorStyles.None;
+            flpNav.AutoSize = true;
+            flpNav.Controls.Add(btnAnterior);
+            flpNav.Controls.Add(btnSiguiente);
+            flpNav.Location = new Point(334, 12);
+            flpNav.Margin = new Padding(0);
+            flpNav.Name = "flpNav";
+            flpNav.Size = new Size(208, 40);
+            flpNav.TabIndex = 1;
+            flpNav.WrapContents = false;
             // 
-            // colEstado
+            // btnAnterior
             // 
-            colEstado.DataPropertyName = "Estado";
-            colEstado.FillWeight = 90F;
-            colEstado.HeaderText = "Estado";
-            colEstado.MinimumWidth = 6;
-            colEstado.Name = "colEstado";
-            colEstado.ReadOnly = true;
+            btnAnterior.Location = new Point(0, 0);
+            btnAnterior.Margin = new Padding(0, 0, 8, 0);
+            btnAnterior.Name = "btnAnterior";
+            btnAnterior.Size = new Size(98, 40);
+            btnAnterior.TabIndex = 0;
+            btnAnterior.Text = "Anterior";
             // 
-            // colAcciones
+            // btnSiguiente
             // 
-            colAcciones.FillWeight = 110F;
-            colAcciones.HeaderText = "Acciones";
-            colAcciones.MinimumWidth = 6;
-            colAcciones.Name = "colAcciones";
-            colAcciones.ReadOnly = true;
-            colAcciones.Text = "Ver cuotas";
-            colAcciones.UseColumnTextForButtonValue = true;
+            btnSiguiente.Location = new Point(106, 0);
+            btnSiguiente.Margin = new Padding(0);
+            btnSiguiente.Name = "btnSiguiente";
+            btnSiguiente.Size = new Size(102, 40);
+            btnSiguiente.TabIndex = 1;
+            btnSiguiente.Text = "Siguiente";
+            // 
+            // flpAcciones
+            // 
+            flpAcciones.Anchor = AnchorStyles.Right;
+            flpAcciones.AutoSize = true;
+            flpAcciones.Controls.Add(btnElegir);
+            flpAcciones.Controls.Add(btnCancelar);
+            flpAcciones.Location = new Point(656, 12);
+            flpAcciones.Margin = new Padding(0);
+            flpAcciones.Name = "flpAcciones";
+            flpAcciones.Size = new Size(220, 40);
+            flpAcciones.TabIndex = 2;
+            flpAcciones.WrapContents = false;
+            // 
+            // btnElegir
+            // 
+            btnElegir.Location = new Point(0, 0);
+            btnElegir.Margin = new Padding(0, 0, 8, 0);
+            btnElegir.Name = "btnElegir";
+            btnElegir.Size = new Size(104, 40);
+            btnElegir.TabIndex = 0;
+            btnElegir.Text = "Elegir";
+            // 
+            // btnCancelar
+            // 
+            btnCancelar.Location = new Point(112, 0);
+            btnCancelar.Margin = new Padding(0);
+            btnCancelar.Name = "btnCancelar";
+            btnCancelar.Size = new Size(108, 40);
+            btnCancelar.TabIndex = 1;
+            btnCancelar.Text = "Cancelar";
+            // 
+            // timerBuscar
+            // 
+            timerBuscar.Interval = 350;
             // 
             // UcPagos_Contratos
             // 
-            AutoScaleDimensions = new SizeF(120F, 120F);
-            AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = Color.White;
-            Controls.Add(dgvContratos);
-            Controls.Add(headerPanel);
+            Controls.Add(dgv);
+            Controls.Add(pnlBottom);
+            Controls.Add(pnlFiltros);
+            Controls.Add(pnlTop);
+            MinimumSize = new Size(760, 440);
             Name = "UcPagos_Contratos";
-            Size = new Size(1000, 640);
-            headerPanel.ResumeLayout(false);
-            headerPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvContratos).EndInit();
+            Size = new Size(900, 556);
+            pnlTop.ResumeLayout(false);
+            pnlTop.PerformLayout();
+            pnlFiltros.ResumeLayout(false);
+            tlpFiltros.ResumeLayout(false);
+            tlpFiltros.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)dgv).EndInit();
+            pnlBottom.ResumeLayout(false);
+            tlpBottom.ResumeLayout(false);
+            tlpBottom.PerformLayout();
+            flpNav.ResumeLayout(false);
+            flpAcciones.ResumeLayout(false);
             ResumeLayout(false);
         }
         #endregion
