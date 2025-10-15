@@ -12,59 +12,63 @@ using System.Windows.Forms;
 
 namespace InmoTech
 {
-    /// <summary>
-    /// UserControl para alta/edición y listado de usuarios.
-    /// Incluye validaciones, normalización de texto y acciones sobre el DataGridView.
-    /// </summary>
+
     public partial class UcUsuarios : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Propiedades y Repositorios
+        // ======================================================
+        #region Propiedades y Repositorios
         private readonly BindingList<Usuario> _usuariosBindingList = new();
         private readonly UsuarioRepository _usuarioRepository = new();
         private Usuario? _usuarioEnEdicion;
+        #endregion
 
-        // Normalización en vivo (evita recursión) + cultura para TitleCase
+        // ======================================================
+        //  REGIÓN: Utilitarios de Texto y Cultura
+        // ======================================================
+        #region Utilitarios de Texto y Cultura
         private bool _estaNormalizandoTexto;
         private static readonly TextInfo _textoInfo = CultureInfo.GetCultureInfo("es-AR").TextInfo;
+        #endregion
 
-        /// <summary>
-        /// Constructor: inicializa la UI, engancha eventos y deja todo listo para usar.
-        /// </summary>
+        // ======================================================
+        //  REGIÓN: Constructor y Eventos de Inicialización
+        // ======================================================
+        #region Constructor y Eventos de Inicialización
         public UcUsuarios()
         {
             InitializeComponent();
 
-            // Eventos principales
-            Load += UcUsuarios_Load;
+            // Eventos principales
+            Load += UcUsuarios_Load;
             btnGuardar.Click += BtnGuardar_Click;
             btnCancelar.Click += (_, __) => { LimpiarFormulario(); EstablecerModoAlta(); };
 
-            // Se agrega el evento Click para el botón de Baja/Activar.
-            BEstado.Click += BEstado_Click;
+            // Se agrega el evento Click para el botón de Baja/Activar.
+            BEstado.Click += BEstado_Click;
 
-            // DataGrid: acciones y formato legible
-            dgvUsuarios.CellDoubleClick += DataGridUsuarios_CellDoubleClick;
+            // DataGrid: acciones y formato legible
+            dgvUsuarios.CellDoubleClick += DataGridUsuarios_CellDoubleClick;
             dgvUsuarios.CellFormatting += DataGridUsuarios_CellFormatting;
 
-            // Restricciones numéricas (tecleo y pegado) para DNI y Teléfono
-            txtDni.KeyPress += TextBoxSoloDigitos_KeyPress;
+            // Restricciones numéricas (tecleo y pegado) para DNI y Teléfono
+            txtDni.KeyPress += TextBoxSoloDigitos_KeyPress;
             txtDni.TextChanged += TextBoxSoloDigitos_TextChanged;
             txtTelefono.KeyPress += TextBoxSoloDigitos_KeyPress;
             txtTelefono.TextChanged += TextBoxSoloDigitos_TextChanged;
 
-            // Capitalización en vivo para Nombre y Apellido
-            txtNombre.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
+            // Capitalización en vivo para Nombre y Apellido
+            txtNombre.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
             txtApellido.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
 
-            // Bloquea números en Nombre y Apellido al tipear
-            txtNombre.KeyPress += TextBoxSoloLetras_KeyPress;
+            // Bloquea números en Nombre y Apellido al tipear
+            txtNombre.KeyPress += TextBoxSoloLetras_KeyPress;
             txtApellido.KeyPress += TextBoxSoloLetras_KeyPress;
 
             AjustarInterfazUsuario();
         }
 
-        /// <summary>
-        /// Evento Load: configura grilla, setea valores por defecto y carga usuarios.
-        /// </summary>
         private void UcUsuarios_Load(object? sender, EventArgs e)
         {
             if (DesignMode || (Site?.DesignMode ?? false)) return;
@@ -79,11 +83,12 @@ namespace InmoTech
             EstablecerModoAlta();
             CargarUsuariosDesdeBaseDeDatos();
         }
+        #endregion
 
-        // ========================== Guardar (Alta / Edición) ==========================
-        /// <summary>
-        /// Click en Guardar: valida, mapea y ejecuta alta o edición según corresponda.
-        /// </summary>
+        // ======================================================
+        //  REGIÓN: Guardar (Alta / Edición) y Bajas
+        // ======================================================
+        #region Guardar (Alta / Edición) y Bajas
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
             LimpiarErroresValidacion();
@@ -97,8 +102,8 @@ namespace InmoTech
 
             if (_usuarioEnEdicion == null)
             {
-                // Alta
-                if (_usuariosBindingList.Any(u => u.Dni == usuarioDesdeFormulario.Dni))
+                // Alta
+                if (_usuariosBindingList.Any(u => u.Dni == usuarioDesdeFormulario.Dni))
                 {
                     ep.SetError(txtDni, "Ya existe un usuario con este DNI.");
                     MessageBox.Show("Ya existe un usuario con ese DNI.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -109,7 +114,7 @@ namespace InmoTech
                 {
                     usuarioDesdeFormulario.Estado = true; // Siempre se crea como activo
 
-                    int filasAfectadas = _usuarioRepository.AgregarUsuario(usuarioDesdeFormulario);
+                    int filasAfectadas = _usuarioRepository.AgregarUsuario(usuarioDesdeFormulario);
                     if (filasAfectadas == 1)
                     {
                         _usuariosBindingList.Add(usuarioDesdeFormulario);
@@ -134,8 +139,8 @@ namespace InmoTech
             }
             else
             {
-                // Edición
-                usuarioDesdeFormulario.Estado = _usuarioEnEdicion.Estado;
+                // Edición
+                usuarioDesdeFormulario.Estado = _usuarioEnEdicion.Estado;
 
                 bool debeActualizarPassword = !string.IsNullOrWhiteSpace(txtPass.Text);
                 if (!debeActualizarPassword) usuarioDesdeFormulario.Password = _usuarioEnEdicion.Password;
@@ -178,10 +183,6 @@ namespace InmoTech
             }
         }
 
-        // >>> MODIFICADO <<<: Ahora maneja tanto la baja como la activación del usuario.
-        /// <summary>
-        /// Cambia el estado (activo/inactivo) de un usuario que se está editando.
-        /// </summary>
         private void BEstado_Click(object sender, EventArgs e)
         {
             if (_usuarioEnEdicion == null) return;
@@ -191,11 +192,11 @@ namespace InmoTech
             string accionPasado = nuevoEstado ? "activado" : "dado de baja";
 
             var confirmar = MessageBox.Show(
-                $"¿Seguro que querés {accion} a {_usuarioEnEdicion.NombreCompleto} (DNI {_usuarioEnEdicion.Dni})?",
-                $"Confirmar {accion}",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question,
-                MessageBoxDefaultButton.Button2);
+              $"¿Seguro que querés {accion} a {_usuarioEnEdicion.NombreCompleto} (DNI {_usuarioEnEdicion.Dni})?",
+              $"Confirmar {accion}",
+              MessageBoxButtons.YesNo,
+              MessageBoxIcon.Question,
+              MessageBoxDefaultButton.Button2);
 
             if (confirmar != DialogResult.Yes) return;
 
@@ -224,12 +225,12 @@ namespace InmoTech
                 MessageBox.Show($"Error al cambiar estado:\n{ex.Message}", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        #endregion
 
-
-        // ========================== Grilla: acciones / formato ==========================
-        /// <summary>
-        /// Doble click en una fila del grid: carga el formulario en modo edición.
-        /// </summary>
+        // ======================================================
+        //  REGIÓN: Grilla: Acciones y Formato
+        // ======================================================
+        #region Grilla: Acciones y Formato
         private void DataGridUsuarios_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -237,9 +238,6 @@ namespace InmoTech
             if (usuarioSeleccionado != null) CargarFormularioParaEditar(usuarioSeleccionado);
         }
 
-        /// <summary>
-        /// Formatea columnas como Estado (bool a texto) y Rol (int a nombre).
-        /// </summary>
         private void DataGridUsuarios_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -258,30 +256,25 @@ namespace InmoTech
             }
         }
 
-        /// <summary>
-        /// Devuelve el nombre legible de un rol dado su Id.
-        /// </summary>
         private static string ObtenerNombreRol(int idRol) =>
-            idRol switch
-            {
-                1 => "Administrador",
-                2 => "Operador",
-                3 => "Propietario",
-                _ => $"Rol {idRol}"
-            };
+          idRol switch
+          {
+              1 => "Administrador",
+              2 => "Operador",
+              3 => "Propietario",
+              _ => $"Rol {idRol}"
+          };
+        #endregion
 
-        // ========================== Mapeo / Validación / Estados ==========================
-        /// <summary>
-        /// Obtiene el <see cref="Usuario"/> vinculado a una fila del DataGridView.
-        /// </summary>
+        // ======================================================
+        //  REGIÓN: Mapeo, Validación y Flujo de Formulario
+        // ======================================================
+        #region Mapeo, Validación y Flujo de Formulario
         private Usuario? ObtenerUsuarioDeFila(int indiceFila) =>
-            (indiceFila >= 0 && indiceFila < dgvUsuarios.Rows.Count)
-                ? dgvUsuarios.Rows[indiceFila].DataBoundItem as Usuario
-                : null;
+      (indiceFila >= 0 && indiceFila < dgvUsuarios.Rows.Count)
+        ? dgvUsuarios.Rows[indiceFila].DataBoundItem as Usuario
+        : null;
 
-        /// <summary>
-        /// Pone el formulario en modo edición con los datos del usuario indicado.
-        /// </summary>
         private void CargarFormularioParaEditar(Usuario usuario)
         {
             _usuarioEnEdicion = usuario;
@@ -306,17 +299,12 @@ namespace InmoTech
             btnCancelar.Text = "Cancelar edición";
             lblListaTitulo.Text = $"Editando: {usuario.Nombre} {usuario.Apellido}";
 
-            // >>> MODIFICADO <<<: El botón de estado ahora siempre está activo en modo edición
-            // y su texto cambia según el estado actual del usuario.
             BEstado.Enabled = true;
             BEstado.Text = usuario.Estado ? "Baja" : "Activar";
 
             txtNombre.Focus();
         }
 
-        /// <summary>
-        /// Convierte los campos del formulario en una instancia de <see cref="Usuario"/>.
-        /// </summary>
         private Usuario MapearFormularioAUsuario() => new()
         {
             Dni = int.Parse(txtDni.Text.Trim()),
@@ -325,13 +313,10 @@ namespace InmoTech
             Telefono = txtTelefono.Text.Trim(),
             Email = txtEmail.Text.Trim(),
             Password = txtPass.Text.Trim(), // ideal: hash
-            IdRol = rbAdministrador.Checked ? 1 : rbPropietario.Checked ? 3 : 2,
+            IdRol = rbAdministrador.Checked ? 1 : rbPropietario.Checked ? 3 : 2,
             FechaNacimiento = dateTimePicker1.Value.Date
         };
 
-        /// <summary>
-        /// Valida el formulario y devuelve la lista de errores (si los hubiera).
-        /// </summary>
         private bool TryValidarFormulario(out List<string> erroresValidacion)
         {
             erroresValidacion = new();
@@ -361,8 +346,8 @@ namespace InmoTech
                 ep.SetError(txtTelefono, "Mínimo 6 dígitos.");
             }
 
-            // ===== Email: obligatorio + formato =====
-            string emailNormalizado = txtEmail.Text.Trim();
+            // ===== Email: obligatorio + formato =====
+            string emailNormalizado = txtEmail.Text.Trim();
             if (string.IsNullOrWhiteSpace(emailNormalizado))
             {
                 erroresValidacion.Add("El email es obligatorio.");
@@ -411,9 +396,6 @@ namespace InmoTech
             return erroresValidacion.Count == 0;
         }
 
-        /// <summary>
-        /// Establece el formulario en modo alta (limpia selección y textos).
-        /// </summary>
         private void EstablecerModoAlta()
         {
             _usuarioEnEdicion = null;
@@ -422,14 +404,10 @@ namespace InmoTech
             btnCancelar.Text = "Cancelar";
             lblListaTitulo.Text = "Lista de usuarios";
 
-            // >>> MODIFICADO <<<: Deshabilitar el botón y resetear su texto.
             BEstado.Enabled = false;
             BEstado.Text = "Baja";
         }
 
-        /// <summary>
-        /// Limpia los campos del formulario y errores.
-        /// </summary>
         private void LimpiarFormulario()
         {
             LimpiarErroresValidacion();
@@ -445,9 +423,6 @@ namespace InmoTech
             txtNombre.Focus();
         }
 
-        /// <summary>
-        /// Borra los mensajes del ErrorProvider.
-        /// </summary>
         private void LimpiarErroresValidacion()
         {
             ep.SetError(txtNombre, string.Empty);
@@ -460,9 +435,6 @@ namespace InmoTech
             ep.SetError(dateTimePicker1, string.Empty);
         }
 
-        /// <summary>
-        /// Carga la lista de usuarios desde la base y refresca el binding.
-        /// </summary>
         private void CargarUsuariosDesdeBaseDeDatos()
         {
             try
@@ -479,11 +451,12 @@ namespace InmoTech
                 MessageBox.Show($"Error al cargar usuarios:\n{ex.Message}", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        #endregion
 
-        // ========================== Diseño / UI (al final) ==========================
-        /// <summary>
-        /// Define columnas del DataGridView (sin autogeneradas).
-        /// </summary>
+        // ======================================================
+        //  REGIÓN: Configuración de la Interfaz y Controles
+        // ======================================================
+        #region Configuración de la Interfaz y Controles
         private void ConfigurarGrillaUsuarios()
         {
             dgvUsuarios.AutoGenerateColumns = false;
@@ -506,9 +479,6 @@ namespace InmoTech
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn { Name = "colEstado", HeaderText = "Estado", DataPropertyName = nameof(Usuario.Estado), Width = 100 });
         }
 
-        /// <summary>
-        /// Ajustes de padding/márgenes para una UI más consistente.
-        /// </summary>
         private void AjustarInterfazUsuario()
         {
             var contenedorFormulario = Controls.Find("gbCrear", true).FirstOrDefault() as Control;
@@ -523,21 +493,18 @@ namespace InmoTech
             if (tableLayoutRaiz != null && tableLayoutRaiz.Padding.Top < 12)
                 tableLayoutRaiz.Padding = new Padding(tableLayoutRaiz.Padding.Left, 12, tableLayoutRaiz.Padding.Right, tableLayoutRaiz.Padding.Bottom);
         }
+        #endregion
 
-        // ========================== Helpers: numéricos y capitalización ==========================
-        /// <summary>
-        /// Permite sólo dígitos en el tecleo (usado para DNI y Teléfono).
-        /// </summary>
+        // ======================================================
+        //  REGIÓN: Helpers: Restricciones y Capitalización de Input
+        // ======================================================
+        #region Helpers: Restricciones y Capitalización de Input
         private void TextBoxSoloDigitos_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
             if (!char.IsDigit(e.KeyChar)) e.Handled = true;
         }
 
-        /// <summary>
-        /// Normaliza un TextBox a "sólo dígitos" cuando se pega/edita.
-        /// Mantiene el caret en posición coherente.
-        /// </summary>
         private void TextBoxSoloDigitos_TextChanged(object? sender, EventArgs e)
         {
             if (sender is not TextBox textBox) return;
@@ -553,9 +520,6 @@ namespace InmoTech
             textBox.SelectionStart = Math.Min(cantidadDigitosAntes, textBox.Text.Length);
         }
 
-        /// <summary>
-        /// Convierte el texto a TitleCase en vivo (para Nombre y Apellido).
-        /// </summary>
         private void TextBoxCapitalizarEnVivo_TextChanged(object? sender, EventArgs e)
         {
             if (_estaNormalizandoTexto) return;
@@ -573,27 +537,26 @@ namespace InmoTech
             _estaNormalizandoTexto = false;
         }
 
-        /// <summary>
-        /// Bloquea números y símbolos no permitidos al teclear en campos de Nombre/Apellido.
-        /// Permite letras (incluye acentos), espacios, apóstrofo y guion.
-        /// </summary>
         private void TextBoxSoloLetras_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
 
             char c = e.KeyChar;
-            bool esLetra = char.IsLetter(c);         // Incluye letras con acentos/ñ
-            bool permitido = esLetra || char.IsWhiteSpace(c) || c == '\'' || c == '-';
+            bool esLetra = char.IsLetter(c);         // Incluye letras con acentos/ñ
+            bool permitido = esLetra || char.IsWhiteSpace(c) || c == '\'' || c == '-';
 
             if (!permitido)
                 e.Handled = true;
         }
+        #endregion
 
-        // ==== Handlers requeridos por el diseñador (stubs) ====
-        /// <summary> Stub requerido por el diseñador. </summary>
+        // ======================================================
+        //  REGIÓN: Stubs del Diseñador (sin esto revienta)
+        // ======================================================
+        #region Stubs del Diseñador
         private void gbCrear_Enter(object sender, EventArgs e) { /* no-op */ }
 
-        /// <summary> Stub requerido por el diseñador. </summary>
         private void label1_Click(object sender, EventArgs e) { /* no-op */ }
-    }
+        #endregion
+    }
 }

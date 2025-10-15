@@ -9,17 +9,21 @@ namespace InmoTech.Repositories
 {
     public class PagoRepository
     {
+        // ======================================================
+        //  REGIÓN: Operaciones de Creación (Create)
+        // ======================================================
+        #region Operaciones de Creación (Create)
         public int Agregar(Pago p)
         {
             using var cn = BDGeneral.GetConnection();
             const string sql = @"
-                INSERT INTO pago
-                (fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
-                 detalle, estado, fecha_registro, id_persona, usuario_creador, activo)
-                OUTPUT INSERTED.id_pago
-                VALUES
-                (@FechaPago, @Monto, @IdUsuario, @IdMetodo, @IdContrato, @NroCuota,
-                 @Detalle, @Estado, @FechaRegistro, @IdPersona, @UsuarioCreador, @Activo);";
+                INSERT INTO pago
+                (fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
+                 detalle, estado, fecha_registro, id_persona, usuario_creador, activo)
+                OUTPUT INSERTED.id_pago
+                VALUES
+                (@FechaPago, @Monto, @IdUsuario, @IdMetodo, @IdContrato, @NroCuota,
+                 @Detalle, @Estado, @FechaRegistro, @IdPersona, @UsuarioCreador, @Activo);";
 
             using var cmd = new SqlCommand(sql, cn);
 
@@ -38,14 +42,19 @@ namespace InmoTech.Repositories
 
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Operaciones de Consulta (Read)
+        // ======================================================
+        #region Operaciones de Consulta (Read)
         public Pago? ObtenerPorId(int idPago)
         {
             using var cn = BDGeneral.GetConnection();
             const string sql = @"
-            SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
-                   detalle, estado, fecha_registro, id_persona, usuario_creador, activo
-            FROM pago WHERE id_pago = @Id;";
+            SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
+                   detalle, estado, fecha_registro, id_persona, usuario_creador, activo
+            FROM pago WHERE id_pago = @Id;";
 
             using var cmd = new SqlCommand(sql, cn);
             cmd.Parameters.Add("@Id", SqlDbType.Int).Value = idPago;
@@ -75,10 +84,10 @@ namespace InmoTech.Repositories
         {
             using var cn = BDGeneral.GetConnection();
             const string sql = @"
-                SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
-                       detalle, estado, fecha_registro, id_persona, usuario_creador, activo
-                FROM pago WHERE id_contrato = @IdContrato
-                ORDER BY fecha_pago DESC;";
+                SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
+                       detalle, estado, fecha_registro, id_persona, usuario_creador, activo
+                FROM pago WHERE id_contrato = @IdContrato
+                ORDER BY fecha_pago DESC;";
 
             using var cmd = new SqlCommand(sql, cn);
             cmd.Parameters.Add("@IdContrato", SqlDbType.Int).Value = idContrato;
@@ -106,5 +115,6 @@ namespace InmoTech.Repositories
             }
             return list;
         }
-    }
+        #endregion
+    }
 }

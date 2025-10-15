@@ -35,9 +35,9 @@ namespace InmoTech
             pnlContent = new Panel();
             PanelLateral = new Panel();
             pnlInfoUsuario = new Panel();
-            LUsuarioNombre = new Label();
-            LUsuarioEmail = new Label();
             LUsuarioRol = new Label();
+            LUsuarioEmail = new Label();
+            LUsuarioNombre = new Label();
             LTituloLogo = new Label();
             pictureBox1 = new PictureBox();
             BReportes = new Button();
@@ -47,7 +47,7 @@ namespace InmoTech
             BDashboard = new Button();
             BUsuarios = new Button();
             BInmuebles = new Button();
-            BBackup = new Button(); // ⬅️ NUEVO
+            BBackup = new Button();
             BSalir = new Button();
             tableLayoutPanel1 = new TableLayoutPanel();
             PanelLateral.SuspendLayout();
@@ -81,7 +81,7 @@ namespace InmoTech
             PanelLateral.Controls.Add(BDashboard);
             PanelLateral.Controls.Add(BUsuarios);
             PanelLateral.Controls.Add(BInmuebles);
-            PanelLateral.Controls.Add(BBackup); // ⬅️ NUEVO: antes que Salir
+            PanelLateral.Controls.Add(BBackup);
             PanelLateral.Controls.Add(BSalir);
             PanelLateral.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             PanelLateral.Location = new Point(4, 4);
@@ -93,7 +93,6 @@ namespace InmoTech
             // pnlInfoUsuario
             // 
             pnlInfoUsuario.BackColor = Color.FromArgb(248, 248, 248);
-            pnlInfoUsuario.BorderStyle = BorderStyle.None;
             pnlInfoUsuario.Controls.Add(LUsuarioRol);
             pnlInfoUsuario.Controls.Add(LUsuarioEmail);
             pnlInfoUsuario.Controls.Add(LUsuarioNombre);
@@ -102,32 +101,8 @@ namespace InmoTech
             pnlInfoUsuario.Size = new Size(222, 140);
             pnlInfoUsuario.TabIndex = 10;
             // 
-            // LUsuarioNombre
-            // 
-            LUsuarioNombre.AutoSize = false;
-            LUsuarioNombre.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            LUsuarioNombre.Location = new Point(10, 10);
-            LUsuarioNombre.Name = "LUsuarioNombre";
-            LUsuarioNombre.Size = new Size(200, 24);
-            LUsuarioNombre.TabIndex = 0;
-            LUsuarioNombre.Text = "Invitado";
-            LUsuarioNombre.TextAlign = ContentAlignment.MiddleLeft;
-            // 
-            // LUsuarioEmail
-            // 
-            LUsuarioEmail.AutoSize = false;
-            LUsuarioEmail.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            LUsuarioEmail.ForeColor = Color.DimGray;
-            LUsuarioEmail.Location = new Point(10, 38);
-            LUsuarioEmail.Name = "LUsuarioEmail";
-            LUsuarioEmail.Size = new Size(200, 22);
-            LUsuarioEmail.TabIndex = 1;
-            LUsuarioEmail.Text = "—";
-            LUsuarioEmail.TextAlign = ContentAlignment.MiddleLeft;
-            // 
             // LUsuarioRol
             // 
-            LUsuarioRol.AutoSize = false;
             LUsuarioRol.BackColor = Color.FromArgb(230, 240, 230);
             LUsuarioRol.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             LUsuarioRol.ForeColor = Color.FromArgb(30, 30, 30);
@@ -137,6 +112,27 @@ namespace InmoTech
             LUsuarioRol.TabIndex = 2;
             LUsuarioRol.Text = "Sin rol";
             LUsuarioRol.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // LUsuarioEmail
+            // 
+            LUsuarioEmail.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            LUsuarioEmail.ForeColor = Color.DimGray;
+            LUsuarioEmail.Location = new Point(10, 38);
+            LUsuarioEmail.Name = "LUsuarioEmail";
+            LUsuarioEmail.Size = new Size(200, 22);
+            LUsuarioEmail.TabIndex = 1;
+            LUsuarioEmail.Text = "—";
+            LUsuarioEmail.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // LUsuarioNombre
+            // 
+            LUsuarioNombre.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            LUsuarioNombre.Location = new Point(10, 10);
+            LUsuarioNombre.Name = "LUsuarioNombre";
+            LUsuarioNombre.Size = new Size(200, 24);
+            LUsuarioNombre.TabIndex = 0;
+            LUsuarioNombre.Text = "Invitado";
+            LUsuarioNombre.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // LTituloLogo
             // 
@@ -244,22 +240,21 @@ namespace InmoTech
             BInmuebles.UseVisualStyleBackColor = true;
             BInmuebles.Click += BInmuebles_Click;
             // 
-            // BBackup (NUEVO)
+            // BBackup
             // 
-            BBackup.Location = new Point(25, 810); // justo antes de Salir y fuera del área de pnlInfoUsuario
+            BBackup.Location = new Point(25, 810);
             BBackup.Margin = new Padding(4);
             BBackup.Name = "BBackup";
             BBackup.Size = new Size(222, 62);
             BBackup.TabIndex = 11;
             BBackup.Text = "Backup";
             BBackup.UseVisualStyleBackColor = true;
-            // el Click se engancha en el constructor: BBackup.Click += BBackup_Click;
             // 
             // BSalir
             // 
             BSalir.BackColor = Color.White;
             BSalir.ImageAlign = ContentAlignment.MiddleLeft;
-            BSalir.Location = new Point(25, 882); // movido un poco más abajo para no superponerse
+            BSalir.Location = new Point(25, 882);
             BSalir.Margin = new Padding(4);
             BSalir.Name = "BSalir";
             BSalir.Size = new Size(222, 62);
@@ -292,6 +287,7 @@ namespace InmoTech
             Controls.Add(tableLayoutPanel1);
             Margin = new Padding(4);
             Name = "MainForm";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Form1";
             PanelLateral.ResumeLayout(false);
             PanelLateral.PerformLayout();

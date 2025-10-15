@@ -8,14 +8,18 @@ namespace InmoTech.Repositories
 {
     public class MetodoPagoRepository
     {
+        // ======================================================
+        //  REGIÓN: Operaciones de Consulta (Read)
+        // ======================================================
+        #region Operaciones de Consulta (Read)
         public List<MetodoPago> ObtenerTodos()
         {
             using var cn = BDGeneral.GetConnection();
 
             const string sql = @"
-                SELECT id_metodo_pago, tipo_pago, descripcion
-                FROM metodo_pago
-                ORDER BY id_metodo_pago;";
+                SELECT id_metodo_pago, tipo_pago, descripcion
+                FROM metodo_pago
+                ORDER BY id_metodo_pago;";
 
             using var cmd = new SqlCommand(sql, cn);
             using var rd = cmd.ExecuteReader();
@@ -39,9 +43,9 @@ namespace InmoTech.Repositories
             using var cn = BDGeneral.GetConnection();
 
             const string sql = @"
-                SELECT id_metodo_pago, tipo_pago, descripcion
-                FROM metodo_pago
-                WHERE id_metodo_pago = @id;";
+                SELECT id_metodo_pago, tipo_pago, descripcion
+                FROM metodo_pago
+                WHERE id_metodo_pago = @id;";
 
             using var cmd = new SqlCommand(sql, cn);
             cmd.Parameters.Add("@id", SqlDbType.Int).Value = id;
@@ -56,5 +60,6 @@ namespace InmoTech.Repositories
                 Descripcion = rd.IsDBNull(2) ? null : rd.GetString(2)
             };
         }
-    }
+        #endregion
+    }
 }

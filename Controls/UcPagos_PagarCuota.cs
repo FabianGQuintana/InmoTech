@@ -10,20 +10,34 @@ namespace InmoTech.Controls
 {
     public partial class UcPagos_PagarCuota : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Propiedades y Repositorios
+        // ======================================================
+        #region Propiedades y Repositorios
         private readonly Contrato _contrato;
         private readonly Cuota _cuota;
 
-        // Repositorios existentes
-        private readonly MetodoPagoRepository _repoMetodos = new MetodoPagoRepository();
+        // Repositorios existentes
+        private readonly MetodoPagoRepository _repoMetodos = new MetodoPagoRepository();
         private readonly PagoRepository _repoPago = new PagoRepository();
         private readonly CuotaRepository _repoCuota = new CuotaRepository();
 
-        // ¡NUEVO REPOSITORIO!
-        private readonly ReciboRepository _repoRecibo = new ReciboRepository();
+        
+        private readonly ReciboRepository _repoRecibo = new ReciboRepository();
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Eventos
+        // ======================================================
+        #region Eventos
         public event EventHandler? Cancelado;
         public event EventHandler<int>? PagoGuardado;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Carga Inicial
+        // ======================================================
+        #region Constructor y Carga Inicial
         public UcPagos_PagarCuota(Contrato contrato, Cuota cuota)
         {
             InitializeComponent();
@@ -34,12 +48,12 @@ namespace InmoTech.Controls
 
         private void UcPagos_PagarCuota_Load(object? sender, EventArgs e)
         {
-            // ... (tu código de carga existente no cambia)
-            lblTituloContrato.Text = $"Contrato N°: C-{_contrato.IdContrato}";
+            
+            lblTituloContrato.Text = $"Contrato N°: C-{_contrato.IdContrato}";
             lblLinea1.Text = $"Inquilino: {_contrato.NombreInquilino ?? "—"}";
             lblLinea2.Text = $"Inmueble: {_contrato.DireccionInmueble ?? "—"}";
-            lblLinea3.Text = $"Cuota: {_cuota.NroCuota} / {CalcularMesesContrato()}   |   " +
-                             $"Período: {_cuota.FechaVencimiento:MMMM yyyy}   |   Monto: $ {_cuota.Importe:N0}";
+            lblLinea3.Text = $"Cuota: {_cuota.NroCuota} / {CalcularMesesContrato()}   |   " +
+                    $"Período: {_cuota.FechaVencimiento:MMMM yyyy}   |   Monto: $ {_cuota.Importe:N0}";
 
             dtpFechaPago.Value = DateTime.Now.Date;
             nudMonto.Value = _cuota.Importe;
@@ -56,29 +70,35 @@ namespace InmoTech.Controls
             btnCancelar.Click += (s, ev) => Cancelado?.Invoke(this, EventArgs.Empty);
             btnGuardar.Click += BtnGuardar_Click;
 
-            // Lógica actualizada para vista previa
-            lnkVistaPrevia.Click += LnkVistaPrevia_Click;
+            // Lógica actualizada para vista previa
+            lnkVistaPrevia.Click += LnkVistaPrevia_Click;
         }
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Handlers de Botones
+        // ======================================================
+        #region Handlers de Botones
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
-            // 1. Validar los datos del formulario
-            if (!SonDatosValidos())
+            // 1. Validar los datos del formulario
+            if (!SonDatosValidos())
             {
                 return; // Si no son válidos, no continuamos.
-            }
+            }
 
             try
             {
-                // 2. Guardar el pago y el recibo en la base de datos
-                int nuevoIdPago = GuardarPagoYRecibo();
+                // 2. Guardar el pago y el recibo en la base de datos
+                int nuevoIdPago = GuardarPagoYRecibo();
 
                 MessageBox.Show("Pago y recibo registrados correctamente.", "Proceso Completado", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // 3. Generar el PDF si el usuario lo solicitó
-                GenerarPdfSiEsNecesario(nuevoIdPago);
+                // 3. Generar el PDF si el usuario lo solicitó
+                GenerarPdfSiEsNecesario(nuevoIdPago);
 
-                // 4. Notificar que el pago fue guardado
-                PagoGuardado?.Invoke(this, nuevoIdPago);
+                // 4. Notificar que el pago fue guardado
+                PagoGuardado?.Invoke(this, nuevoIdPago);
             }
             catch (Exception ex)
             {
@@ -86,6 +106,18 @@ namespace InmoTech.Controls
             }
         }
 
+        private void LnkVistaPrevia_Click(object sender, EventArgs e)
+        {
+            // Construye un recibo 'temporal' con los datos del formulario, sin guardarlo.
+            var reciboPrevio = ConstruirRecibo(0); // id_pago = 0 porque aún no existe
+            MostrarRecibo(reciboPrevio);
+        }
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Logica de Negocio y Persistencia
+        // ======================================================
+        #region Lógica de Negocio y Persistencia
         private bool SonDatosValidos()
         {
             if (cboMetodoPago.SelectedItem is null || nudMonto.Value <= 0)
@@ -107,8 +139,8 @@ namespace InmoTech.Controls
         {
             var usr = InmoTech.Security.AuthService.CurrentUser;
 
-            // Crear y guardar el Pago
-            var pago = new Models.Pago
+            // Crear y guardar el Pago
+            var pago = new Models.Pago
             {
                 FechaPago = dtpFechaPago.Value.Date,
                 MontoTotal = nudMonto.Value,
@@ -125,17 +157,51 @@ namespace InmoTech.Controls
             };
             int nuevoIdPago = _repoPago.Agregar(pago);
 
-            // Actualizar la Cuota
-            _repoCuota.AsignarPago(_contrato.IdContrato, _cuota.NroCuota, nuevoIdPago);
+            // Actualizar la Cuota
+            _repoCuota.AsignarPago(_contrato.IdContrato, _cuota.NroCuota, nuevoIdPago);
             _repoCuota.ActualizarEstado(_contrato.IdContrato, _cuota.NroCuota, "Pagada");
 
-            // Crear y guardar el Recibo
-            var recibo = ConstruirRecibo(nuevoIdPago);
+            // Crear y guardar el Recibo
+            var recibo = ConstruirRecibo(nuevoIdPago);
             _repoRecibo.Agregar(recibo);
 
             return nuevoIdPago;
         }
 
+        private Recibo ConstruirRecibo(int idPago)
+        {
+            var usr = InmoTech.Security.AuthService.CurrentUser;
+            var metodoPago = cboMetodoPago.SelectedItem as Models.MetodoPago;
+
+            return new Recibo
+            {
+                IdPago = idPago, // Puede ser 0 si es una vista previa
+                FechaEmision = dtpFechaPago.Value.Date,
+
+                // --- LÍNEA MODIFICADA ---
+                // Llama al repositorio para generar el N° de comprobante solo si es un recibo real (idPago > 0).
+                // Para la vista previa, el número de comprobante será nulo.
+                NroComprobante = idPago > 0 ? _repoRecibo.GenerarNumeroComprobante() : null,
+
+                IdUsuarioEmisor = usr?.Dni ?? 0,
+                IdInquilino = _contrato.IdPersona,
+                IdInmueble = _contrato.IdInmueble,
+                FormaPago = metodoPago?.TipoPago ?? "Desconocido",
+                Observaciones = ConstruirDetalle(txtObservaciones.Text),
+
+                // Propiedades extendidas para la vista previa
+                NombreInquilino = _contrato.NombreInquilino,
+                DireccionInmueble = _contrato.DireccionInmueble,
+                MontoPagado = nudMonto.Value,
+                Concepto = $"Pago de alquiler - Cuota N°{_cuota.NroCuota}"
+            };
+        }
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Generación de Documentos y PDF
+        // ======================================================
+        #region Generación de Documentos y PDF
         private void GenerarPdfSiEsNecesario(int nuevoIdPago)
         {
             if (chkEmitirRecibo.Checked)
@@ -156,8 +222,8 @@ namespace InmoTech.Controls
                         documentGenerator.Generate(sfd.FileName);
 
                         var result = MessageBox.Show(
-                            "¡PDF generado correctamente!",
-                            "Emisión de Recibo"
+                          "¡PDF generado correctamente!",
+                          "Emisión de Recibo"
                         );
 
                         if (result == DialogResult.Yes)
@@ -168,52 +234,12 @@ namespace InmoTech.Controls
                 }
             }
         }
+        #endregion
 
-        // --- MÉTODOS NUEVOS PARA EL RECIBO ---
-
-        private void LnkVistaPrevia_Click(object sender, EventArgs e)
-        {
-            // Construye un recibo 'temporal' con los datos del formulario, sin guardarlo.
-            var reciboPrevio = ConstruirRecibo(0); // id_pago = 0 porque aún no existe
-            MostrarRecibo(reciboPrevio);
-        }
-
-
-        /// <summary>
-        /// Crea un objeto Recibo a partir de los datos actuales en el formulario.
-        /// </summary>
-        private Recibo ConstruirRecibo(int idPago)
-        {
-            var usr = InmoTech.Security.AuthService.CurrentUser;
-            var metodoPago = cboMetodoPago.SelectedItem as Models.MetodoPago;
-
-            return new Recibo
-            {
-                IdPago = idPago, // Puede ser 0 si es una vista previa
-                FechaEmision = dtpFechaPago.Value.Date,
-
-                // --- LÍNEA MODIFICADA ---
-                // Llama al repositorio para generar el N° de comprobante solo si es un recibo real (idPago > 0).
-                // Para la vista previa, el número de comprobante será nulo.
-                NroComprobante = idPago > 0 ? _repoRecibo.GenerarNumeroComprobante() : null,
-
-                IdUsuarioEmisor = usr?.Dni ?? 0,
-                IdInquilino = _contrato.IdPersona,
-                IdInmueble = _contrato.IdInmueble,
-                FormaPago = metodoPago?.TipoPago ?? "Desconocido",
-                Observaciones = ConstruirDetalle(txtObservaciones.Text),
-
-                // Propiedades extendidas para la vista previa
-                NombreInquilino = _contrato.NombreInquilino,
-                DireccionInmueble = _contrato.DireccionInmueble,
-                MontoPagado = nudMonto.Value,
-                Concepto = $"Pago de alquiler - Cuota N°{_cuota.NroCuota}"
-            };
-        }
-
-        /// <summary>
-        /// Muestra el control del recibo en una ventana flotante.
-        /// </summary>
+        // ======================================================
+        //  REGIÓN: Utilitarios de UI y Datos
+        // ======================================================
+        #region Utilitarios de UI y Datos
         private void MostrarRecibo(Recibo recibo)
         {
             var ucRecibo = new UcRecibo();
@@ -225,7 +251,7 @@ namespace InmoTech.Controls
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedSingle,
                 Size = new Size(ucRecibo.Width + 20, ucRecibo.Height + 40), // Ajustar tamaño
-                MaximizeBox = false,
+                MaximizeBox = false,
                 MinimizeBox = false,
             };
 
@@ -236,7 +262,6 @@ namespace InmoTech.Controls
             formFlotante.ShowDialog();
         }
 
-        // --- Métodos existentes ---
         private string? ConstruirDetalle(string obs)
         {
             return string.IsNullOrWhiteSpace(obs) ? null : obs.Trim();
@@ -245,8 +270,9 @@ namespace InmoTech.Controls
         private int CalcularMesesContrato()
         {
             var m = ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12)
-                      + (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
+                 + (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
             return Math.Max(1, m);
         }
-    }
+        #endregion
+    }
 }

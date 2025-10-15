@@ -8,6 +8,10 @@ namespace InmoTech.Models
 {
     public class Inquilino
     {
+        // ======================================================
+        //  REGIÓN: Propiedades de Persistencia e Identificación
+        // ======================================================
+        #region Propiedades de Persistencia e Identificación
         public int Dni { get; set; }
         public string Nombre { get; set; } = "";
         public string Apellido { get; set; } = "";
@@ -16,7 +20,13 @@ namespace InmoTech.Models
         public string Direccion { get; set; } = "";
         public DateTime FechaNacimiento { get; set; }
         public bool Estado { get; set; } // Activo/Inactivo
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Propiedades Calculadas (ViewModel Helper)
+        // ======================================================
+        #region Propiedades Calculadas (ViewModel Helper)
         public string NombreCompleto => $"{Nombre} {Apellido}";
-    }
+        #endregion
+    }
 }

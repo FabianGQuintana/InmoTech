@@ -1,6 +1,6 @@
 ﻿using InmoTech.Data;
 using InmoTech.Models;
-using InmoTech.Security; 
+using InmoTech.Security;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,10 @@ namespace InmoTech.Repositories
 {
     public class UsuarioRepository
     {
+        // ======================================================
+        //  REGIÓN: Operaciones de Creación (Insert)
+        // ======================================================
+        #region Operaciones de Creación (Insert)
         // ================
         // INSERT
         // ================
@@ -17,12 +21,12 @@ namespace InmoTech.Repositories
         {
             using var conexion = BDGeneral.GetConnection();
 
-            // 🔐 Hashear contraseña ANTES de guardarla
-            string hashedPassword = PasswordHasher.Hash(usuario.Password);
+            //  Hashear contraseña ANTES de guardarla
+            string hashedPassword = PasswordHasher.Hash(usuario.Password);
 
             const string sql = @"
-            INSERT INTO usuario (dni, nombre, apellido, email, password, telefono, fecha_nacimiento, id_rol)
-            VALUES (@Dni, @Nombre, @Apellido, @Email, @Password, @Telefono, @FechaNacimiento, @IdRol);";
+            INSERT INTO usuario (dni, nombre, apellido, email, password, telefono, fecha_nacimiento, id_rol)
+            VALUES (@Dni, @Nombre, @Apellido, @Email, @Password, @Telefono, @FechaNacimiento, @IdRol);";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@Dni", SqlDbType.Int).Value = usuario.Dni;
@@ -36,7 +40,12 @@ namespace InmoTech.Repositories
 
             return cmd.ExecuteNonQuery();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Operaciones de Actualización (Update)
+        // ======================================================
+        #region Operaciones de Actualización (Update)
         // ================
         // UPDATE
         // ================
@@ -45,27 +54,27 @@ namespace InmoTech.Repositories
             using var conexion = BDGeneral.GetConnection();
 
             var sql = actualizarPassword
-                ? @"
-            UPDATE usuario
-               SET nombre = @Nombre,
-                   apellido = @Apellido,
-                   email = @Email,
-                   password = @Password,
-                   telefono = @Telefono,
-                   estado = @Estado,
-                   fecha_nacimiento = @FechaNacimiento,
-                   id_rol = @IdRol
-             WHERE dni = @Dni;"
-                : @"
-            UPDATE usuario
-               SET nombre = @Nombre,
-                   apellido = @Apellido,
-                   email = @Email,
-                   telefono = @Telefono,
-                   estado = @Estado,
-                   fecha_nacimiento = @FechaNacimiento,
-                   id_rol = @IdRol
-             WHERE dni = @Dni;";
+              ? @"
+            UPDATE usuario
+               SET nombre = @Nombre,
+                   apellido = @Apellido,
+                   email = @Email,
+                   password = @Password,
+                   telefono = @Telefono,
+                   estado = @Estado,
+                   fecha_nacimiento = @FechaNacimiento,
+                   id_rol = @IdRol
+             WHERE dni = @Dni;"
+              : @"
+            UPDATE usuario
+               SET nombre = @Nombre,
+                   apellido = @Apellido,
+                   email = @Email,
+                   telefono = @Telefono,
+                   estado = @Estado,
+                   fecha_nacimiento = @FechaNacimiento,
+                   id_rol = @IdRol
+             WHERE dni = @Dni;";
 
             using var cmd = new SqlCommand(sql, conexion);
 
@@ -80,14 +89,19 @@ namespace InmoTech.Repositories
 
             if (actualizarPassword)
             {
-                // 🔐 Hashear contraseña nueva
-                string hashedPassword = PasswordHasher.Hash(usuario.Password);
+                //  Hashear contraseña nueva
+                string hashedPassword = PasswordHasher.Hash(usuario.Password);
                 cmd.Parameters.Add("@Password", SqlDbType.VarChar, 600).Value = hashedPassword;
             }
 
             return cmd.ExecuteNonQuery();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Operaciones de Consulta (Read)
+        // ======================================================
+        #region Operaciones de Consulta (Read)
         // ================
         // SELECT ALL
         // ================
@@ -96,9 +110,9 @@ namespace InmoTech.Repositories
             using var connection = BDGeneral.GetConnection();
 
             const string sqlQuery = @"
-            SELECT dni, nombre, apellido, email, telefono, estado, fecha_nacimiento, id_rol
-            FROM usuario
-            ORDER BY apellido, nombre;";
+            SELECT dni, nombre, apellido, email, telefono, estado, fecha_nacimiento, id_rol
+            FROM usuario
+            ORDER BY apellido, nombre;";
 
             using var command = new SqlCommand(sqlQuery, connection);
             using var reader = command.ExecuteReader();
@@ -126,13 +140,50 @@ namespace InmoTech.Repositories
                     Estado = reader.GetBoolean(ordEstado),
                     FechaNacimiento = reader.GetDateTime(ordFechaNacimiento),
                     IdRol = reader.GetInt32(ordIdRol),
-                    Password = string.Empty // 🚫 nunca exponemos el hash
-                });
+                    Password = string.Empty //  nunca exponemos el hash
+                });
             }
 
             return users;
         }
 
+        // ================
+        // OBTENER POR EMAIL
+        // ================
+        public Usuario? ObtenerPorEmail(string email)
+        {
+            using var conexion = BDGeneral.GetConnection();
+
+            const string sql = @"
+            SELECT dni, nombre, apellido, email, password, telefono, estado, fecha_nacimiento, id_rol
+            FROM usuario
+            WHERE email = @Email;";
+
+            using var cmd = new SqlCommand(sql, conexion);
+            cmd.Parameters.Add("@Email", SqlDbType.VarChar, 200).Value = email;
+
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read()) return null;
+
+            return new Usuario
+            {
+                Dni = reader.GetInt32(reader.GetOrdinal("dni")),
+                Nombre = reader.GetString(reader.GetOrdinal("nombre")),
+                Apellido = reader.GetString(reader.GetOrdinal("apellido")),
+                Email = reader.GetString(reader.GetOrdinal("email")),
+                Password = reader.GetString(reader.GetOrdinal("password")), // hash para validación
+                Telefono = reader.GetString(reader.GetOrdinal("telefono")),
+                Estado = reader.GetBoolean(reader.GetOrdinal("estado")),
+                FechaNacimiento = reader.GetDateTime(reader.GetOrdinal("fecha_nacimiento")),
+                IdRol = reader.GetInt32(reader.GetOrdinal("id_rol"))
+            };
+        }
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Operaciones de Estado y Baja (Update/Delete)
+        // ======================================================
+        #region Operaciones de Estado y Baja (Update/Delete)
         // ================
         // ESTADO
         // ================
@@ -149,39 +200,12 @@ namespace InmoTech.Repositories
         }
 
         public int DarDeBajaUsuario(int dni) => ActualizarEstado(dni, false);
+        #endregion
 
-        // ================
-        // OBTENER POR EMAIL
-        // ================
-        public Usuario? ObtenerPorEmail(string email)
-        {
-            using var conexion = BDGeneral.GetConnection();
-
-            const string sql = @"
-            SELECT dni, nombre, apellido, email, password, telefono, estado, fecha_nacimiento, id_rol
-            FROM usuario
-            WHERE email = @Email;";
-
-            using var cmd = new SqlCommand(sql, conexion);
-            cmd.Parameters.Add("@Email", SqlDbType.VarChar, 200).Value = email;
-
-            using var reader = cmd.ExecuteReader();
-            if (!reader.Read()) return null;
-
-            return new Usuario
-            {
-                Dni = reader.GetInt32(reader.GetOrdinal("dni")),
-                Nombre = reader.GetString(reader.GetOrdinal("nombre")),
-                Apellido = reader.GetString(reader.GetOrdinal("apellido")),
-                Email = reader.GetString(reader.GetOrdinal("email")),
-                Password = reader.GetString(reader.GetOrdinal("password")), // hash para validación
-                Telefono = reader.GetString(reader.GetOrdinal("telefono")),
-                Estado = reader.GetBoolean(reader.GetOrdinal("estado")),
-                FechaNacimiento = reader.GetDateTime(reader.GetOrdinal("fecha_nacimiento")),
-                IdRol = reader.GetInt32(reader.GetOrdinal("id_rol"))
-            };
-        }
-
+        // ======================================================
+        //  REGIÓN: Logica de Autenticación (Login)
+        // ======================================================
+        #region Lógica de Autenticación (Login)
         // ================
         // LOGIN
         // ================
@@ -190,12 +214,13 @@ namespace InmoTech.Repositories
             var user = ObtenerPorEmail(email);
             if (user is null) return null;
 
-            // 🔐 Verificar hash + estado
-            bool ok = PasswordHasher.Verify(passwordPlano, user.Password);
+            //  Verificar hash + estado
+            bool ok = PasswordHasher.Verify(passwordPlano, user.Password);
             if (!ok || !user.Estado) return null;
 
-            user.Password = string.Empty; // 🚫 nunca exponer hash
-            return user;
+            user.Password = string.Empty; //  nunca exponer hash
+            return user;
         }
-    }
+        #endregion
+    }
 }

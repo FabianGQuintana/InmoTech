@@ -10,13 +10,22 @@ namespace InmoTech
 {
     public partial class LoginForm : Form
     {
+        // ======================================================
+        //  REGIÓN: Repositorios
+        // ======================================================
+        #region Repositorios
         private readonly UsuarioRepository _usuarioRepository = new();
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Eventos de UI
+        // ======================================================
+        #region Constructor y Eventos de UI
         public LoginForm()
         {
             InitializeComponent();
 
-            txtPassword.UseSystemPasswordChar = true; 
+            txtPassword.UseSystemPasswordChar = true;
 
             btnLogin.Click += BtnLogin_Click;
             chkMostrarPassword.CheckedChanged += ChkMostrarPassword_CheckedChanged;
@@ -24,7 +33,6 @@ namespace InmoTech
             txtEmail.KeyDown += OnKeyDownEnterLogin;
             txtPassword.KeyDown += OnKeyDownEnterLogin;
         }
-
 
         private void ChkMostrarPassword_CheckedChanged(object? sender, EventArgs e)
         {
@@ -41,14 +49,19 @@ namespace InmoTech
         }
 
         private void BtnLogin_Click(object? sender, EventArgs e) => IntentarLogin();
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Logica de Autenticación
+        // ======================================================
+        #region Lógica de Autenticación
         private void IntentarLogin()
         {
             string email = txtEmail.Text.Trim();
             string password = txtPassword.Text;
 
-            // Validaciones básicas
-            if (string.IsNullOrWhiteSpace(email))
+            // Validaciones básicas
+            if (string.IsNullOrWhiteSpace(email))
             {
                 MostrarError("Ingresá tu email.");
                 txtEmail.Focus();
@@ -77,8 +90,8 @@ namespace InmoTech
                     return;
                 }
 
-                // OK → guardar sesión y cerrar con OK
-                AuthService.SignIn(usuario);
+                // OK → guardar sesión y cerrar con OK
+                AuthService.SignIn(usuario);
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -90,14 +103,19 @@ namespace InmoTech
 
         private static bool EsEmailValido(string email)
         {
-            // Regex simple para email
-            return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+            // Regex simple para email
+            return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$");
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Manejo de Errores de UI
+        // ======================================================
+        #region Manejo de Errores de UI
         private void MostrarError(string mensaje)
         {
-            // Si tenés un label de error
-            var lbl = this.Controls.Find("lblError", true);
+            // Si tenés un label de error
+            var lbl = this.Controls.Find("lblError", true);
             if (lbl.Length > 0 && lbl[0] is Label lblError)
             {
                 lblError.Text = mensaje;
@@ -108,5 +126,6 @@ namespace InmoTech
                 MessageBox.Show(mensaje, "Login", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-    }
+        #endregion
+    }
 }

@@ -1,17 +1,28 @@
-﻿using System;
+﻿using InmoTech.Data.Repositories;
+using System;
 using System.Windows.Forms;
-using InmoTech.Data.Repositories;
+using static InmoTech.Data.Repositories.InmuebleRepository;
+// using static InmoTech.Data.Repositories.InmuebleRepository; // Eliminado para simplificar la estructura de Namespaces
 
 namespace InmoTech.Forms
 {
     public partial class FrmBuscarInmueble : Form
     {
+        // ======================================================
+        //  REGIÓN: Propiedades y Estado Interno
+        // ======================================================
+        #region Propiedades y Estado Interno
         private readonly InmuebleRepository _repo = new InmuebleRepository();
         private int _page = 1, _pageSize = 20, _total = 0;
 
-        /// <summary> Resultado seleccionado por el usuario. </summary>
-        public InmuebleLite? Seleccionado { get; private set; }
+        // Se asume que InmuebleLite está en un namespace referenciado o está definido en otro lugar
+        public InmuebleLite? Seleccionado { get; private set; }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Eventos
+        // ======================================================
+        #region Constructor y Eventos
         public FrmBuscarInmueble()
         {
             InitializeComponent();
@@ -21,19 +32,19 @@ namespace InmoTech.Forms
 
         private void WireEvents()
         {
-            // búsqueda reactiva con timer
-            txtBuscar.TextChanged += (s, e) => { timerBuscar.Stop(); timerBuscar.Start(); };
+            // búsqueda reactiva con timer
+            txtBuscar.TextChanged += (s, e) => { timerBuscar.Stop(); timerBuscar.Start(); };
             timerBuscar.Tick += (s, e) => { timerBuscar.Stop(); _page = 1; Cargar(); };
 
-            // cambio de filtro
-            cboEstado.SelectedIndexChanged += (s, e) => { _page = 1; Cargar(); };
+            // cambio de filtro
+            cboEstado.SelectedIndexChanged += (s, e) => { _page = 1; Cargar(); };
 
-            // navegación por páginas
-            btnAnterior.Click += (s, e) => { if (_page > 1) { _page--; Cargar(); } };
+            // navegación por páginas
+            btnAnterior.Click += (s, e) => { if (_page > 1) { _page--; Cargar(); } };
             btnSiguiente.Click += (s, e) => { if (_page * _pageSize < _total) { _page++; Cargar(); } };
 
-            // selección
-            btnElegir.Click += (s, e) => ElegirActual();
+            // selección
+            btnElegir.Click += (s, e) => ElegirActual();
             btnCancelar.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
             dgv.CellDoubleClick += (s, e) => ElegirActual();
             dgv.KeyDown += (s, e) =>
@@ -41,29 +52,35 @@ namespace InmoTech.Forms
                 if (e.KeyCode == Keys.Enter) { e.Handled = true; ElegirActual(); }
             };
 
-            // formateo booleanos → texto
-            dgv.CellFormatting += Dgv_CellFormatting;
+            // formateo booleanos → texto
+            dgv.CellFormatting += Dgv_CellFormatting;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Logica de Carga y Paginación
+        // ======================================================
+        #region Lógica de Carga y Paginación
         private bool? EstadoSeleccionado()
         {
             return cboEstado.SelectedIndex switch
             {
                 0 => (bool?)null, // Todos
-                1 => true,        // Activos
-                2 => false,       // Inactivos
-                _ => null
+                1 => true,        // Activos
+                2 => false,       // Inactivos
+                _ => null
             };
         }
 
         private void Cargar()
         {
-            var (items, total) = _repo.BuscarPaginado(
-                txtBuscar.Text?.Trim() ?? "",
-                EstadoSeleccionado(),
-                _page,
-                _pageSize
-            );
+            // Se asume que InmuebleLite se puede usar aquí o se está importando
+            var (items, total) = _repo.BuscarPaginado(
+       txtBuscar.Text?.Trim() ?? "",
+       EstadoSeleccionado(),
+       _page,
+       _pageSize
+      );
 
             _total = total;
             dgv.DataSource = items;
@@ -76,7 +93,12 @@ namespace InmoTech.Forms
             btnAnterior.Enabled = _page > 1;
             btnSiguiente.Enabled = _page * _pageSize < _total;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Formato y Selección
+        // ======================================================
+        #region Formato y Selección
         private void Dgv_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -97,11 +119,13 @@ namespace InmoTech.Forms
 
         private void ElegirActual()
         {
-            if (dgv.CurrentRow?.DataBoundItem is InmuebleLite it)
+            // Se asume que InmuebleLite se puede usar aquí o se está importando
+            if (dgv.CurrentRow?.DataBoundItem is InmuebleLite it)
             {
                 Seleccionado = it;
                 this.DialogResult = DialogResult.OK;
             }
         }
-    }
+        #endregion
+    }
 }

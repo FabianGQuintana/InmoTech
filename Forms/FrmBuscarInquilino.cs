@@ -8,13 +8,15 @@ namespace InmoTech.Forms
 {
     public partial class FrmBuscarInquilino : Form
     {
+        // ======================================================
+        //  REGIÓN: Propiedades y Estado Interno
+        // ======================================================
+        #region Propiedades y Estado Interno
         private readonly InquilinoRepository _repo = new InquilinoRepository();
         private int _page = 1, _pageSize = 20, _total = 0;
 
-        /// <summary> Resultado seleccionado por el usuario. </summary>
         public InquilinoLite? Seleccionado { get; private set; }
 
-        // Clase fila para la grilla (propiedades = DataPropertyName del Designer)
         private sealed class InquilinoRow
         {
             public int Dni { get; set; }
@@ -23,7 +25,12 @@ namespace InmoTech.Forms
             public string Email { get; set; } = "";
             public bool Estado { get; set; }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Eventos
+        // ======================================================
+        #region Constructor y Eventos
         public FrmBuscarInquilino()
         {
             InitializeComponent();
@@ -33,19 +40,19 @@ namespace InmoTech.Forms
 
         private void WireEvents()
         {
-            // búsqueda reactiva
-            txtBuscar.TextChanged += (s, e) => { timerBuscar.Stop(); timerBuscar.Start(); };
+            // búsqueda reactiva
+            txtBuscar.TextChanged += (s, e) => { timerBuscar.Stop(); timerBuscar.Start(); };
             timerBuscar.Tick += (s, e) => { timerBuscar.Stop(); _page = 1; Cargar(); };
 
-            // filtro estado
-            cboEstado.SelectedIndexChanged += (s, e) => { _page = 1; Cargar(); };
+            // filtro estado
+            cboEstado.SelectedIndexChanged += (s, e) => { _page = 1; Cargar(); };
 
-            // paginación
-            btnAnterior.Click += (s, e) => { if (_page > 1) { _page--; Cargar(); } };
+            // paginación
+            btnAnterior.Click += (s, e) => { if (_page > 1) { _page--; Cargar(); } };
             btnSiguiente.Click += (s, e) => { if (_page * _pageSize < _total) { _page++; Cargar(); } };
 
-            // selección
-            btnElegir.Click += (s, e) => ElegirActual();
+            // selección
+            btnElegir.Click += (s, e) => ElegirActual();
             btnCancelar.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
             dgv.CellDoubleClick += (s, e) => ElegirActual();
             dgv.KeyDown += (s, e) =>
@@ -53,37 +60,40 @@ namespace InmoTech.Forms
                 if (e.KeyCode == Keys.Enter) { e.Handled = true; ElegirActual(); }
             };
 
-            // formateo boolean → texto
-            dgv.CellFormatting += Dgv_CellFormatting;
+            // formateo boolean  texto
+            dgv.CellFormatting += Dgv_CellFormatting;
 
-            // ⚠️ Importante: NO usar DataBindingComplete (era la causa del NRE)
-            // dgv.DataBindingComplete += Dgv_DataBindingComplete;  // <- eliminar/NO usar
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Logica de Negocio y DataGrid
+        // ======================================================
+        #region Lógica de Negocio y DataGrid
         private bool? EstadoSeleccionado()
         {
             return cboEstado.SelectedIndex switch
             {
                 0 => (bool?)null, // Todos
-                1 => true,        // Activos
-                2 => false,       // Inactivos
-                _ => null
+                1 => true,        // Activos
+                2 => false,       // Inactivos
+                _ => null
             };
         }
 
         private void Cargar()
         {
             var (items, total) = _repo.BuscarPaginado(
-                txtBuscar.Text?.Trim() ?? "",
-                EstadoSeleccionado(),
-                _page,
-                _pageSize
+              txtBuscar.Text?.Trim() ?? "",
+              EstadoSeleccionado(),
+              _page,
+              _pageSize
             );
 
             _total = total;
 
-            // Proyectamos a InquilinoRow (propiedades coinciden con DataPropertyName del Designer)
-            var view = new List<InquilinoRow>();
+            // Proyectamos a InquilinoRow (propiedades coinciden con DataPropertyName del Designer)
+            var view = new List<InquilinoRow>();
             foreach (var it in items)
             {
                 view.Add(new InquilinoRow
@@ -98,8 +108,8 @@ namespace InmoTech.Forms
 
             dgv.DataSource = view;
 
-            // UI paginación
-            var desde = (_page - 1) * _pageSize + 1;
+            // UI paginación
+            var desde = (_page - 1) * _pageSize + 1;
             var hasta = Math.Min(_page * _pageSize, _total);
             if (_total == 0) { desde = 0; hasta = 0; }
 
@@ -119,17 +129,22 @@ namespace InmoTech.Forms
                 e.FormattingApplied = true;
             }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Selección y Resultado
+        // ======================================================
+        #region Selección y Resultado
         private void ElegirActual()
         {
             if (dgv.CurrentRow?.DataBoundItem is InquilinoRow row)
             {
-                // Devolvemos un InquilinoLite con lo necesario
-                Seleccionado = new InquilinoLite
+                // Devolvemos un InquilinoLite con lo necesario
+                Seleccionado = new InquilinoLite
                 {
                     Dni = row.Dni,
-                    // ApellidoNombre lo teníamos en una sola propiedad visual; si quieres separar, deberíamos consultar al repo
-                    Apellido = row.ApellidoNombre,
+                    // ApellidoNombre lo teníamos en una sola propiedad visual; si quieres separar, deberíamos consultar al repo
+                    Apellido = row.ApellidoNombre,
                     Telefono = row.Telefono,
                     Email = row.Email,
                     Estado = row.Estado
@@ -138,5 +153,6 @@ namespace InmoTech.Forms
                 this.DialogResult = DialogResult.OK;
             }
         }
-    }
+        #endregion
+    }
 }

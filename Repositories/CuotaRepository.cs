@@ -9,6 +9,10 @@ namespace InmoTech.Repositories
 {
     public class CuotaRepository
     {
+        // ======================================================
+        //  REGIONES: Operaciones CRUD
+        // ======================================================
+        #region Operaciones de Inserción (Create)
         // =====================
         // INSERTAR CUOTA
         // =====================
@@ -17,8 +21,8 @@ namespace InmoTech.Repositories
             using var conexion = BDGeneral.GetConnection();
 
             const string sql = @"
-            INSERT INTO cuota (id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago)
-            VALUES (@IdContrato, @NroCuota, @FechaVencimiento, @Importe, @Estado, @IdPago);";
+            INSERT INTO cuota (id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago)
+            VALUES (@IdContrato, @NroCuota, @FechaVencimiento, @Importe, @Estado, @IdPago);";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@IdContrato", SqlDbType.Int).Value = cuota.IdContrato;
@@ -31,29 +35,31 @@ namespace InmoTech.Repositories
             return cmd.ExecuteNonQuery();
         }
 
-        // =====================
-        // INSERTAR VARIAS CUOTAS
-        // =====================
-        public int AgregarCuotas(IEnumerable<Cuota> cuotas)
+        // =====================
+        // INSERTAR VARIAS CUOTAS
+        // =====================
+        public int AgregarCuotas(IEnumerable<Cuota> cuotas)
         {
             int total = 0;
             foreach (var c in cuotas)
                 total += AgregarCuota(c);
             return total;
         }
+        #endregion
 
-        // =====================
-        // OBTENER CUOTAS POR CONTRATO
-        // =====================
-        public List<Cuota> ObtenerPorContrato(int idContrato)
+        #region Operaciones de Consulta (Read)
+        // =====================
+        // OBTENER CUOTAS POR CONTRATO
+        // =====================
+        public List<Cuota> ObtenerPorContrato(int idContrato)
         {
             using var conexion = BDGeneral.GetConnection();
 
             const string sql = @"
-            SELECT id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago
-            FROM cuota
-            WHERE id_contrato = @IdContrato
-            ORDER BY nro_cuota;";
+            SELECT id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago
+            FROM cuota
+            WHERE id_contrato = @IdContrato
+            ORDER BY nro_cuota;";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@IdContrato", SqlDbType.Int).Value = idContrato;
@@ -76,18 +82,20 @@ namespace InmoTech.Repositories
 
             return list;
         }
+        #endregion
 
-        // =====================
-        // ACTUALIZAR ESTADO / PAGO
-        // =====================
-        public int ActualizarEstado(int idContrato, int nroCuota, string nuevoEstado)
+        #region Operaciones de Actualización (Update)
+        // =====================
+        // ACTUALIZAR ESTADO / PAGO
+        // =====================
+        public int ActualizarEstado(int idContrato, int nroCuota, string nuevoEstado)
         {
             using var conexion = BDGeneral.GetConnection();
 
             const string sql = @"
-            UPDATE cuota
-               SET estado = @Estado
-             WHERE id_contrato = @IdContrato AND nro_cuota = @NroCuota;";
+            UPDATE cuota
+               SET estado = @Estado
+             WHERE id_contrato = @IdContrato AND nro_cuota = @NroCuota;";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@Estado", SqlDbType.VarChar, 50).Value = nuevoEstado;
@@ -102,9 +110,9 @@ namespace InmoTech.Repositories
             using var conexion = BDGeneral.GetConnection();
 
             const string sql = @"
-            UPDATE cuota
-               SET id_pago = @IdPago
-             WHERE id_contrato = @IdContrato AND nro_cuota = @NroCuota;";
+            UPDATE cuota
+               SET id_pago = @IdPago
+             WHERE id_contrato = @IdContrato AND nro_cuota = @NroCuota;";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@IdPago", SqlDbType.Int).Value = idPago;
@@ -113,11 +121,13 @@ namespace InmoTech.Repositories
 
             return cmd.ExecuteNonQuery();
         }
+        #endregion
 
-        // =====================
-        // ELIMINAR CUOTAS (si se borra contrato)
-        // =====================
-        public int EliminarPorContrato(int idContrato)
+        #region Operaciones de Eliminación (Delete)
+        // =====================
+        // ELIMINAR CUOTAS (si se borra contrato)
+        // =====================
+        public int EliminarPorContrato(int idContrato)
         {
             using var conexion = BDGeneral.GetConnection();
             const string sql = @"DELETE FROM cuota WHERE id_contrato = @IdContrato;";
@@ -127,5 +137,6 @@ namespace InmoTech.Repositories
 
             return cmd.ExecuteNonQuery();
         }
-    }
+        #endregion
+    }
 }

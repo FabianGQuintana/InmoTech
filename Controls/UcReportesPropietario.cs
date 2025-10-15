@@ -12,21 +12,30 @@ namespace InmoTech
 {
     public partial class UcReportesPropietario : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Propiedades de Datos y Binding
+        // ======================================================
+        #region Propiedades de Datos y Binding
         private readonly BindingList<ReporteItem> _data = new();
         private readonly BindingSource _bs = new();
         private List<ReporteItem> _allItems = new();
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Carga Inicial
+        // ======================================================
+        #region Constructor y Carga Inicial
         public UcReportesPropietario()
         {
             InitializeComponent();
             DoubleBuffered = true;
 
-            // Grilla
-            dgv.AutoGenerateColumns = false;
+            // Grilla
+            dgv.AutoGenerateColumns = false;
             dgv.DataSource = _bs;
 
-            // Formatos y columnas
-            dgv.Columns.Clear();
+            // Formatos y columnas
+            dgv.Columns.Clear();
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Fecha", HeaderText = "Fecha", Width = 110, DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy" } });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Tipo", HeaderText = "Tipo", Width = 90 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Estado", HeaderText = "Estado", Width = 110 });
@@ -35,8 +44,8 @@ namespace InmoTech
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Metodo", HeaderText = "Método", Width = 110 });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Monto", HeaderText = "Monto", Width = 110, DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight, Format = "C2" } });
 
-            // Valores por defecto de filtros
-            cmbTipoReporte.Items.AddRange(new[] { "Todos", "Pagos", "Contratos" });
+            // Valores por defecto de filtros
+            cmbTipoReporte.Items.AddRange(new[] { "Todos", "Pagos", "Contratos" });
             cmbTipoReporte.SelectedIndex = 0;
 
             cmbEstado.Items.AddRange(new[] { "Todos", "Activo", "Vencido", "Pagado", "Pendiente" });
@@ -45,8 +54,8 @@ namespace InmoTech
             dpDesde.Value = new DateTime(DateTime.Now.Year, 1, 1);
             dpHasta.Value = DateTime.Today;
 
-            // Eventos
-            btnBuscar.Click += (_, __) => Refrescar();
+            // Eventos
+            btnBuscar.Click += (_, __) => Refrescar();
             btnLimpiar.Click += (_, __) => LimpiarFiltros();
             btnExportarCsv.Click += (_, __) => ExportarCsv();
             btnImprimir.Click += (_, __) => Imprimir();
@@ -60,14 +69,19 @@ namespace InmoTech
 
             Load += UcReportes_Load;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Manejo de Vistas y Datos
+        // ======================================================
+        #region Manejo de Vistas y Datos
         private void UcReportes_Load(object? sender, EventArgs e)
         {
-            // Datos de muestra (reemplazar luego por tu capa de datos/servicios)
-            _allItems = FakeData();
+            
+            _allItems = FakeData();
 
-            // Poblar combos dependientes
-            RellenarCombosAuxiliares();
+            // Poblar combos dependientes
+            RellenarCombosAuxiliares();
 
             Refrescar();
         }
@@ -138,8 +152,8 @@ namespace InmoTech
             foreach (var it in result) _data.Add(it);
             _bs.DataSource = _data;
 
-            // KPIs
-            var total = result.Sum(x => x.Monto);
+            // KPIs
+            var total = result.Sum(x => x.Monto);
             var cantidad = result.Count;
             var promedio = cantidad > 0 ? result.Average(x => x.Monto) : 0;
 
@@ -147,7 +161,12 @@ namespace InmoTech
             lblKpiCantidad.Text = cantidad.ToString();
             lblKpiPromedio.Text = promedio.ToString("C2");
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Exportación y Impresión
+        // ======================================================
+        #region Exportación y Impresión
         private void ExportarCsv()
         {
             if (_data.Count == 0)
@@ -205,8 +224,8 @@ namespace InmoTech
                 g.DrawString("Reporte InmoTech", titleFont, Brushes.Black, margin.Left, y);
                 y += 28;
 
-                // Encabezados
-                string[] headers = { "Fecha", "Tipo", "Estado", "Inquilino", "Inmueble", "Método", "Monto" };
+                // Encabezados
+                string[] headers = { "Fecha", "Tipo", "Estado", "Inquilino", "Inmueble", "Método", "Monto" };
                 int[] widths = { 80, 70, 90, 160, 210, 90, 80 };
                 int x = margin.Left;
 
@@ -219,21 +238,21 @@ namespace InmoTech
                 g.DrawLine(Pens.Black, margin.Left, y, margin.Right, y);
                 y += 6;
 
-                // Filas
-                while (rowIndex < _data.Count)
+                // Filas
+                while (rowIndex < _data.Count)
                 {
                     x = margin.Left;
                     var it = _data[rowIndex];
 
                     string[] cells = {
-                        it.Fecha.ToString("dd/MM/yyyy"),
-                        it.Tipo,
-                        it.Estado,
-                        it.Inquilino,
-                        it.Inmueble,
-                        it.Metodo,
-                        it.Monto.ToString("C0")
-                    };
+            it.Fecha.ToString("dd/MM/yyyy"),
+            it.Tipo,
+            it.Estado,
+            it.Inquilino,
+            it.Inmueble,
+            it.Metodo,
+            it.Monto.ToString("C0")
+          };
 
                     for (int i = 0; i < cells.Length; i++)
                     {
@@ -250,12 +269,12 @@ namespace InmoTech
                     rowIndex++;
                 }
 
-                // Resumen
-                y += 10;
+                // Resumen
+                y += 10;
                 g.DrawLine(Pens.Black, margin.Left, y, margin.Right, y);
                 y += 8;
-                g.DrawString($"Total: {lblKpiTotal.Text}   •   Registros: {lblKpiCantidad.Text}   •   Promedio: {lblKpiPromedio.Text}",
-                             cellFont, Brushes.Black, margin.Left, y);
+                g.DrawString($"Total: {lblKpiTotal.Text}   •   Registros: {lblKpiCantidad.Text}   •   Promedio: {lblKpiPromedio.Text}",
+                      cellFont, Brushes.Black, margin.Left, y);
 
                 e.HasMorePages = false;
             };
@@ -264,9 +283,14 @@ namespace InmoTech
             try { printDlg.ShowDialog(); }
             catch (Exception ex) { MessageBox.Show(ex.Message, "Impresión", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Utilitarios y Datos de Ejemplo
+        // ======================================================
+        #region Utilitarios y Datos de Ejemplo
         // -------------------------------------------------------
-        // Datos de ejemplo (reemplazar por tu capa de repositorio)
+        // Datos de ejemplo (reemplazar por nuestra capa de repositorio)
         // -------------------------------------------------------
         private static List<ReporteItem> FakeData()
         {
@@ -278,8 +302,8 @@ namespace InmoTech
             var list = new List<ReporteItem>();
             var hoy = DateTime.Today;
 
-            // Pagos
-            for (int i = 0; i < 80; i++)
+            // Pagos
+            for (int i = 0; i < 80; i++)
             {
                 list.Add(new ReporteItem
                 {
@@ -293,8 +317,8 @@ namespace InmoTech
                 });
             }
 
-            // Contratos
-            for (int i = 0; i < 35; i++)
+            // Contratos
+            for (int i = 0; i < 35; i++)
             {
                 list.Add(new ReporteItem
                 {
@@ -310,8 +334,13 @@ namespace InmoTech
 
             return list;
         }
-    }
+        #endregion
+    }
 
+    // ======================================================
+    //  REGIÓN: Clases de Modelo de Reporte
+    // ======================================================
+    #region Clases de Modelo de Reporte
     public class ReporteItem
     {
         public DateTime Fecha { get; set; }
@@ -322,4 +351,5 @@ namespace InmoTech
         public string Metodo { get; set; } = "";
         public decimal Monto { get; set; }
     }
+    #endregion
 }

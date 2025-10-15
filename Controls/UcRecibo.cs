@@ -9,11 +9,26 @@ namespace InmoTech.Controls
 {
     public partial class UcRecibo : UserControl
     {
-        private Recibo _recibo;
 
+        // ======================================================
+        //  REGIÓN: Propiedades
+        // ======================================================
+        #region Propiedades
+        private Recibo _recibo;
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Eventos
+        // ======================================================
+        #region Eventos
         // Evento para notificar al contenedor que debe cerrarse
         public event EventHandler CerrarSolicitado;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Métodos de Carga
+        // ======================================================
+        #region Constructor y Métodos de Carga
         public UcRecibo()
         {
             InitializeComponent();
@@ -23,8 +38,8 @@ namespace InmoTech.Controls
         {
             _recibo = recibo;
 
-            // Cargar datos en los controles
-            lblNroComprobante.Text = $"RECIBO N°: {_recibo.NroComprobante ?? "PENDIENTE"}";
+            // Cargar datos en los controles
+            lblNroComprobante.Text = $"RECIBO N°: {_recibo.NroComprobante ?? "PENDIENTE"}";
             lblFechaEmision.Text = $"Fecha de Emisión: {_recibo.FechaEmision:dd/MM/yyyy}";
 
             lblNombreInquilino.Text = $"Recibí de: {_recibo.NombreInquilino ?? "No especificado"}";
@@ -32,19 +47,24 @@ namespace InmoTech.Controls
 
             lblConcepto.Text = _recibo.Concepto ?? $"Pago de alquiler. Contrato N° C-{_recibo.IdPago}";
             lblMonto.Text = $"{_recibo.MontoPagado:C}"; // Formato de moneda
-            lblMontoTotal.Text = $"{_recibo.MontoPagado:C}";
+            lblMontoTotal.Text = $"{_recibo.MontoPagado:C}";
 
             lblObservaciones.Text = string.IsNullOrWhiteSpace(_recibo.Observaciones)
-                ? "Sin observaciones."
-                : $"Observaciones: {_recibo.Observaciones}";
+              ? "Sin observaciones."
+              : $"Observaciones: {_recibo.Observaciones}";
 
             lblFormaPago.Text = $"Forma de Pago: {_recibo.FormaPago}";
 
-            // Botones
-            btnCerrar.Click += (s, e) => CerrarSolicitado?.Invoke(this, EventArgs.Empty);
+            // Botones
+            btnCerrar.Click += (s, e) => CerrarSolicitado?.Invoke(this, EventArgs.Empty);
             btnImprimir.Click += BtnImprimir_Click;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Manejo de Impresión y PDF
+        // ======================================================
+        #region Manejo de Impresión y PDF
         private void BtnImprimir_Click(object sender, EventArgs e)
         {
             try
@@ -58,17 +78,17 @@ namespace InmoTech.Controls
 
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
-                    // --- ÚNICO CAMBIO AQUÍ ---
-                    // Creamos una instancia de nuestro nuevo generador de iText
-                    var documentGenerator = new ReciboDocumentIText(_recibo);
-                    // Y llamamos a su método para generar el PDF
-                    documentGenerator.Generate(sfd.FileName);
-                    // ------------------------
+                    // --- ÚNICO CAMBIO AQUÍ ---
+                    // Creamos una instancia de nuestro nuevo generador de iText
+                    var documentGenerator = new ReciboDocumentIText(_recibo);
+                    // Y llamamos a su método para generar el PDF
+                    documentGenerator.Generate(sfd.FileName);
+                    // ------------------------
 
-                    var result = MessageBox.Show(
-                        "¡PDF generado correctamente!",
-                        "Proceso completado"
-                    );
+                    var result = MessageBox.Show(
+            "¡PDF generado correctamente!",
+            "Proceso completado"
+          );
 
                     if (result == DialogResult.Yes)
                     {
@@ -78,22 +98,23 @@ namespace InmoTech.Controls
             }
             catch (Exception ex)
             {
-                // Construimos un mensaje de error más detallado
-                string errorMessage = $"Error principal: {ex.Message}";
+                // Construimos un mensaje de error más detallado
+                string errorMessage = $"Error principal: {ex.Message}";
 
-                // Si hay una excepción interna, la añadimos. ¡Esta es la pista clave!
-                if (ex.InnerException != null)
+                // Si hay una excepción interna, la añadimos. ¡Esta es la pista clave!
+                if (ex.InnerException != null)
                 {
                     errorMessage += $"\n\nDetalles del error: {ex.InnerException.Message}";
                 }
 
                 MessageBox.Show(
-                    errorMessage,
-                    "Error Detallado", // Cambiamos el título para saber que es el nuevo mensaje
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
+                  errorMessage,
+                  "Error Detallado", // Cambiamos el título para saber que es el nuevo mensaje
+                            MessageBoxButtons.OK,
+                  MessageBoxIcon.Error
                 );
             }
         }
-    }
+        #endregion
+    }
 }

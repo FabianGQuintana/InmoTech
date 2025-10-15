@@ -9,10 +9,19 @@ namespace InmoTech.Security
 {
     public static class AuthService
     {
+        // ======================================================
+        //  REGIÓN: Estado de la Sesión
+        // ======================================================
+        #region Estado de la Sesión
         public static Usuario? CurrentUser { get; private set; }
 
         public static bool IsAuthenticated => CurrentUser != null;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos de Autenticación
+        // ======================================================
+        #region Métodos de Autenticación
         public static void SignIn(Usuario usuario)
         {
             CurrentUser = usuario;
@@ -22,8 +31,14 @@ namespace InmoTech.Security
         {
             CurrentUser = null;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos de Autorización
+        // ======================================================
+        #region Métodos de Autorización
         public static bool IsInRole(int idRol) => CurrentUser?.IdRol == idRol;
-        // Si luego querés por nombre de rol, podés mapear Roles en otro servicio o traer join.
-    }
+        // Si luego querés por nombre de rol, podés mapear Roles en otro servicio o traer join.
+        #endregion
+    }
 }
