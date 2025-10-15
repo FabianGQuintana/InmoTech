@@ -9,6 +9,7 @@ namespace InmoTech.Controls
 {
     public partial class UcReportesAdmin : UserControl
     {
+
         // ======================================================
         //  REGIÓN: Campos
         // ======================================================

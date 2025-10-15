@@ -10,35 +10,54 @@ namespace InmoTech.Controls
 {
     public partial class UcPagos_Contrato_Cuotas : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Campos y Eventos
+        // ======================================================
+        #region Campos y Eventos
         private readonly Contrato _contrato;
         private readonly CuotaRepository _repoCuotas = new CuotaRepository();
         private List<Cuota> _cuotas = new();
 
         public event EventHandler? Volver;
 
-        // 👉 NUEVO: evento para solicitar el flujo de pago de una cuota
+        // NUEVO: evento para solicitar el flujo de pago de una cuota
         public event EventHandler<(Contrato contrato, Cuota cuota)>? PagarCuotaSolicitado;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor
+        // ======================================================
+        #region Constructor
         public UcPagos_Contrato_Cuotas(Contrato contrato)
         {
             InitializeComponent();
             _contrato = contrato;
             Load += UcPagos_Contrato_Cuotas_Load;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Eventos y Métodos
+        // ======================================================
+        #region Eventos de Carga
         private void UcPagos_Contrato_Cuotas_Load(object? sender, EventArgs e)
         {
             CargarCabeceraContrato();
             CargarCuotas();
             ConfigurarGrilla();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos de Carga de Datos
+        // ======================================================
+        #region Métodos de Carga de Datos
         private void CargarCabeceraContrato()
         {
             lblContrato.Text = $"Contrato C-{_contrato.IdContrato}";
             lblInquilino.Text = $"Inquilino: {_contrato.NombreInquilino}";
             lblInmueble.Text = $"Inmueble: {_contrato.DireccionInmueble}";
-            lblFechas.Text = $"Inicio – Fin:  {_contrato.FechaInicio:dd/MM/yyyy} – {_contrato.FechaFin:dd/MM/yyyy}";
+            lblFechas.Text = $"Inicio – Fin:  {_contrato.FechaInicio:dd/MM/yyyy} – {_contrato.FechaFin:dd/MM/yyyy}";
             lblTotal.Text = $"{_contrato.Monto * ObtenerCantidadMeses():N0}";
             lblCuotas.Text = ObtenerCantidadMeses().ToString();
 
@@ -50,7 +69,12 @@ namespace InmoTech.Controls
             _cuotas = _repoCuotas.ObtenerPorContrato(_contrato.IdContrato);
             dgvCuotas.DataSource = _cuotas;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Configuración y Eventos de Grilla
+        // ======================================================
+        #region Configuración de Grilla
         private void ConfigurarGrilla()
         {
             dgvCuotas.AutoGenerateColumns = false;
@@ -98,7 +122,12 @@ namespace InmoTech.Controls
             dgvCuotas.CellFormatting += DgvCuotas_CellFormatting;
             dgvCuotas.CellContentClick += DgvCuotas_CellContentClick;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Eventos de Grilla
+        // ======================================================
+        #region Eventos de Grilla
         private void DgvCuotas_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -137,7 +166,7 @@ namespace InmoTech.Controls
         {
             if (e.RowIndex < 0) return;
 
-            // 👉 si se hace click en el botón "Pagar", disparamos el evento hacia el MainForm
+            // si se hace click en el botón "Pagar", disparamos el evento hacia el MainForm
             if (dgvCuotas.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
             {
                 var cuota = _cuotas[e.RowIndex];
@@ -152,7 +181,12 @@ namespace InmoTech.Controls
                 PagarCuotaSolicitado?.Invoke(this, (_contrato, cuota));
             }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos Auxiliares
+        // ======================================================
+        #region Métodos Auxiliares
         private void ActualizarResumen()
         {
             int pagadas = _cuotas.Count(c => c.Estado == "Pagada");
@@ -169,12 +203,18 @@ namespace InmoTech.Controls
         private int ObtenerCantidadMeses()
         {
             return ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12) +
-                   (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
+                       (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Eventos de Controles
+        // ======================================================
+        #region Eventos de Controles
         private void btnVolver_Click(object sender, EventArgs e)
         {
             Volver?.Invoke(this, EventArgs.Empty);
         }
+        #endregion
     }
 }

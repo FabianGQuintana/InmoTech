@@ -11,10 +11,19 @@ namespace InmoTech
 {
     public partial class UcInmuebles : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Campos Privados
+        // ======================================================
+        #region Campos Privados
         private readonly InmuebleRepository _repo = new InmuebleRepository();
         private int? _editandoId = null;
         private string _imagenPendiente = null; // ruta local seleccionada para guardar como portada
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Inicialización
+        // ======================================================
+        #region Constructor y Inicialización
         public UcInmuebles()
         {
             InitializeComponent();
@@ -35,8 +44,8 @@ namespace InmoTech
             System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv";
 
         /* =========================
-           Init
-           ========================= */
+            Init
+            ========================= */
         private void UcInmuebles_Load(object sender, EventArgs e)
         {
             // Combos
@@ -54,10 +63,15 @@ namespace InmoTech
             // Grid
             RefrescarGrid();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Manejadores de Eventos (UI Acciones)
+        // ======================================================
+        #region Manejadores de Eventos (UI Acciones)
         /* =========================
-           Acciones UI
-           ========================= */
+            Acciones UI
+            ========================= */
         private void BtnCargarImagen_Click(object sender, EventArgs e)
         {
             using (var ofd = new OpenFileDialog
@@ -132,10 +146,15 @@ namespace InmoTech
                 CargarParaEditar(id);
             }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: lOGICA PRINCIPAL (CRUD)
+        // ======================================================
+        #region Lógica Principal (CRUD)
         /* =========================
-           Lógica principal
-           ========================= */
+            Lógica principal
+            ========================= */
         private void RefrescarGrid()
         {
             try
@@ -148,13 +167,13 @@ namespace InmoTech
                     // portada
                     Image thumb = null;
                     var portada = _repo.ListarImagenes(x.IdInmueble).FirstOrDefault(im => im.EsPortada)
-                                  ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
+                                     ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
 
                     if (portada != null)
                     {
                         var abs = Path.IsPathRooted(portada.Ruta)
-                                  ? portada.Ruta
-                                  : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
+                                      ? portada.Ruta
+                                      : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
                         if (File.Exists(abs)) thumb = Escalar(CargarBitmapSinLock(abs), 64, 48);
                     }
 
@@ -238,10 +257,13 @@ namespace InmoTech
                 MessageBox.Show("No se pudo cambiar el estado.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        #endregion
 
-        /* =========================
-           Mapeo UI ↔ Modelo
-           ========================= */
+        // ======================================================
+        //  REGIÓN: Mapeo UI - Modelo y Validación
+        // ======================================================
+        #region Mapeo UI - Modelo y Validación
+        
         private Inmueble LeerFormulario()
         {
             return new Inmueble
@@ -273,10 +295,15 @@ namespace InmoTech
 
             return true;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos de Utilidad
+        // ======================================================
+        #region Métodos de Utilidad
         /* =========================
-           Utilidades
-           ========================= */
+            Utilidades
+            ========================= */
         private static void SelectItem(ComboBox cbo, string value)
         {
             for (int i = 0; i < cbo.Items.Count; i++)
@@ -337,7 +364,12 @@ namespace InmoTech
             pbFoto.Image = null;
             txtDireccion.Focus();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Handlers de Plantilla (Vacíos)
+        // ======================================================
+        #region Handlers de Plantilla (Vacíos)
         // El diseñador tiene: gbCrear.Enter += gbCrear_Enter;
         private void gbCrear_Enter(object sender, EventArgs e)
         {
@@ -348,5 +380,6 @@ namespace InmoTech
         {
 
         }
+        #endregion
     }
 }

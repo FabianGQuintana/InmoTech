@@ -14,6 +14,10 @@ namespace InmoTech.Controls
 {
     public partial class UcInquilinos : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Privados y Repositorios
+        // ======================================================
+        #region Campos Privados y Repositorios
         private readonly BindingList<Inquilino> _binding = new();
         private readonly InquilinoRepository _repo = new();
         private Inquilino? _enEdicion;
@@ -24,7 +28,12 @@ namespace InmoTech.Controls
         // Normalización
         private bool _normalizando;
         private static readonly TextInfo _ti = CultureInfo.GetCultureInfo("es-AR").TextInfo;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor y Inicialización
+        // ======================================================
+        #region Constructor y Inicialización
         public UcInquilinos()
         {
             InitializeComponent();
@@ -42,6 +51,13 @@ namespace InmoTech.Controls
 
             // DataGrid (solo los que el diseñador NO engancha)
             dataGridInquilinos.CellFormatting += dataGridInquilinos_CellFormatting;
+            dataGridInquilinos.CellDoubleClick += dataGridInquilinos_CellDoubleClick;
+            dataGridInquilinos.CellContentClick += dataGridInquilinos_CellContentClick;
+
+            // Handlers de botones del formulario (los del diseñador suelen ser privados en el designer.cs)
+            btnGuardar.Click += BtnGuardar_Click;
+            btnCancelar.Click += BtnCancelar_Click;
+
 
             // Validaciones de entrada
             txtDni.KeyPress += SoloDigitos_KeyPress;
@@ -73,7 +89,12 @@ namespace InmoTech.Controls
             CargarDesdeBase();
             AjustarLayout();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Persistencia de Datos (Guardar / Cargar)
+        // ======================================================
+        #region Persistencia de Datos (Guardar / Cargar)
         // ====================== Guardar (Alta / Edición) ======================
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
@@ -102,7 +123,10 @@ namespace InmoTech.Controls
                     int filas = _repo.AgregarInquilino(entidad);
                     if (filas == 1)
                     {
-                        _binding.Add(entidad);
+                        // Necesitamos recargar de la base o al menos obtener el ID
+                        // Como no tenemos el ID generado, recargamos la lista.
+                        // (Idealmente el repo devolvería la entidad completa con su nuevo ID)
+                        CargarDesdeBase(); // Recargamos para obtener el ID real
                         MessageBox.Show("Inquilino registrado correctamente.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         LimpiarFormulario();
                         EstablecerModoAlta();
@@ -133,6 +157,7 @@ namespace InmoTech.Controls
                     int filas = _repo.ActualizarInquilino(entidad);
                     if (filas == 1)
                     {
+                        // Actualizar la instancia en el BindingList
                         _enEdicion.Nombre = entidad.Nombre;
                         _enEdicion.Apellido = entidad.Apellido;
                         _enEdicion.Telefono = entidad.Telefono;
@@ -164,75 +189,28 @@ namespace InmoTech.Controls
             }
         }
 
-        private void BtnCancelar_Click(object sender, EventArgs e)
+        private void CargarDesdeBase()
         {
-            _enEdicion = null;
-            LimpiarFormulario();
-            EstablecerModoAlta();
-        }
-
-        // ====================== Grilla: Acciones/Formato ======================
-        private void dataGridInquilinos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-            if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is Inquilino i)
-                CargarParaEditar(i);
-        }
-
-        private void dataGridInquilinos_CellContentClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            string name = dataGridInquilinos.Columns[e.ColumnIndex].Name;
-            if (name == "colEditar")
+            try
             {
-                if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is Inquilino i)
-                    CargarParaEditar(i);
+                var datos = _repo.ObtenerInquilinos();
+                _binding.RaiseListChangedEvents = false;
+                _binding.Clear();
+                foreach (var x in datos) _binding.Add(x);
+                _binding.RaiseListChangedEvents = true;
+                _binding.ResetBindings();
             }
-            else if (name == "colToggle")
+            catch (Exception ex)
             {
-                if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is not Inquilino i) return;
-                bool nuevo = !i.Estado;
-
-                if (i.Estado && !nuevo)
-                {
-                    var ok = MessageBox.Show(
-                        $"¿Seguro que querés dar de baja a {i.NombreCompleto} (DNI {i.Dni})?",
-                        "Confirmar baja",
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-                    if (ok != DialogResult.Yes) return;
-                }
-
-                try
-                {
-                    int filas = _repo.ActualizarEstado(i.Dni, nuevo);
-                    if (filas == 1)
-                    {
-                        i.Estado = nuevo;
-                        _binding.ResetItem(e.RowIndex);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se pudo cambiar el estado.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al actualizar estado:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                MessageBox.Show($"Error al cargar inquilinos:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        #endregion
 
-        private void dataGridInquilinos_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-            if (dataGridInquilinos.Columns[e.ColumnIndex].Name == "colEstado" && e.Value is bool est)
-            {
-                e.Value = est ? "Activo" : "Inactivo";
-                e.FormattingApplied = true;
-            }
-        }
-
+        // ======================================================
+        //  REGIÓN: Mapeo, Validación y Estado de UI
+        // ======================================================
+        #region Mapeo, Validación y Estado de UI
         // ====================== Mapeo / Validación / Estados ======================
         private Inquilino MapearFormulario() => new()
         {
@@ -360,24 +338,79 @@ namespace InmoTech.Controls
             ep.SetError(txtEmail, "");
             ep.SetError(dateTimePicker1, "");
         }
+        #endregion
 
-        private void CargarDesdeBase()
+        // ======================================================
+        //  REGIÓN: Grilla: Acciones y Formato
+        // ======================================================
+        #region Grilla: Acciones y Formato
+        // ====================== Grilla: Acciones/Formato ======================
+        private void dataGridInquilinos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
-            try
+            if (e.RowIndex < 0) return;
+            if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is Inquilino i)
+                CargarParaEditar(i);
+        }
+
+        private void dataGridInquilinos_CellContentClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            string name = dataGridInquilinos.Columns[e.ColumnIndex].Name;
+            if (name == "colEditar")
             {
-                var datos = _repo.ObtenerInquilinos();
-                _binding.RaiseListChangedEvents = false;
-                _binding.Clear();
-                foreach (var x in datos) _binding.Add(x);
-                _binding.RaiseListChangedEvents = true;
-                _binding.ResetBindings();
+                if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is Inquilino i)
+                    CargarParaEditar(i);
             }
-            catch (Exception ex)
+            else if (name == "colToggle")
             {
-                MessageBox.Show($"Error al cargar inquilinos:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is not Inquilino i) return;
+                bool nuevo = !i.Estado;
+
+                if (i.Estado && !nuevo)
+                {
+                    var ok = MessageBox.Show(
+                        $"¿Seguro que querés dar de baja a {i.NombreCompleto} (DNI {i.Dni})?",
+                        "Confirmar baja",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                    if (ok != DialogResult.Yes) return;
+                }
+
+                try
+                {
+                    int filas = _repo.ActualizarEstado(i.Dni, nuevo);
+                    if (filas == 1)
+                    {
+                        i.Estado = nuevo;
+                        _binding.ResetItem(e.RowIndex);
+                    }
+                    else
+                    {
+                        MessageBox.Show("No se pudo cambiar el estado.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al actualizar estado:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
+        private void dataGridInquilinos_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (dataGridInquilinos.Columns[e.ColumnIndex].Name == "colEstado" && e.Value is bool est)
+            {
+                e.Value = est ? "Activo" : "Inactivo";
+                e.FormattingApplied = true;
+            }
+        }
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: UI / Grid / Helpers
+        // ======================================================
+        #region UI / Grid / Helpers
         // ====================== UI / Grid / Helpers ======================
         private void ConfigurarGrilla()
         {
@@ -444,7 +477,12 @@ namespace InmoTech.Controls
             }
             catch { /* no-op */ }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Normalización y Manejo de Input
+        // ======================================================
+        #region Normalización y Manejo de Input
         // --- Normalización/Inputs ---
         private void SoloDigitos_KeyPress(object? sender, KeyPressEventArgs e)
         {
@@ -502,8 +540,21 @@ namespace InmoTech.Controls
             bool ok = char.IsLetter(c) || char.IsWhiteSpace(c) || c == '\'' || c == '-';
             if (!ok) e.Handled = true;
         }
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Handlers de Plantilla (Vacíos/Designer)
+        // ======================================================
+        #region Handlers de Plantilla (Vacíos/Designer)
+        private void BtnCancelar_Click(object sender, EventArgs e)
+        {
+            _enEdicion = null;
+            LimpiarFormulario();
+            EstablecerModoAlta();
+        }
 
         // Stub requerido por el diseñador (Click en el label del listado)
         private void label1_Click(object sender, EventArgs e) { /* no-op */ }
+        #endregion
     }
 }

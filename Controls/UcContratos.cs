@@ -10,13 +10,22 @@ namespace InmoTech.Controls
 {
     public partial class UcContratos : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Campos y Propiedades Privadas
+        // ======================================================
+        #region Campos y Propiedades Privadas
         private readonly BindingSource _bs = new BindingSource();
         private readonly ContratoRepository _repo = new ContratoRepository();
         private readonly InquilinoRepository _repoInquilino = new InquilinoRepository();
 
-        private int? _selPersonaId = null;   // FK persona
-        private int? _selInmuebleId = null;  // FK inmueble
+        private int? _selPersonaId = null;    // FK persona (Inquilino)
+        private int? _selInmuebleId = null;   // FK inmueble
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor
+        // ======================================================
+        #region Constructor
         public UcContratos()
         {
             InitializeComponent();
@@ -25,15 +34,25 @@ namespace InmoTech.Controls
             dataGridView1.AutoGenerateColumns = false;
             dataGridView1.DataSource = _bs;
 
+            // Handlers de inicialización
             Load += UcContratos_Load;
+
+            // Handlers de la grilla
             dataGridView1.CellFormatting += DataGridView1_CellFormatting;
             dataGridView1.CellContentClick += DataGridView1_CellContentClick;
 
+            // Handlers de la UI (Formulario)
             btnBuscarInmueble.Click += BtnBuscarInmueble_Click;
+            btnBuscarInquilino.Click += btnBuscarInquilino_Click; // Ya estaba fuera del constructor en el código original, lo mantengo aquí por cohesión
             btnGuardar.Click += BtnGuardar_Click;
             btnCancelar.Click += (s, e) => LimpiarFormulario();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos de Inicialización y Actualización de Grilla
+        // ======================================================
+        #region Métodos de Inicialización y Actualización de Grilla
         private void UcContratos_Load(object? sender, EventArgs e) => RefrescarGrilla();
 
         private void RefrescarGrilla()
@@ -60,7 +79,12 @@ namespace InmoTech.Controls
                     row.Cells["colAccion"].Value = contrato.Estado ? "Dar de baja" : "Restaurar";
             }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN:Manejadores de Eventos de la Grilla (DataGridView)
+        // ======================================================
+        #region Manejadores de Eventos de la Grilla (DataGridView)
         private void DataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -73,6 +97,35 @@ namespace InmoTech.Controls
             }
         }
 
+        private void DataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (dataGridView1.Columns[e.ColumnIndex].Name != "colAccion") return;
+
+            var contrato = (Contrato)_bs[e.RowIndex];
+            var id = contrato.IdContrato;
+
+            if (contrato.Estado)
+            {
+                var confirm = MessageBox.Show($"¿Desea dar de baja el contrato #{id}?",
+                    "Confirmar baja", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (confirm != DialogResult.Yes) return;
+
+                _repo.ActualizarEstado(id, false);
+            }
+            else
+            {
+                _repo.ActualizarEstado(id, true);
+            }
+
+            RefrescarGrilla();
+        }
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Manejadores de Eventos del Formulario (Botones)
+        // ======================================================
+        #region Manejadores de Eventos del Formulario (Botones)
         private void BtnBuscarInmueble_Click(object? sender, EventArgs e)
         {
             using var dlg = new FrmBuscarInmueble();
@@ -150,7 +203,12 @@ namespace InmoTech.Controls
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Auxiliares
+        // ======================================================
+        #region Métodos Auxiliares
         private void LimpiarFormulario()
         {
             _selPersonaId = null;
@@ -162,29 +220,6 @@ namespace InmoTech.Controls
             nudMonto.Value = 0;
             chkActivo.Checked = true;
         }
-
-        private void DataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-            if (dataGridView1.Columns[e.ColumnIndex].Name != "colAccion") return;
-
-            var contrato = (Contrato)_bs[e.RowIndex];
-            var id = contrato.IdContrato;
-
-            if (contrato.Estado)
-            {
-                var confirm = MessageBox.Show($"¿Desea dar de baja el contrato #{id}?",
-                    "Confirmar baja", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (confirm != DialogResult.Yes) return;
-
-                _repo.ActualizarEstado(id, false);
-            }
-            else
-            {
-                _repo.ActualizarEstado(id, true);
-            }
-
-            RefrescarGrilla();
-        }
+        #endregion
     }
 }

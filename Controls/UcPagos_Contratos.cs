@@ -10,6 +10,10 @@ namespace InmoTech.Controls
 {
     public partial class UcPagos_Contratos : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Campos y Propiedades
+        // ======================================================
+        #region Campos y Propiedades
         private readonly ContratoRepository _repo = new ContratoRepository();
         private readonly BindingList<Contrato> _pageBinding = new BindingList<Contrato>();
         private List<Contrato> _contratos = new();
@@ -21,10 +25,20 @@ namespace InmoTech.Controls
         public int? DniUsuarioFiltro { get; set; } = null;
 
         public Contrato? SelectedContrato => dgv.CurrentRow?.DataBoundItem as Contrato;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Eventos Públicos
+        // ======================================================
+        #region Eventos Públicos
         public event EventHandler<ContratoSelectedEventArgs>? ContratoElegido;
         public event EventHandler? Cancelado;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor
+        // ======================================================
+        #region Constructor
         public UcPagos_Contratos()
         {
             InitializeComponent();
@@ -39,7 +53,12 @@ namespace InmoTech.Controls
                 CargarContratos();
             }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Configuración de Eventos (WireEvents)
+        // ======================================================
+        #region Configuración de Eventos (WireEvents)
         private void WireEvents()
         {
             txtBuscar.TextChanged += (s, e) => { timerBuscar.Stop(); timerBuscar.Start(); };
@@ -76,7 +95,12 @@ namespace InmoTech.Controls
             dgv.CellFormatting += Dgv_CellFormatting;
             dgv.DataError += (s, e) => { e.ThrowException = false; };
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos de Carga y Filtrado
+        // ======================================================
+        #region Métodos de Carga y Filtrado
         public void CargarContratos()
         {
             try
@@ -145,7 +169,12 @@ namespace InmoTech.Controls
             if (SelectedContrato is null) return;
             ContratoElegido?.Invoke(this, new ContratoSelectedEventArgs(SelectedContrato));
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Formato de Grilla
+        // ======================================================
+        #region Formato de Grilla
         private void Dgv_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -169,7 +198,12 @@ namespace InmoTech.Controls
                 e.FormattingApplied = true;
             }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos Públicos Auxiliares
+        // ======================================================
+        #region Métodos Públicos Auxiliares
         public void SetPageSize(int size)
         {
             _pageSize = Math.Max(5, size);
@@ -178,16 +212,26 @@ namespace InmoTech.Controls
         }
 
         public void Refrescar() => AplicarFiltrosYBind();
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Eventos de UI (Sin Lógica)
+        // ======================================================
+        #region Eventos de UI (Sin Lógica)
         private void tlpFiltros_Paint(object sender, PaintEventArgs e)
         {
 
         }
+        #endregion
     }
-
+    // ======================================================
+    //  REGIÓN: Clases de Argumentos de Eventos
+    // ======================================================
+    #region Clases de Argumentos de Eventos
     public sealed class ContratoSelectedEventArgs : EventArgs
     {
         public Contrato Contrato { get; }
         public ContratoSelectedEventArgs(Contrato c) => Contrato = c;
     }
+    #endregion
 }

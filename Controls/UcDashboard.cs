@@ -9,6 +9,10 @@ namespace InmoTech
 {
     public partial class UcDashboard : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Constructor y Inicialización
+        // ======================================================
+        #region Constructor y Inicialización
         public UcDashboard()
         {
             InitializeComponent();
@@ -24,9 +28,14 @@ namespace InmoTech
         private static bool IsDesigner()
         {
             return LicenseManager.UsageMode == LicenseUsageMode.Designtime
-                   || Process.GetCurrentProcess().ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase);
+                       || Process.GetCurrentProcess().ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase);
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Modelo de Datos (Record)
+        // ======================================================
+        #region Modelo de Datos (Record)
         // ------ MODELO ------
         private record CardInmueble(
             string Titulo,
@@ -36,11 +45,15 @@ namespace InmoTech
             string Estado,
             Image Foto
         );
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Carga de Datos y Renderizado (Seed)
+        // ======================================================
+        #region Carga de Datos y Renderizado (Seed)
         // ------ DATA + RENDER ------
         private void Seed()
         {
-            
 
             // KPIs
             lblKpiProp.Text = "12";
@@ -67,12 +80,17 @@ namespace InmoTech
             // Contratos (demo)
             dgvContratos.Rows.Clear();
             dgvContratos.Rows.Add("C-1024", "Juan Pérez", "Calle 123 – Dpto 4B", "Activo");
-            dgvContratos.Rows.Add("C-1025", "Ana Gómez", "Calle 123 – Dpto 4B", "Activo");
+            dgvContratos.Rows.Add("C-1025", "Ana Gómez", "Calle 1917 – 4B", "Activo");
             dgvContratos.Rows.Add("C-1027", "Inquilino 3", "Avenida 456", "Inactivo");
             dgvContratos.Rows.Add("C-1028", "María López", "Calle 123", "Activo");
             dgvContratos.Rows.Add("C-1029", "Inquilino 6", "Avenida 456", "Inactivo");
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Renderizado de Tarjeta (Card)
+        // ======================================================
+        #region Renderizado de Tarjeta (Card)
         // ------ UI CARD ------
         private Control CreatePropertyCard(CardInmueble d)
         {
@@ -159,10 +177,16 @@ namespace InmoTech
 
             return card;
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Handlers de Plantilla (Vacíos)
+        // ======================================================
+        #region Handlers de Plantilla (Vacíos)
         // Handlers plantilla
         private void lblKpiInqCap_Click(object sender, EventArgs e) { }
         private void lblKpiInq_Click(object sender, EventArgs e) { }
         private void lblTitulo_Click(object sender, EventArgs e) { }
+        #endregion
     }
 }
