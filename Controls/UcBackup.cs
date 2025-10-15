@@ -8,6 +8,10 @@ namespace InmoTech.Controls
 {
     public partial class UcBackup : UserControl
     {
+        // ======================================================
+        //  REGIÓN: Clase de configuración (Modelo)
+        // ======================================================
+        #region Clase de Configuración (Modelo)
         // ===== Modelo de configuración que se levanta desde la UI =====
         public class BackupConfig
         {
@@ -18,13 +22,28 @@ namespace InmoTech.Controls
             public bool Sobrescribir { get; set; }
             public bool AgregarFecha { get; set; }
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Eventos
+        // ======================================================
+        #region Eventos
         // ===== Eventos para conectar backend más adelante =====
         public event EventHandler<BackupConfig>? SimularClicked;
         public event EventHandler<string>? ProbarRutaClicked;
+        #endregion
 
+        // ======================================================
+        //  REGIÓN:Campos Privados
+        // ======================================================
+        #region Campos Privados
         private readonly ToolTip _tips = new ToolTip { IsBalloon = true };
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Constructor
+        // ======================================================
+        #region Constructor
         public UcBackup()
         {
             InitializeComponent();
@@ -46,7 +65,12 @@ namespace InmoTech.Controls
 
             chkAgregarFecha.CheckedChanged += (_, __) => RegenerarNombreSugerido();
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: API Pública
+        // ======================================================
+        #region API Pública
         // ===== API pública para levantar la config desde afuera =====
         public BackupConfig GetConfig() => new BackupConfig
         {
@@ -57,8 +81,13 @@ namespace InmoTech.Controls
             Sobrescribir = chkSobrescribir.Checked,
             AgregarFecha = chkAgregarFecha.Checked
         };
+        #endregion
 
-        // ===== Helpers internos =====
+        // ======================================================
+        //  REGIÓN: Manejadores de Eventos (Botones)
+        // ======================================================
+        #region Manejadores de Eventos (Botones)
+        // ===== Helpers internos (Manejadores de Eventos) =====
         private void BtnElegirCarpeta_Click(object? sender, EventArgs e)
         {
             using var fbd = new FolderBrowserDialog
@@ -158,7 +187,12 @@ Ruta final:    {salida}";
             MessageBox.Show("Se generó la simulación del backup.\nRevisá la previsualización.", "Simulación OK",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+        #endregion
 
+        // ======================================================
+        //  REGIÓN: Metodos de Utilidad/Validación
+        // ======================================================
+        #region Métodos de Utilidad/Validación
         private bool Validar(out string mensaje)
         {
             if (string.IsNullOrWhiteSpace(txtDestino.Text))
@@ -197,5 +231,6 @@ Ruta final:    {salida}";
             else
                 txtNombre.Text = $"{baseName}.bak";
         }
+        #endregion
     }
 }
