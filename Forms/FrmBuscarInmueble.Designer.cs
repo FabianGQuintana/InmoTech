@@ -39,210 +39,254 @@ namespace InmoTech.Forms
         #region Windows Form Designer generated code
         private void InitializeComponent()
         {
-            components = new System.ComponentModel.Container();
-            pnlTop = new Panel();
-            lblTitulo = new Label();
-            lblBuscar = new Label();
-            txtBuscar = new TextBox();
-            lblEstado = new Label();
-            cboEstado = new ComboBox();
-            dgv = new DataGridView();
-            pnlBottom = new Panel();
-            lblInfo = new Label();
-            btnAnterior = new Button();
-            btnSiguiente = new Button();
-            btnElegir = new Button();
-            btnCancelar = new Button();
-            timerBuscar = new System.Windows.Forms.Timer(components);
-            pnlTop.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgv).BeginInit();
-            pnlBottom.SuspendLayout();
-            SuspendLayout();
+            this.components = new System.ComponentModel.Container();
+            this.pnlTop = new System.Windows.Forms.Panel();
+            this.lblTitulo = new System.Windows.Forms.Label();
+            this.lblBuscar = new System.Windows.Forms.Label();
+            this.txtBuscar = new System.Windows.Forms.TextBox();
+            this.lblEstado = new System.Windows.Forms.Label();
+            this.cboEstado = new System.Windows.Forms.ComboBox();
+            this.dgv = new System.Windows.Forms.DataGridView();
+            this.colDireccion = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colTipo = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAmb = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAmueblado = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colActivo = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.pnlBottom = new System.Windows.Forms.Panel();
+            this.lblInfo = new System.Windows.Forms.Label();
+            this.btnAnterior = new System.Windows.Forms.Button();
+            this.btnSiguiente = new System.Windows.Forms.Button();
+            this.btnElegir = new System.Windows.Forms.Button();
+            this.btnCancelar = new System.Windows.Forms.Button();
+            this.timerBuscar = new System.Windows.Forms.Timer(this.components);
+            this.pnlTop.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
+            this.pnlBottom.SuspendLayout();
+            this.SuspendLayout();
             // 
             // pnlTop
             // 
-            pnlTop.BackColor = Color.Teal;
-            pnlTop.Controls.Add(lblTitulo);
-            pnlTop.Dock = DockStyle.Top;
-            pnlTop.Location = new Point(0, 0);
-            pnlTop.Margin = new Padding(4, 5, 4, 5);
-            pnlTop.Name = "pnlTop";
-            pnlTop.Size = new Size(1286, 80);
-            pnlTop.TabIndex = 0;
+            this.pnlTop.BackColor = System.Drawing.Color.Teal;
+            this.pnlTop.Controls.Add(this.lblTitulo);
+            this.pnlTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlTop.Location = new System.Drawing.Point(0, 0);
+            this.pnlTop.Name = "pnlTop";
+            this.pnlTop.Size = new System.Drawing.Size(900, 48);
+            this.pnlTop.TabIndex = 0;
             // 
             // lblTitulo
             // 
-            lblTitulo.AutoSize = true;
-            lblTitulo.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            lblTitulo.ForeColor = Color.White;
-            lblTitulo.Location = new Point(17, 20);
-            lblTitulo.Margin = new Padding(4, 0, 4, 0);
-            lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(242, 32);
-            lblTitulo.TabIndex = 0;
-            lblTitulo.Text = "Buscar un Inmueble";
+            this.lblTitulo.AutoSize = true;
+            this.lblTitulo.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.lblTitulo.ForeColor = System.Drawing.Color.White;
+            this.lblTitulo.Location = new System.Drawing.Point(12, 12);
+            this.lblTitulo.Name = "lblTitulo";
+            this.lblTitulo.Size = new System.Drawing.Size(171, 21);
+            this.lblTitulo.TabIndex = 0;
+            this.lblTitulo.Text = "Buscar un Inmueble";
             // 
             // lblBuscar
             // 
-            lblBuscar.AutoSize = true;
-            lblBuscar.Location = new Point(17, 100);
-            lblBuscar.Margin = new Padding(4, 0, 4, 0);
-            lblBuscar.Name = "lblBuscar";
-            lblBuscar.Size = new Size(122, 25);
-            lblBuscar.TabIndex = 1;
-            lblBuscar.Text = "Buscar (texto):";
+            this.lblBuscar.AutoSize = true;
+            this.lblBuscar.Location = new System.Drawing.Point(12, 60);
+            this.lblBuscar.Name = "lblBuscar";
+            this.lblBuscar.Size = new System.Drawing.Size(93, 15);
+            this.lblBuscar.TabIndex = 1;
+            this.lblBuscar.Text = "Buscar (texto):";
             // 
             // txtBuscar
             // 
-            txtBuscar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtBuscar.Location = new Point(159, 95);
-            txtBuscar.Margin = new Padding(4, 5, 4, 5);
-            txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(770, 31);
-            txtBuscar.TabIndex = 0;
+            this.txtBuscar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtBuscar.Location = new System.Drawing.Point(111, 57);
+            this.txtBuscar.Name = "txtBuscar";
+            this.txtBuscar.Size = new System.Drawing.Size(540, 23);
+            this.txtBuscar.TabIndex = 0;
             // 
             // lblEstado
             // 
-            lblEstado.AutoSize = true;
-            lblEstado.Location = new Point(953, 100);
-            lblEstado.Margin = new Padding(4, 0, 4, 0);
-            lblEstado.Name = "lblEstado";
-            lblEstado.Size = new Size(70, 25);
-            lblEstado.TabIndex = 3;
-            lblEstado.Text = "Estado:";
+            this.lblEstado.AutoSize = true;
+            this.lblEstado.Location = new System.Drawing.Point(667, 60);
+            this.lblEstado.Name = "lblEstado";
+            this.lblEstado.Size = new System.Drawing.Size(45, 15);
+            this.lblEstado.TabIndex = 3;
+            this.lblEstado.Text = "Estado:";
             // 
             // cboEstado
             // 
-            cboEstado.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cboEstado.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboEstado.FormattingEnabled = true;
-            cboEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
-            cboEstado.Location = new Point(1026, 95);
-            cboEstado.Margin = new Padding(4, 5, 4, 5);
-            cboEstado.Name = "cboEstado";
-            cboEstado.Size = new Size(241, 33);
-            cboEstado.TabIndex = 1;
+            this.cboEstado.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cboEstado.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboEstado.FormattingEnabled = true;
+            // items cargados en el diseñador
+            this.cboEstado.Items.AddRange(new object[] {
+            "Todos",
+            "Activos",
+            "Inactivos"});
+            this.cboEstado.Location = new System.Drawing.Point(718, 57);
+            this.cboEstado.Name = "cboEstado";
+            this.cboEstado.Size = new System.Drawing.Size(170, 23);
+            this.cboEstado.TabIndex = 1;
+            this.cboEstado.SelectedIndex = 1; // Activos por defecto
             // 
             // dgv
             // 
-            dgv.AllowUserToAddRows = false;
-            dgv.AllowUserToDeleteRows = false;
-            dgv.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dgv.BackgroundColor = Color.White;
-            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgv.Location = new Point(17, 153);
-            dgv.Margin = new Padding(4, 5, 4, 5);
-            dgv.MultiSelect = false;
-            dgv.Name = "dgv";
-            dgv.ReadOnly = true;
-            dgv.RowHeadersVisible = false;
-            dgv.RowHeadersWidth = 62;
-            dgv.RowTemplate.Height = 28;
-            dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgv.Size = new Size(1251, 663);
-            dgv.TabIndex = 2;
+            this.dgv.AllowUserToAddRows = false;
+            this.dgv.AllowUserToDeleteRows = false;
+            this.dgv.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgv.AutoGenerateColumns = false;
+            this.dgv.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgv.BackgroundColor = System.Drawing.Color.White;
+            this.dgv.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgv.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colDireccion,
+            this.colTipo,
+            this.colAmb,
+            this.colAmueblado,
+            this.colActivo});
+            this.dgv.Location = new System.Drawing.Point(12, 92);
+            this.dgv.MultiSelect = false;
+            this.dgv.Name = "dgv";
+            this.dgv.ReadOnly = true;
+            this.dgv.RowHeadersVisible = false;
+            this.dgv.RowTemplate.Height = 28;
+            this.dgv.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgv.Size = new System.Drawing.Size(876, 398);
+            this.dgv.TabIndex = 2;
+            // 
+            // colDireccion
+            // 
+            this.colDireccion.DataPropertyName = "Direccion";
+            this.colDireccion.HeaderText = "Dirección";
+            this.colDireccion.FillWeight = 180F;
+            this.colDireccion.ReadOnly = true;
+            // 
+            // colTipo
+            // 
+            this.colTipo.DataPropertyName = "Tipo";
+            this.colTipo.HeaderText = "Tipo";
+            this.colTipo.FillWeight = 80F;
+            this.colTipo.ReadOnly = true;
+            // 
+            // colAmb
+            // 
+            this.colAmb.DataPropertyName = "NroAmbientes";
+            this.colAmb.HeaderText = "Amb.";
+            this.colAmb.FillWeight = 40F;
+            this.colAmb.ReadOnly = true;
+            this.colAmb.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            // 
+            // colAmueblado
+            // 
+            this.colAmueblado.DataPropertyName = "Amueblado"; // bool → se formatea a "Sí/No" en CellFormatting
+            this.colAmueblado.HeaderText = "Amuebl.";
+            this.colAmueblado.FillWeight = 40F;
+            this.colAmueblado.ReadOnly = true;
+            this.colAmueblado.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            // 
+            // colActivo
+            // 
+            this.colActivo.DataPropertyName = "Estado"; // bool → se formatea a "Activo/Inactivo" en CellFormatting
+            this.colActivo.HeaderText = "Activo";
+            this.colActivo.FillWeight = 35F;
+            this.colActivo.ReadOnly = true;
+            this.colActivo.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
             // 
             // pnlBottom
             // 
-            pnlBottom.Controls.Add(lblInfo);
-            pnlBottom.Controls.Add(btnAnterior);
-            pnlBottom.Controls.Add(btnSiguiente);
-            pnlBottom.Controls.Add(btnElegir);
-            pnlBottom.Controls.Add(btnCancelar);
-            pnlBottom.Dock = DockStyle.Bottom;
-            pnlBottom.Location = new Point(0, 827);
-            pnlBottom.Margin = new Padding(4, 5, 4, 5);
-            pnlBottom.Name = "pnlBottom";
-            pnlBottom.Size = new Size(1286, 100);
-            pnlBottom.TabIndex = 6;
+            this.pnlBottom.Controls.Add(this.lblInfo);
+            this.pnlBottom.Controls.Add(this.btnAnterior);
+            this.pnlBottom.Controls.Add(this.btnSiguiente);
+            this.pnlBottom.Controls.Add(this.btnElegir);
+            this.pnlBottom.Controls.Add(this.btnCancelar);
+            this.pnlBottom.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pnlBottom.Location = new System.Drawing.Point(0, 496);
+            this.pnlBottom.Name = "pnlBottom";
+            this.pnlBottom.Size = new System.Drawing.Size(900, 60);
+            this.pnlBottom.TabIndex = 6;
             // 
             // lblInfo
             // 
-            lblInfo.AutoSize = true;
-            lblInfo.Location = new Point(17, 35);
-            lblInfo.Margin = new Padding(4, 0, 4, 0);
-            lblInfo.Name = "lblInfo";
-            lblInfo.Size = new Size(220, 25);
-            lblInfo.TabIndex = 0;
-            lblInfo.Text = "Mostrando 0-0 de 0 ítems";
+            this.lblInfo.AutoSize = true;
+            this.lblInfo.Location = new System.Drawing.Point(12, 21);
+            this.lblInfo.Name = "lblInfo";
+            this.lblInfo.Size = new System.Drawing.Size(159, 15);
+            this.lblInfo.TabIndex = 0;
+            this.lblInfo.Text = "Mostrando 0-0 de 0 ítems";
             // 
             // btnAnterior
             // 
-            btnAnterior.Anchor = AnchorStyles.Bottom;
-            btnAnterior.Location = new Point(517, 27);
-            btnAnterior.Margin = new Padding(4, 5, 4, 5);
-            btnAnterior.Name = "btnAnterior";
-            btnAnterior.Size = new Size(126, 47);
-            btnAnterior.TabIndex = 3;
-            btnAnterior.Text = "Anterior";
-            btnAnterior.UseVisualStyleBackColor = true;
+            this.btnAnterior.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.btnAnterior.Location = new System.Drawing.Point(362, 16);
+            this.btnAnterior.Name = "btnAnterior";
+            this.btnAnterior.Size = new System.Drawing.Size(88, 28);
+            this.btnAnterior.TabIndex = 3;
+            this.btnAnterior.Text = "Anterior";
+            this.btnAnterior.UseVisualStyleBackColor = true;
             // 
             // btnSiguiente
             // 
-            btnSiguiente.Anchor = AnchorStyles.Bottom;
-            btnSiguiente.Location = new Point(651, 27);
-            btnSiguiente.Margin = new Padding(4, 5, 4, 5);
-            btnSiguiente.Name = "btnSiguiente";
-            btnSiguiente.Size = new Size(126, 47);
-            btnSiguiente.TabIndex = 4;
-            btnSiguiente.Text = "Siguiente";
-            btnSiguiente.UseVisualStyleBackColor = true;
+            this.btnSiguiente.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.btnSiguiente.Location = new System.Drawing.Point(456, 16);
+            this.btnSiguiente.Name = "btnSiguiente";
+            this.btnSiguiente.Size = new System.Drawing.Size(88, 28);
+            this.btnSiguiente.TabIndex = 4;
+            this.btnSiguiente.Text = "Siguiente";
+            this.btnSiguiente.UseVisualStyleBackColor = true;
             // 
             // btnElegir
             // 
-            btnElegir.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnElegir.Location = new Point(986, 27);
-            btnElegir.Margin = new Padding(4, 5, 4, 5);
-            btnElegir.Name = "btnElegir";
-            btnElegir.Size = new Size(131, 47);
-            btnElegir.TabIndex = 5;
-            btnElegir.Text = "Elegir";
-            btnElegir.UseVisualStyleBackColor = true;
+            this.btnElegir.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnElegir.Location = new System.Drawing.Point(690, 16);
+            this.btnElegir.Name = "btnElegir";
+            this.btnElegir.Size = new System.Drawing.Size(92, 28);
+            this.btnElegir.TabIndex = 5;
+            this.btnElegir.Text = "Elegir";
+            this.btnElegir.UseVisualStyleBackColor = true;
             // 
             // btnCancelar
             // 
-            btnCancelar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCancelar.DialogResult = DialogResult.Cancel;
-            btnCancelar.Location = new Point(1126, 27);
-            btnCancelar.Margin = new Padding(4, 5, 4, 5);
-            btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(131, 47);
-            btnCancelar.TabIndex = 6;
-            btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = true;
+            this.btnCancelar.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCancelar.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnCancelar.Location = new System.Drawing.Point(788, 16);
+            this.btnCancelar.Name = "btnCancelar";
+            this.btnCancelar.Size = new System.Drawing.Size(92, 28);
+            this.btnCancelar.TabIndex = 6;
+            this.btnCancelar.Text = "Cancelar";
+            this.btnCancelar.UseVisualStyleBackColor = true;
             // 
             // timerBuscar
             // 
-            timerBuscar.Interval = 350;
+            this.timerBuscar.Interval = 350;
             // 
             // FrmBuscarInmueble
             // 
-            AcceptButton = btnElegir;
-            AutoScaleDimensions = new SizeF(10F, 25F);
-            AutoScaleMode = AutoScaleMode.Font;
-            CancelButton = btnCancelar;
-            ClientSize = new Size(1286, 927);
-            Controls.Add(pnlBottom);
-            Controls.Add(dgv);
-            Controls.Add(cboEstado);
-            Controls.Add(lblEstado);
-            Controls.Add(txtBuscar);
-            Controls.Add(lblBuscar);
-            Controls.Add(pnlTop);
-            FormBorderStyle = FormBorderStyle.SizableToolWindow;
-            Margin = new Padding(4, 5, 4, 5);
-            MinimumSize = new Size(1076, 696);
-            Name = "FrmBuscarInmueble";
-            StartPosition = FormStartPosition.CenterParent;
-            Text = "Buscar Inmueble";
-            pnlTop.ResumeLayout(false);
-            pnlTop.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dgv).EndInit();
-            pnlBottom.ResumeLayout(false);
-            pnlBottom.PerformLayout();
-            ResumeLayout(false);
-            PerformLayout();
+            this.AcceptButton = this.btnElegir;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.btnCancelar;
+            this.ClientSize = new System.Drawing.Size(900, 556);
+            this.Controls.Add(this.pnlBottom);
+            this.Controls.Add(this.dgv);
+            this.Controls.Add(this.cboEstado);
+            this.Controls.Add(this.lblEstado);
+            this.Controls.Add(this.txtBuscar);
+            this.Controls.Add(this.lblBuscar);
+            this.Controls.Add(this.pnlTop);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.MinimumSize = new System.Drawing.Size(760, 440);
+            this.Name = "FrmBuscarInmueble";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            this.Text = "Buscar Inmueble";
+            this.pnlTop.ResumeLayout(false);
+            this.pnlTop.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
+            this.pnlBottom.ResumeLayout(false);
+            this.pnlBottom.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
         #endregion
     }
