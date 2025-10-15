@@ -31,9 +31,9 @@ namespace InmoTech.Controls
             colEstado = new DataGridViewTextBoxColumn();
             colUsuario = new DataGridViewTextBoxColumn();
             colFechaCreacion = new DataGridViewTextBoxColumn();
-            // colAccion ha sido eliminada
             LListaInquilinos = new Label();
             panel2 = new Panel();
+            BEstado = new Button();
             btnBuscarInquilino = new Button();
             txtInquilino = new Label();
             label1 = new Label();
@@ -49,7 +49,6 @@ namespace InmoTech.Controls
             lblMonto = new Label();
             nudMonto = new NumericUpDown();
             btnGuardar = new Button();
-            BEstado = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             panel2.SuspendLayout();
@@ -70,7 +69,8 @@ namespace InmoTech.Controls
             // 
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTitulo.Location = new Point(14, 15);
+            lblTitulo.ForeColor = Color.White;
+            lblTitulo.Location = new Point(3, 19);
             lblTitulo.Name = "lblTitulo";
             lblTitulo.Size = new Size(166, 37);
             lblTitulo.TabIndex = 1;
@@ -84,7 +84,6 @@ namespace InmoTech.Controls
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.BackgroundColor = Color.Teal;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            // La columna colAccion fue removida de la siguiente línea
             dataGridView1.Columns.AddRange(new DataGridViewColumn[] { colId, colNumero, colInquilino, colInmueble, colInicio, colFin, colMonto, colEstado, colUsuario, colFechaCreacion });
             dataGridView1.Location = new Point(16, 366);
             dataGridView1.MultiSelect = false;
@@ -210,6 +209,16 @@ namespace InmoTech.Controls
             panel2.Name = "panel2";
             panel2.Size = new Size(1170, 200);
             panel2.TabIndex = 6;
+            // 
+            // BEstado
+            // 
+            BEstado.BackColor = Color.White;
+            BEstado.Location = new Point(904, 139);
+            BEstado.Name = "BEstado";
+            BEstado.Size = new Size(157, 36);
+            BEstado.TabIndex = 15;
+            BEstado.Text = "Anular";
+            BEstado.UseVisualStyleBackColor = false;
             // 
             // btnBuscarInquilino
             // 
@@ -346,16 +355,6 @@ namespace InmoTech.Controls
             btnGuardar.TabIndex = 13;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
-            // 
-            // BEstado
-            // 
-            BEstado.BackColor = Color.White;
-            BEstado.Location = new Point(904, 139);
-            BEstado.Name = "BEstado";
-            BEstado.Size = new Size(157, 36);
-            BEstado.TabIndex = 15;
-            BEstado.Text = "Anular";
-            BEstado.UseVisualStyleBackColor = false;
             // 
             // UcContratos
             // 

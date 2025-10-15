@@ -61,7 +61,8 @@ namespace InmoTech.Controls
             // 
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTitulo.Location = new Point(14, 15);
+            lblTitulo.ForeColor = Color.White;
+            lblTitulo.Location = new Point(3, 15);
             lblTitulo.Name = "lblTitulo";
             lblTitulo.Size = new Size(162, 37);
             lblTitulo.TabIndex = 1;
@@ -204,7 +205,6 @@ namespace InmoTech.Controls
             txtDireccion.Name = "txtDireccion";
             txtDireccion.Size = new Size(190, 31);
             txtDireccion.TabIndex = 62;
-            txtDireccion.UseSystemPasswordChar = false; // <-- corregido
             // 
             // btnGuardar
             // 
@@ -243,7 +243,7 @@ namespace InmoTech.Controls
             dataGridInquilinos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridInquilinos.Size = new Size(1170, 258);
             dataGridInquilinos.TabIndex = 2;
-            dataGridInquilinos.CellContentClick += dataGridInquilinos_CellContentClick; // <-- corregido
+            dataGridInquilinos.CellContentClick += dataGridInquilinos_CellContentClick;
             dataGridInquilinos.CellDoubleClick += dataGridInquilinos_CellDoubleClick;
             // 
             // LListaInquilinos

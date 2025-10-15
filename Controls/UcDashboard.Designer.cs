@@ -120,7 +120,8 @@ namespace InmoTech
             // 
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Microsoft Sans Serif", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTitulo.Location = new Point(16, 24);
+            lblTitulo.ForeColor = Color.White;
+            lblTitulo.Location = new Point(0, 18);
             lblTitulo.Name = "lblTitulo";
             lblTitulo.Size = new Size(202, 40);
             lblTitulo.TabIndex = 0;

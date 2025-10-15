@@ -38,8 +38,10 @@ namespace InmoTech
             btnGuardar.Click += BtnGuardar_Click;
             btnCancelar.Click += (_, __) => { LimpiarFormulario(); EstablecerModoAlta(); };
 
+            // Se agrega el evento Click para el botón de Baja/Activar.
+            BEstado.Click += BEstado_Click;
+
             // DataGrid: acciones y formato legible
-            dgvUsuarios.CellContentClick += DataGridUsuarios_CellContentClick;
             dgvUsuarios.CellDoubleClick += DataGridUsuarios_CellDoubleClick;
             dgvUsuarios.CellFormatting += DataGridUsuarios_CellFormatting;
 
@@ -105,8 +107,7 @@ namespace InmoTech
 
                 try
                 {
-                    // Si el INSERT omite 'estado' en SQL, el DEFAULT=1 lo deja activo. Reflejamos en memoria:
-                    usuarioDesdeFormulario.Estado = true;
+                    usuarioDesdeFormulario.Estado = true; // Siempre se crea como activo
 
                     int filasAfectadas = _usuarioRepository.AgregarUsuario(usuarioDesdeFormulario);
                     if (filasAfectadas == 1)
@@ -177,6 +178,54 @@ namespace InmoTech
             }
         }
 
+        // >>> MODIFICADO <<<: Ahora maneja tanto la baja como la activación del usuario.
+        /// <summary>
+        /// Cambia el estado (activo/inactivo) de un usuario que se está editando.
+        /// </summary>
+        private void BEstado_Click(object sender, EventArgs e)
+        {
+            if (_usuarioEnEdicion == null) return;
+
+            bool nuevoEstado = !_usuarioEnEdicion.Estado;
+            string accion = nuevoEstado ? "activar" : "dar de baja";
+            string accionPasado = nuevoEstado ? "activado" : "dado de baja";
+
+            var confirmar = MessageBox.Show(
+                $"¿Seguro que querés {accion} a {_usuarioEnEdicion.NombreCompleto} (DNI {_usuarioEnEdicion.Dni})?",
+                $"Confirmar {accion}",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2);
+
+            if (confirmar != DialogResult.Yes) return;
+
+            try
+            {
+                int filasAfectadas = _usuarioRepository.ActualizarEstado(_usuarioEnEdicion.Dni, nuevoEstado);
+                if (filasAfectadas == 1)
+                {
+                    _usuarioEnEdicion.Estado = nuevoEstado;
+
+                    int indice = _usuariosBindingList.IndexOf(_usuarioEnEdicion);
+                    if (indice >= 0) _usuariosBindingList.ResetItem(indice);
+
+                    MessageBox.Show($"Usuario {accionPasado} correctamente.", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    LimpiarFormulario();
+                    EstablecerModoAlta();
+                }
+                else
+                {
+                    MessageBox.Show("No se pudo actualizar el estado del usuario.", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cambiar estado:\n{ex.Message}", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
         // ========================== Grilla: acciones / formato ==========================
         /// <summary>
         /// Doble click en una fila del grid: carga el formulario en modo edición.
@@ -186,60 +235,6 @@ namespace InmoTech
             if (e.RowIndex < 0) return;
             var usuarioSeleccionado = ObtenerUsuarioDeFila(e.RowIndex);
             if (usuarioSeleccionado != null) CargarFormularioParaEditar(usuarioSeleccionado);
-        }
-
-        /// <summary>
-        /// Click en columnas de acción (Editar / Activar-Inactivar).
-        /// </summary>
-        private void DataGridUsuarios_CellContentClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-
-            var usuarioSeleccionado = ObtenerUsuarioDeFila(e.RowIndex);
-            if (usuarioSeleccionado == null) return;
-
-            string nombreColumna = dgvUsuarios.Columns[e.ColumnIndex].Name;
-
-            switch (nombreColumna)
-            {
-                case "colEditar":
-                    CargarFormularioParaEditar(usuarioSeleccionado);
-                    break;
-
-                case "colToggle":
-                    bool nuevoEstado = !usuarioSeleccionado.Estado;
-
-                    // Confirmar sólo para baja (Activo -> Inactivo)
-                    if (usuarioSeleccionado.Estado && !nuevoEstado)
-                    {
-                        var confirmar = MessageBox.Show(
-                            $"¿Seguro que querés dar de baja a {usuarioSeleccionado.NombreCompleto} (DNI {usuarioSeleccionado.Dni})?",
-                            "Confirmar baja",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question,
-                            MessageBoxDefaultButton.Button2);
-                        if (confirmar != DialogResult.Yes) return;
-                    }
-
-                    try
-                    {
-                        int filasAfectadas = _usuarioRepository.ActualizarEstado(usuarioSeleccionado.Dni, nuevoEstado);
-                        if (filasAfectadas == 1)
-                        {
-                            usuarioSeleccionado.Estado = nuevoEstado;
-                            _usuariosBindingList.ResetItem(e.RowIndex);
-                        }
-                        else
-                        {
-                            MessageBox.Show("No se pudo actualizar el estado del usuario.", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error al actualizar estado:\n{ex.Message}", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    break;
-            }
         }
 
         /// <summary>
@@ -310,6 +305,12 @@ namespace InmoTech
             btnGuardar.Text = "Actualizar";
             btnCancelar.Text = "Cancelar edición";
             lblListaTitulo.Text = $"Editando: {usuario.Nombre} {usuario.Apellido}";
+
+            // >>> MODIFICADO <<<: El botón de estado ahora siempre está activo en modo edición
+            // y su texto cambia según el estado actual del usuario.
+            BEstado.Enabled = true;
+            BEstado.Text = usuario.Estado ? "Baja" : "Activar";
+
             txtNombre.Focus();
         }
 
@@ -420,6 +421,10 @@ namespace InmoTech
             btnGuardar.Text = "Guardar";
             btnCancelar.Text = "Cancelar";
             lblListaTitulo.Text = "Lista de usuarios";
+
+            // >>> MODIFICADO <<<: Deshabilitar el botón y resetear su texto.
+            BEstado.Enabled = false;
+            BEstado.Text = "Baja";
         }
 
         /// <summary>
@@ -499,8 +504,6 @@ namespace InmoTech
                 Width = 110
             });
             dgvUsuarios.Columns.Add(new DataGridViewTextBoxColumn { Name = "colEstado", HeaderText = "Estado", DataPropertyName = nameof(Usuario.Estado), Width = 100 });
-            dgvUsuarios.Columns.Add(new DataGridViewButtonColumn { Name = "colEditar", HeaderText = "Editar", Text = "Editar", UseColumnTextForButtonValue = true, Width = 70 });
-            dgvUsuarios.Columns.Add(new DataGridViewButtonColumn { Name = "colToggle", HeaderText = "Activar/Inactivar", Text = "Cambiar", UseColumnTextForButtonValue = true, Width = 120 });
         }
 
         /// <summary>
@@ -579,7 +582,7 @@ namespace InmoTech
             if (char.IsControl(e.KeyChar)) return;
 
             char c = e.KeyChar;
-            bool esLetra = char.IsLetter(c);              // Incluye letras con acentos/ñ
+            bool esLetra = char.IsLetter(c);         // Incluye letras con acentos/ñ
             bool permitido = esLetra || char.IsWhiteSpace(c) || c == '\'' || c == '-';
 
             if (!permitido)

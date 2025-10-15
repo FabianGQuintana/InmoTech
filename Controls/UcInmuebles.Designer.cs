@@ -36,17 +36,16 @@ namespace InmoTech
         private Label lblLista;
         private DataGridView dgvInmuebles;
 
-        // Campos de columnas (para el diseñador)
+        // >>> MODIFICADO <<<: Cambian los tipos de las columnas
         private DataGridViewTextBoxColumn colId;
         private DataGridViewTextBoxColumn colDir;
         private DataGridViewTextBoxColumn colTipo;
         private DataGridViewTextBoxColumn colAmb;
-        private DataGridViewCheckBoxColumn colAmueb;
-        private DataGridViewTextBoxColumn colEstado;  // ahora muestra "Condiciones"
-        private DataGridViewCheckBoxColumn colActivo; // NUEVA: bit (baja lógica)
+        private DataGridViewTextBoxColumn colAmueb; // Antes era CheckBoxColumn
+        private DataGridViewTextBoxColumn colEstado;
+        private DataGridViewTextBoxColumn colActivo; // Antes era CheckBoxColumn
         private DataGridViewImageColumn colImg;
-        private DataGridViewButtonColumn colEditar;
-        private DataGridViewButtonColumn colToggle;
+        // Se eliminan las de botones
 
         protected override void Dispose(bool disposing)
         {
@@ -60,6 +59,7 @@ namespace InmoTech
             pnlHeader = new Panel();
             label1 = new Label();
             gbCrear = new GroupBox();
+            BEstado = new Button();
             lblDireccion = new Label();
             txtDireccion = new TextBox();
             lblTipo = new Label();
@@ -84,12 +84,10 @@ namespace InmoTech
             colDir = new DataGridViewTextBoxColumn();
             colTipo = new DataGridViewTextBoxColumn();
             colAmb = new DataGridViewTextBoxColumn();
-            colAmueb = new DataGridViewCheckBoxColumn();
+            colAmueb = new DataGridViewTextBoxColumn();
             colEstado = new DataGridViewTextBoxColumn();
-            colActivo = new DataGridViewCheckBoxColumn();
+            colActivo = new DataGridViewTextBoxColumn();
             colImg = new DataGridViewImageColumn();
-            colEditar = new DataGridViewButtonColumn();
-            colToggle = new DataGridViewButtonColumn();
             tlRoot.SuspendLayout();
             pnlHeader.SuspendLayout();
             gbCrear.SuspendLayout();
@@ -134,7 +132,8 @@ namespace InmoTech
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(0, 14);
+            label1.ForeColor = Color.White;
+            label1.Location = new Point(0, 17);
             label1.Name = "label1";
             label1.Size = new Size(172, 37);
             label1.TabIndex = 0;
@@ -143,6 +142,7 @@ namespace InmoTech
             // gbCrear
             // 
             gbCrear.BackColor = Color.Teal;
+            gbCrear.Controls.Add(BEstado);
             gbCrear.Controls.Add(lblDireccion);
             gbCrear.Controls.Add(txtDireccion);
             gbCrear.Controls.Add(lblTipo);
@@ -172,6 +172,16 @@ namespace InmoTech
             gbCrear.TabStop = false;
             gbCrear.Text = "Crear / Editar Inmueble";
             gbCrear.Enter += gbCrear_Enter;
+            // 
+            // BEstado
+            // 
+            BEstado.BackColor = Color.White;
+            BEstado.Location = new Point(942, 230);
+            BEstado.Name = "BEstado";
+            BEstado.Size = new Size(120, 32);
+            BEstado.TabIndex = 18;
+            BEstado.Text = "Baja";
+            BEstado.UseVisualStyleBackColor = false;
             // 
             // lblDireccion
             // 
@@ -321,7 +331,7 @@ namespace InmoTech
             // 
             btnGuardar.BackColor = Color.White;
             btnGuardar.ForeColor = SystemColors.ControlText;
-            btnGuardar.Location = new Point(942, 190);
+            btnGuardar.Location = new Point(942, 155);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(120, 32);
             btnGuardar.TabIndex = 16;
@@ -331,7 +341,7 @@ namespace InmoTech
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.White;
-            btnCancelar.Location = new Point(942, 228);
+            btnCancelar.Location = new Point(942, 192);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(120, 32);
             btnCancelar.TabIndex = 17;
@@ -356,12 +366,13 @@ namespace InmoTech
             dgvInmuebles.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvInmuebles.BackgroundColor = Color.Teal;
             dgvInmuebles.ColumnHeadersHeight = 34;
-            dgvInmuebles.Columns.AddRange(new DataGridViewColumn[] { colId, colDir, colTipo, colAmb, colAmueb, colEstado, colActivo, colImg, colEditar, colToggle });
+            dgvInmuebles.Columns.AddRange(new DataGridViewColumn[] { colId, colDir, colTipo, colAmb, colAmueb, colEstado, colActivo, colImg });
             dgvInmuebles.Dock = DockStyle.Fill;
             dgvInmuebles.GridColor = Color.White;
             dgvInmuebles.Location = new Point(15, 448);
             dgvInmuebles.MultiSelect = false;
             dgvInmuebles.Name = "dgvInmuebles";
+            dgvInmuebles.ReadOnly = true;
             dgvInmuebles.RowHeadersVisible = false;
             dgvInmuebles.RowHeadersWidth = 62;
             dgvInmuebles.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -370,77 +381,75 @@ namespace InmoTech
             // 
             // colId
             // 
+            colId.DataPropertyName = "IdInmueble";
             colId.HeaderText = "ID";
             colId.MinimumWidth = 8;
             colId.Name = "colId";
+            colId.ReadOnly = true;
             colId.Visible = false;
             // 
             // colDir
             // 
+            colDir.DataPropertyName = "Direccion";
             colDir.HeaderText = "Dirección";
             colDir.MinimumWidth = 8;
             colDir.Name = "colDir";
+            colDir.ReadOnly = true;
             // 
             // colTipo
             // 
+            colTipo.DataPropertyName = "Tipo";
             colTipo.FillWeight = 90F;
             colTipo.HeaderText = "Tipo";
             colTipo.MinimumWidth = 8;
             colTipo.Name = "colTipo";
+            colTipo.ReadOnly = true;
             // 
             // colAmb
             // 
+            colAmb.DataPropertyName = "NroAmbientes";
             colAmb.FillWeight = 70F;
             colAmb.HeaderText = "Ambientes";
             colAmb.MinimumWidth = 8;
             colAmb.Name = "colAmb";
+            colAmb.ReadOnly = true;
             // 
             // colAmueb
             // 
+            colAmueb.DataPropertyName = "Amueblado";
             colAmueb.FillWeight = 70F;
             colAmueb.HeaderText = "Amueblado";
             colAmueb.MinimumWidth = 8;
             colAmueb.Name = "colAmueb";
+            colAmueb.ReadOnly = true;
             // 
             // colEstado
             // 
+            colEstado.DataPropertyName = "Condiciones";
             colEstado.FillWeight = 90F;
             colEstado.HeaderText = "Condiciones";
             colEstado.MinimumWidth = 8;
             colEstado.Name = "colEstado";
+            colEstado.ReadOnly = true;
             // 
             // colActivo
             // 
+            colActivo.DataPropertyName = "Estado";
             colActivo.FillWeight = 55F;
             colActivo.HeaderText = "Activo";
             colActivo.MinimumWidth = 8;
             colActivo.Name = "colActivo";
+            colActivo.ReadOnly = true;
             // 
             // colImg
             // 
+            colImg.DataPropertyName = "Imagen";
             colImg.FillWeight = 80F;
             colImg.HeaderText = "Imagen";
             colImg.ImageLayout = DataGridViewImageCellLayout.Zoom;
             colImg.MinimumWidth = 8;
             colImg.Name = "colImg";
-            // 
-            // colEditar
-            // 
-            colEditar.FillWeight = 60F;
-            colEditar.HeaderText = "Editar";
-            colEditar.MinimumWidth = 8;
-            colEditar.Name = "colEditar";
-            colEditar.Text = "Editar";
-            colEditar.UseColumnTextForButtonValue = true;
-            // 
-            // colToggle
-            // 
-            colToggle.FillWeight = 90F;
-            colToggle.HeaderText = "Activar/Inactivar";
-            colToggle.MinimumWidth = 8;
-            colToggle.Name = "colToggle";
-            colToggle.Text = "Cambiar";
-            colToggle.UseColumnTextForButtonValue = true;
+            colImg.ReadOnly = true;
             // 
             // UcInmuebles
             // 
@@ -459,5 +468,6 @@ namespace InmoTech
             ResumeLayout(false);
         }
         private Label label1;
+        private Button BEstado;
     }
 }

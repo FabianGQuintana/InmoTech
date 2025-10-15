@@ -17,7 +17,7 @@ namespace InmoTech
         #region Campos Privados
         private readonly InmuebleRepository _repo = new InmuebleRepository();
         private int? _editandoId = null;
-        private string _imagenPendiente = null; // ruta local seleccionada para guardar como portada
+        private string _imagenPendiente = null;
         #endregion
 
         // ======================================================
@@ -35,7 +35,10 @@ namespace InmoTech
                 btnCancelar.Click += (s, e) => LimpiarFormulario();
                 btnCargarImagen.Click += BtnCargarImagen_Click;
                 btnQuitarImagen.Click += (s, e) => { _imagenPendiente = null; pbFoto.Image = null; };
-                dgvInmuebles.CellClick += DgvInmuebles_CellClick;
+
+                // >>> MODIFICADO <<<: Se reemplaza CellClick por CellDoubleClick y se agrega el evento para el botón de estado.
+                dgvInmuebles.CellDoubleClick += DgvInmuebles_CellDoubleClick;
+                BEstado.Click += BEstado_Click;
             }
         }
 
@@ -43,24 +46,16 @@ namespace InmoTech
             LicenseManager.UsageMode == LicenseUsageMode.Designtime ||
             System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv";
 
-        /* =========================
-            Init
-            ========================= */
         private void UcInmuebles_Load(object sender, EventArgs e)
         {
             // Combos
             cboTipo.Items.Clear();
             cboTipo.Items.AddRange(new object[] { "Casa", "Departamento", "PH", "Local", "Galpón", "Oficina", "Terreno" });
 
-            // Este combo ahora representa CONDICIONES (estado comercial)
             cboEstado.Items.Clear();
-            cboEstado.Items.AddRange(new object[] { "Disponible", "Reservado", "Ocupado", "Inactivo" });
-            cboTipo.SelectedIndex = -1;
-            cboEstado.SelectedIndex = 0;
-            nudAmbientes.Value = 0;
-            chkAmueblado.Checked = false;
+            cboEstado.Items.AddRange(new object[] { "Disponible", "Reservado", "Ocupado", "A estrenar", "N/A" });
 
-            // Grid
+            LimpiarFormulario(); // Limpia y establece el modo de alta
             RefrescarGrid();
         }
         #endregion
@@ -69,9 +64,6 @@ namespace InmoTech
         //  REGIÓN: Manejadores de Eventos (UI Acciones)
         // ======================================================
         #region Manejadores de Eventos (UI Acciones)
-        /* =========================
-            Acciones UI
-            ========================= */
         private void BtnCargarImagen_Click(object sender, EventArgs e)
         {
             using (var ofd = new OpenFileDialog
@@ -111,6 +103,10 @@ namespace InmoTech
                     // Edición
                     var entidad = LeerFormulario();
                     entidad.IdInmueble = _editandoId.Value;
+                    // Mantenemos el estado (activo/inactivo) que ya tenía
+                    var original = _repo.ObtenerPorId(_editandoId.Value);
+                    if (original != null) entidad.Estado = original.Estado;
+
                     _repo.Actualizar(entidad);
 
                     if (!string.IsNullOrWhiteSpace(_imagenPendiente) && File.Exists(_imagenPendiente))
@@ -126,69 +122,80 @@ namespace InmoTech
             }
         }
 
-        private void DgvInmuebles_CellClick(object sender, DataGridViewCellEventArgs e)
+        // >>> NUEVO <<<: Manejador para el doble clic en la grilla (inicia edición).
+        private void DgvInmuebles_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0) return; // Ignorar clics en la cabecera
 
             int id = Convert.ToInt32(dgvInmuebles.Rows[e.RowIndex].Cells["colId"].Value);
-            var colName = dgvInmuebles.Columns[e.ColumnIndex].Name;
+            CargarParaEditar(id);
+        }
 
-            if (string.Equals(colName, "colToggle", StringComparison.InvariantCultureIgnoreCase))
+        // >>> NUEVO <<<: Manejador para el botón de Baja/Activar.
+        private void BEstado_Click(object sender, EventArgs e)
+        {
+            if (_editandoId == null) return;
+
+            try
             {
-                AlternarEstado(id);
+                var inmueble = _repo.ObtenerPorId(_editandoId.Value);
+                if (inmueble == null) return;
+
+                bool activar = !inmueble.Estado;
+                string accion = activar ? "ACTIVAR" : "dar de BAJA";
+
+                var resp = MessageBox.Show($"¿Deseas {accion} este inmueble?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (resp != DialogResult.Yes) return;
+
+                inmueble.Estado = activar;
+                _repo.Actualizar(inmueble);
+
+                LimpiarFormulario();
+                RefrescarGrid();
             }
-            else if (string.Equals(colName, "colEditar", StringComparison.InvariantCultureIgnoreCase))
+            catch (Exception ex)
             {
-                CargarParaEditar(id);
-            }
-            else
-            {
-                CargarParaEditar(id);
+                MessageBox.Show("No se pudo cambiar el estado.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
         #endregion
 
         // ======================================================
-        //  REGIÓN: lOGICA PRINCIPAL (CRUD)
+        //  REGIÓN: Lógica Principal (CRUD)
         // ======================================================
         #region Lógica Principal (CRUD)
-        /* =========================
-            Lógica principal
-            ========================= */
         private void RefrescarGrid()
         {
             try
             {
-                var lista = _repo.Listar(null, false); // muestro todos (activos e inactivos)
+                var lista = _repo.Listar(null, false); // Muestro todos (activos e inactivos)
 
                 dgvInmuebles.Rows.Clear();
                 foreach (var x in lista)
                 {
-                    // portada
                     Image thumb = null;
                     var portada = _repo.ListarImagenes(x.IdInmueble).FirstOrDefault(im => im.EsPortada)
-                                     ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
+                                  ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
 
                     if (portada != null)
                     {
                         var abs = Path.IsPathRooted(portada.Ruta)
-                                      ? portada.Ruta
-                                      : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
+                                    ? portada.Ruta
+                                    : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
                         if (File.Exists(abs)) thumb = Escalar(CargarBitmapSinLock(abs), 64, 48);
                     }
 
-                    // IMPORTANTE: ahora mostramos Condiciones (texto) y Activo (bit) en columnas separadas
+                    // >>> MODIFICADO <<<: Se pasan textos ("Sí"/"No") en lugar de booleanos.
                     dgvInmuebles.Rows.Add(
                         x.IdInmueble,
                         x.Direccion,
                         x.Tipo,
                         x.NroAmbientes ?? 0,
-                        x.Amueblado,
-                        x.Condiciones, // colEstado (renombrada visualmente a "Condiciones")
-                        x.Estado,      // colActivo (checkbox)
-                        thumb,
-                        "Editar",
-                        "Cambiar"
+                        x.Amueblado ? "Amueblado" : "Sin Amueblar", // Convertir a texto
+                        x.Condiciones,
+                        x.Estado ? "Activo" : "Inactivo",      // Convertir a texto
+                        thumb
                     );
                 }
             }
@@ -212,10 +219,13 @@ namespace InmoTech
                 txtDireccion.Text = i.Direccion;
                 SelectItem(cboTipo, i.Tipo);
                 txtDescripcion.Text = i.Descripcion ?? "";
-                // el combo ahora refleja Condiciones
                 SelectItem(cboEstado, i.Condiciones);
                 nudAmbientes.Value = Math.Max(nudAmbientes.Minimum, Math.Min(nudAmbientes.Maximum, i.NroAmbientes ?? 0));
                 chkAmueblado.Checked = i.Amueblado;
+
+                // >>> MODIFICADO <<<: Habilita el botón de estado y ajusta su texto.
+                BEstado.Enabled = true;
+                BEstado.Text = i.Estado ? "Baja" : "Activar";
 
                 pbFoto.Image = null;
                 var portada = i.Imagenes.FirstOrDefault(im => im.EsPortada) ?? i.Imagenes.FirstOrDefault();
@@ -231,39 +241,15 @@ namespace InmoTech
             }
         }
 
-        private void AlternarEstado(int id)
-        {
-            try
-            {
-                var i = _repo.ObtenerPorId(id);
-                if (i == null) return;
+        // >>> ELIMINADO <<<: El método AlternarEstado ya no es necesario, su lógica se movió a BEstado_Click.
 
-                // Confirmación de baja/alta lógica
-                var activar = !i.Estado; // si está inactivo => activar
-                var msg = activar
-                    ? "¿Deseás ACTIVAR este inmueble?"
-                    : "¿Deseás realizar la BAJA LÓGICA (inactivar) de este inmueble?";
-                var resp = MessageBox.Show(msg, "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (resp != DialogResult.Yes) return;
-
-                i.Estado = activar; // true (1) = activo, false (0) = inactivo
-                _repo.Actualizar(i);
-
-                // Si estábamos editando, no cambiamos el combo (el combo es de Condiciones)
-                RefrescarGrid();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("No se pudo cambiar el estado.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
         #endregion
 
         // ======================================================
         //  REGIÓN: Mapeo UI - Modelo y Validación
         // ======================================================
         #region Mapeo UI - Modelo y Validación
-        
+
         private Inmueble LeerFormulario()
         {
             return new Inmueble
@@ -271,12 +257,10 @@ namespace InmoTech
                 Direccion = (txtDireccion.Text ?? "").Trim(),
                 Tipo = cboTipo.SelectedItem?.ToString() ?? "",
                 Descripcion = (txtDescripcion.Text ?? "").Trim(),
-                // el combo "cboEstado" ahora guarda CONDICIONES
                 Condiciones = cboEstado.SelectedItem?.ToString() ?? "Disponible",
                 NroAmbientes = (int)nudAmbientes.Value,
                 Amueblado = chkAmueblado.Checked,
-                // alta => activo por defecto (bit = 1)
-                Estado = true
+                Estado = true // Al crear, siempre está activo por defecto.
             };
         }
 
@@ -291,7 +275,7 @@ namespace InmoTech
             if (direccion.Length == 0) { error = "La dirección es obligatoria."; txtDireccion.Focus(); return false; }
             if (string.IsNullOrWhiteSpace(tipoSel)) { error = "Seleccioná un tipo de inmueble."; cboTipo.Focus(); return false; }
             if (ambientes < 0) { error = "El número de ambientes no puede ser negativo."; nudAmbientes.Focus(); return false; }
-            if (string.IsNullOrWhiteSpace(condicionesSel)) { error = "Seleccioná un estado (Condiciones)."; cboEstado.Focus(); return false; }
+            if (string.IsNullOrWhiteSpace(condicionesSel)) { error = "Seleccioná una condición."; cboEstado.Focus(); return false; }
 
             return true;
         }
@@ -301,9 +285,6 @@ namespace InmoTech
         //  REGIÓN: Metodos de Utilidad
         // ======================================================
         #region Métodos de Utilidad
-        /* =========================
-            Utilidades
-            ========================= */
         private static void SelectItem(ComboBox cbo, string value)
         {
             for (int i = 0; i < cbo.Items.Count; i++)
@@ -313,27 +294,6 @@ namespace InmoTech
                 { cbo.SelectedIndex = i; return; }
             }
             cbo.SelectedIndex = -1;
-        }
-
-        // 0=Inactivo, 1=Disponible, 2=Reservado, 3=Ocupado
-        // (Se mantiene para compatibilidad, aunque ya no se usa para 'estado' bit)
-        private static string EstadoToTexto(byte estado)
-        {
-            switch (estado)
-            {
-                case 0: return "Inactivo";
-                case 2: return "Reservado";
-                case 3: return "Ocupado";
-                default: return "Disponible";
-            }
-        }
-
-        private static byte TextoToEstado(string texto)
-        {
-            if (string.Equals(texto, "Inactivo", StringComparison.InvariantCultureIgnoreCase)) return 0;
-            if (string.Equals(texto, "Reservado", StringComparison.InvariantCultureIgnoreCase)) return 2;
-            if (string.Equals(texto, "Ocupado", StringComparison.InvariantCultureIgnoreCase)) return 3;
-            return 1; // Disponible
         }
 
         private static Bitmap CargarBitmapSinLock(string path)
@@ -346,13 +306,16 @@ namespace InmoTech
         private static Image Escalar(Image img, int w, int h) =>
             img == null ? null : new Bitmap(img, new Size(w, h));
 
-        // Limpia el formulario y deja el control listo para un alta
         private void LimpiarFormulario()
         {
             _editandoId = null;
             _imagenPendiente = null;
 
             btnGuardar.Text = "Guardar";
+
+            // >>> MODIFICADO <<<: Se deshabilita y resetea el botón de estado.
+            BEstado.Enabled = false;
+            BEstado.Text = "Baja";
 
             txtDireccion.Clear();
             cboTipo.SelectedIndex = -1;
@@ -366,20 +329,9 @@ namespace InmoTech
         }
         #endregion
 
-        // ======================================================
-        //  REGIÓN: Handlers de Plantilla (Vacíos)
-        // ======================================================
         #region Handlers de Plantilla (Vacíos)
-        // El diseñador tiene: gbCrear.Enter += gbCrear_Enter;
-        private void gbCrear_Enter(object sender, EventArgs e)
-        {
-            // Nada por ahora (stub para evitar error de compilación)
-        }
-
-        private void txtDescripcion_TextChanged(object sender, EventArgs e)
-        {
-
-        }
+        private void gbCrear_Enter(object sender, EventArgs e) { }
+        private void txtDescripcion_TextChanged(object sender, EventArgs e) { }
         #endregion
     }
 }
