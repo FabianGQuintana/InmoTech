@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System; // Agregado para DateTime
+using System.Collections.Generic;
 
 namespace InmoTech.Domain.Models
 {
@@ -13,7 +14,7 @@ namespace InmoTech.Domain.Models
         public string Tipo { get; set; } = "";
         public string Descripcion { get; set; } = "";
         public string Condiciones { get; set; } = ""; // Disponible/Reservado/Ocupado/Inactivo
-        public int? NroAmbientes { get; set; }
+        public int? NroAmbientes { get; set; }
         public bool Amueblado { get; set; }
         #endregion
 
@@ -25,5 +26,13 @@ namespace InmoTech.Domain.Models
 
         public List<InmuebleImagen> Imagenes { get; set; } = new List<InmuebleImagen>();
         #endregion
-    }
+
+        // ======================================================
+        //  REGIÓN: Auditoría (NUEVO)
+        // ======================================================
+        #region Auditoría
+        public DateTime FechaCreacion { get; set; }
+        public int UsuarioCreadorDni { get; set; }
+        #endregion
+    }
 }

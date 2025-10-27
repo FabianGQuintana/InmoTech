@@ -1,5 +1,6 @@
 ﻿using InmoTech.Models;
 using InmoTech.Repositories;
+using InmoTech.Security; // <--- 1. CAMBIO AGREGADO
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -40,30 +41,30 @@ namespace InmoTech
         {
             InitializeComponent();
 
-            // Eventos principales
-            Load += UcUsuarios_Load;
+            // Eventos principales
+            Load += UcUsuarios_Load;
             btnGuardar.Click += BtnGuardar_Click;
             btnCancelar.Click += (_, __) => { LimpiarFormulario(); EstablecerModoAlta(); };
 
-            // Se agrega el evento Click para el botón de Baja/Activar.
-            BEstado.Click += BEstado_Click;
+            // Se agrega el evento Click para el botón de Baja/Activar.
+            BEstado.Click += BEstado_Click;
 
-            // DataGrid: acciones y formato legible
-            dgvUsuarios.CellDoubleClick += DataGridUsuarios_CellDoubleClick;
+            // DataGrid: acciones y formato legible
+            dgvUsuarios.CellDoubleClick += DataGridUsuarios_CellDoubleClick;
             dgvUsuarios.CellFormatting += DataGridUsuarios_CellFormatting;
 
-            // Restricciones numéricas (tecleo y pegado) para DNI y Teléfono
-            txtDni.KeyPress += TextBoxSoloDigitos_KeyPress;
+            // Restricciones numéricas (tecleo y pegado) para DNI y Teléfono
+            txtDni.KeyPress += TextBoxSoloDigitos_KeyPress;
             txtDni.TextChanged += TextBoxSoloDigitos_TextChanged;
             txtTelefono.KeyPress += TextBoxSoloDigitos_KeyPress;
             txtTelefono.TextChanged += TextBoxSoloDigitos_TextChanged;
 
-            // Capitalización en vivo para Nombre y Apellido
-            txtNombre.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
+            // Capitalización en vivo para Nombre y Apellido
+            txtNombre.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
             txtApellido.TextChanged += TextBoxCapitalizarEnVivo_TextChanged;
 
-            // Bloquea números en Nombre y Apellido al tipear
-            txtNombre.KeyPress += TextBoxSoloLetras_KeyPress;
+            // Bloquea números en Nombre y Apellido al tipear
+            txtNombre.KeyPress += TextBoxSoloLetras_KeyPress;
             txtApellido.KeyPress += TextBoxSoloLetras_KeyPress;
 
             AjustarInterfazUsuario();
@@ -102,8 +103,8 @@ namespace InmoTech
 
             if (_usuarioEnEdicion == null)
             {
-                // Alta
-                if (_usuariosBindingList.Any(u => u.Dni == usuarioDesdeFormulario.Dni))
+                // Alta
+                if (_usuariosBindingList.Any(u => u.Dni == usuarioDesdeFormulario.Dni))
                 {
                     ep.SetError(txtDni, "Ya existe un usuario con este DNI.");
                     MessageBox.Show("Ya existe un usuario con ese DNI.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -112,12 +113,36 @@ namespace InmoTech
 
                 try
                 {
+                    // ==================================================
+                    //  INICIO DE CAMBIOS (2. MODIFICACIÓN)
+                    // ==================================================
+
+                    // Verificar que el usuario esté logueado
+                    if (AuthService.CurrentUser == null)
+                    {
+                        MessageBox.Show("Error de sesión. No se puede identificar al usuario creador. Por favor, inicie sesión de nuevo.", "Error de Sesión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Obtener el DNI del creador
+                    int dniCreador = AuthService.CurrentUser.Dni;
+
                     usuarioDesdeFormulario.Estado = true; // Siempre se crea como activo
 
-                    int filasAfectadas = _usuarioRepository.AgregarUsuario(usuarioDesdeFormulario);
+                    // Pasar el DNI del creador al repositorio
+                    int filasAfectadas = _usuarioRepository.AgregarUsuario(usuarioDesdeFormulario, dniCreador);
+
+                    // ==================================================
+                    //  FIN DE CAMBIOS
+                    // ==================================================
+
                     if (filasAfectadas == 1)
                     {
+                        // Actualizamos el DNI creador en el objeto local antes de agregarlo
+                        // a la lista observable, para que esté completo.
+                        usuarioDesdeFormulario.UsuarioCreadorDni = dniCreador;
                         _usuariosBindingList.Add(usuarioDesdeFormulario);
+
                         MessageBox.Show("Usuario registrado correctamente.", "Usuarios", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         LimpiarFormulario();
                         EstablecerModoAlta();
@@ -139,8 +164,8 @@ namespace InmoTech
             }
             else
             {
-                // Edición
-                usuarioDesdeFormulario.Estado = _usuarioEnEdicion.Estado;
+                // Edición (Sin cambios en esta sección)
+                usuarioDesdeFormulario.Estado = _usuarioEnEdicion.Estado;
 
                 bool debeActualizarPassword = !string.IsNullOrWhiteSpace(txtPass.Text);
                 if (!debeActualizarPassword) usuarioDesdeFormulario.Password = _usuarioEnEdicion.Password;
@@ -313,7 +338,7 @@ namespace InmoTech
             Telefono = txtTelefono.Text.Trim(),
             Email = txtEmail.Text.Trim(),
             Password = txtPass.Text.Trim(), // ideal: hash
-            IdRol = rbAdministrador.Checked ? 1 : rbPropietario.Checked ? 3 : 2,
+            IdRol = rbAdministrador.Checked ? 1 : rbPropietario.Checked ? 3 : 2,
             FechaNacimiento = dateTimePicker1.Value.Date
         };
 
@@ -346,8 +371,8 @@ namespace InmoTech
                 ep.SetError(txtTelefono, "Mínimo 6 dígitos.");
             }
 
-            // ===== Email: obligatorio + formato =====
-            string emailNormalizado = txtEmail.Text.Trim();
+            // ===== Email: obligatorio + formato =====
+            string emailNormalizado = txtEmail.Text.Trim();
             if (string.IsNullOrWhiteSpace(emailNormalizado))
             {
                 erroresValidacion.Add("El email es obligatorio.");
@@ -542,8 +567,8 @@ namespace InmoTech
             if (char.IsControl(e.KeyChar)) return;
 
             char c = e.KeyChar;
-            bool esLetra = char.IsLetter(c);         // Incluye letras con acentos/ñ
-            bool permitido = esLetra || char.IsWhiteSpace(c) || c == '\'' || c == '-';
+            bool esLetra = char.IsLetter(c);      // Incluye letras con acentos/ñ
+            bool permitido = esLetra || char.IsWhiteSpace(c) || c == '\'' || c == '-';
 
             if (!permitido)
                 e.Handled = true;
@@ -558,5 +583,5 @@ namespace InmoTech
 
         private void label1_Click(object sender, EventArgs e) { /* no-op */ }
         #endregion
-    }
+    }
 }

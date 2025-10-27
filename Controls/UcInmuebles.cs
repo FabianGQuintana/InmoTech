@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using InmoTech.Data.Repositories;
 using InmoTech.Domain.Models;
+using InmoTech.Security; // <--- AGREGADO
 
 namespace InmoTech
 {
@@ -92,15 +93,31 @@ namespace InmoTech
             {
                 if (_editandoId == null)
                 {
-                    // Alta
+                    // ================================================
+                    //  MODIFICADO: Alta de Inmueble
+                    // ================================================
+
+                    // 1. Validar sesión
+                    if (AuthService.CurrentUser == null)
+                    {
+                        MessageBox.Show("Error de sesión. No se puede identificar al usuario creador. Inicie sesión de nuevo.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                    // 2. Obtener DNI creador
+                    int dniCreador = AuthService.CurrentUser.Dni;
+
+                    // 3. Leer formulario
                     var nuevo = LeerFormulario();
-                    int id = _repo.CrearInmueble(nuevo);
+
+                    // 4. Pasar DNI creador al repositorio
+                    int id = _repo.CrearInmueble(nuevo, dniCreador);
+
                     if (!string.IsNullOrWhiteSpace(_imagenPendiente) && File.Exists(_imagenPendiente))
                         _repo.AgregarImagenDesdeArchivo(id, _imagenPendiente, "Portada", true, 0);
                 }
                 else
                 {
-                    // Edición
+                    // Edición (Sin cambios)
                     var entidad = LeerFormulario();
                     entidad.IdInmueble = _editandoId.Value;
                     // Mantenemos el estado (activo/inactivo) que ya tenía
@@ -176,13 +193,13 @@ namespace InmoTech
                 {
                     Image thumb = null;
                     var portada = _repo.ListarImagenes(x.IdInmueble).FirstOrDefault(im => im.EsPortada)
-                                  ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
+                                    ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
 
                     if (portada != null)
                     {
                         var abs = Path.IsPathRooted(portada.Ruta)
-                                    ? portada.Ruta
-                                    : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
+                                ? portada.Ruta
+                                : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, portada.Ruta);
                         if (File.Exists(abs)) thumb = Escalar(CargarBitmapSinLock(abs), 64, 48);
                     }
 

@@ -20,6 +20,14 @@ namespace InmoTech.Models
         public string Direccion { get; set; } = "";
         public DateTime FechaNacimiento { get; set; }
         public bool Estado { get; set; } // Activo/Inactivo
+
+        // ==========================================
+        //  NUEVAS PROPIEDADES DE AUDITORÍA
+        // ==========================================
+        public DateTime FechaCreacion { get; set; }
+        public int UsuarioCreadorDni { get; set; } // FK a usuario(dni)
+        // ==========================================
+
         #endregion
 
         // ======================================================
@@ -28,5 +36,5 @@ namespace InmoTech.Models
         #region Propiedades Calculadas (ViewModel Helper)
         public string NombreCompleto => $"{Nombre} {Apellido}";
         #endregion
-    }
+    }
 }

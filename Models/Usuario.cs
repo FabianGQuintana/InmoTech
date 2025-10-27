@@ -12,15 +12,23 @@ namespace InmoTech.Models
         //  REGIÓN: Propiedades de Persistencia e Identificación
         // ======================================================
         #region Propiedades de Persistencia e Identificación
-        public int Dni { get; set; }                // PK
-        public string Nombre { get; set; } = "";
+        public int Dni { get; set; }           
+        public string Nombre { get; set; } = "";
         public string Apellido { get; set; } = "";
         public string Email { get; set; } = "";
-        public string Password { get; set; } = "";  // varchar(600)
-        public string Telefono { get; set; } = "";
-        public bool Estado { get; set; }            // bit
-        public DateTime FechaNacimiento { get; set; }
-        public int IdRol { get; set; }              // FK a rol
+        public string Password { get; set; } = "";  
+        public string Telefono { get; set; } = "";
+        public bool Estado { get; set; }           
+        public DateTime FechaNacimiento { get; set; }
+        public int IdRol { get; set; }           
+
+        // ==========================================
+        //  NUEVAS PROPIEDADES DE AUDITORÍA
+        // ==========================================
+        public DateTime FechaCreacion { get; set; }
+        public int UsuarioCreadorDni { get; set; }
+        // ==========================================
+
         #endregion
 
         // ======================================================
@@ -29,5 +37,5 @@ namespace InmoTech.Models
         #region Propiedades Calculadas
         public string NombreCompleto => $"{Nombre} {Apellido}";
         #endregion
-    }
+    }
 }

@@ -17,16 +17,19 @@ namespace InmoTech.Repositories
         // ================
         // INSERT
         // ================
-        public int AgregarUsuario(Usuario usuario)
+        // MODIFICADO: Ahora acepta el DNI del usuario creador
+        public int AgregarUsuario(Usuario usuario, int dniUsuarioCreador)
         {
             using var conexion = BDGeneral.GetConnection();
 
-            //  Hashear contraseña ANTES de guardarla
-            string hashedPassword = PasswordHasher.Hash(usuario.Password);
+            //  Hashear contraseña ANTES de guardarla
+            string hashedPassword = PasswordHasher.Hash(usuario.Password);
 
+            // MODIFICADO: Se agrega usuario_creador_dni al INSERT.
+            // (fecha_creacion se inserta sola por el DEFAULT GETDATE() de la DB)
             const string sql = @"
-            INSERT INTO usuario (dni, nombre, apellido, email, password, telefono, fecha_nacimiento, id_rol)
-            VALUES (@Dni, @Nombre, @Apellido, @Email, @Password, @Telefono, @FechaNacimiento, @IdRol);";
+            INSERT INTO usuario (dni, nombre, apellido, email, password, telefono, fecha_nacimiento, id_rol, usuario_creador_dni)
+            VALUES (@Dni, @Nombre, @Apellido, @Email, @Password, @Telefono, @FechaNacimiento, @IdRol, @UsuarioCreadorDni);";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@Dni", SqlDbType.Int).Value = usuario.Dni;
@@ -38,43 +41,44 @@ namespace InmoTech.Repositories
             cmd.Parameters.Add("@FechaNacimiento", SqlDbType.Date).Value = usuario.FechaNacimiento.Date;
             cmd.Parameters.Add("@IdRol", SqlDbType.Int).Value = usuario.IdRol;
 
+            // MODIFICADO: Se agrega el nuevo parámetro
+            cmd.Parameters.Add("@UsuarioCreadorDni", SqlDbType.Int).Value = dniUsuarioCreador;
+
             return cmd.ExecuteNonQuery();
         }
         #endregion
 
-        // ======================================================
-        //  REGIÓN: Operaciones de Actualización (Update)
-        // ======================================================
+        // ... (La región de UPDATE no se toca, esos campos no deben actualizarse) ...
         #region Operaciones de Actualización (Update)
-        // ================
-        // UPDATE
-        // ================
+        // (Sin cambios aquí)
         public int ActualizarUsuario(Usuario usuario, bool actualizarPassword)
         {
+            // ... (código existente sin modificar) ...
+            // OMITIDO POR BREVEDAD
             using var conexion = BDGeneral.GetConnection();
 
             var sql = actualizarPassword
               ? @"
-            UPDATE usuario
-               SET nombre = @Nombre,
-                   apellido = @Apellido,
-                   email = @Email,
-                   password = @Password,
-                   telefono = @Telefono,
-                   estado = @Estado,
-                   fecha_nacimiento = @FechaNacimiento,
-                   id_rol = @IdRol
-             WHERE dni = @Dni;"
+            UPDATE usuario
+                SET nombre = @Nombre,
+                    apellido = @Apellido,
+                    email = @Email,
+                    password = @Password,
+                    telefono = @Telefono,
+                    estado = @Estado,
+                    fecha_nacimiento = @FechaNacimiento,
+                    id_rol = @IdRol
+                WHERE dni = @Dni;"
               : @"
-            UPDATE usuario
-               SET nombre = @Nombre,
-                   apellido = @Apellido,
-                   email = @Email,
-                   telefono = @Telefono,
-                   estado = @Estado,
-                   fecha_nacimiento = @FechaNacimiento,
-                   id_rol = @IdRol
-             WHERE dni = @Dni;";
+            UPDATE usuario
+                SET nombre = @Nombre,
+                    apellido = @Apellido,
+                    email = @Email,
+                    telefono = @Telefono,
+                    estado = @Estado,
+                    fecha_nacimiento = @FechaNacimiento,
+                    id_rol = @IdRol
+                WHERE dni = @Dni;";
 
             using var cmd = new SqlCommand(sql, conexion);
 
@@ -89,14 +93,15 @@ namespace InmoTech.Repositories
 
             if (actualizarPassword)
             {
-                //  Hashear contraseña nueva
-                string hashedPassword = PasswordHasher.Hash(usuario.Password);
+                //  Hashear contraseña nueva
+                string hashedPassword = PasswordHasher.Hash(usuario.Password);
                 cmd.Parameters.Add("@Password", SqlDbType.VarChar, 600).Value = hashedPassword;
             }
 
             return cmd.ExecuteNonQuery();
         }
         #endregion
+
 
         // ======================================================
         //  REGIÓN: Operaciones de Consulta (Read)
@@ -109,10 +114,12 @@ namespace InmoTech.Repositories
         {
             using var connection = BDGeneral.GetConnection();
 
+            // MODIFICADO: Se agregan las nuevas columnas al SELECT
             const string sqlQuery = @"
-            SELECT dni, nombre, apellido, email, telefono, estado, fecha_nacimiento, id_rol
-            FROM usuario
-            ORDER BY apellido, nombre;";
+            SELECT dni, nombre, apellido, email, telefono, estado, fecha_nacimiento, id_rol,
+                   fecha_creacion, usuario_creador_dni
+            FROM usuario
+            ORDER BY apellido, nombre;";
 
             using var command = new SqlCommand(sqlQuery, connection);
             using var reader = command.ExecuteReader();
@@ -128,6 +135,10 @@ namespace InmoTech.Repositories
             int ordFechaNacimiento = reader.GetOrdinal("fecha_nacimiento");
             int ordIdRol = reader.GetOrdinal("id_rol");
 
+            // MODIFICADO: Se obtienen los índices de las nuevas columnas
+            int ordFechaCreacion = reader.GetOrdinal("fecha_creacion");
+            int ordUsuarioCreadorDni = reader.GetOrdinal("usuario_creador_dni");
+
             while (reader.Read())
             {
                 users.Add(new Usuario
@@ -140,24 +151,30 @@ namespace InmoTech.Repositories
                     Estado = reader.GetBoolean(ordEstado),
                     FechaNacimiento = reader.GetDateTime(ordFechaNacimiento),
                     IdRol = reader.GetInt32(ordIdRol),
-                    Password = string.Empty //  nunca exponemos el hash
-                });
+                    Password = string.Empty, //  nunca exponemos el hash
+
+                    // MODIFICADO: Se cargan las nuevas propiedades
+                    FechaCreacion = reader.GetDateTime(ordFechaCreacion),
+                    UsuarioCreadorDni = reader.GetInt32(ordUsuarioCreadorDni)
+                });
             }
 
             return users;
         }
 
-        // ================
-        // OBTENER POR EMAIL
-        // ================
-        public Usuario? ObtenerPorEmail(string email)
+        // ================
+        // OBTENER POR EMAIL
+        // ================
+        public Usuario? ObtenerPorEmail(string email)
         {
             using var conexion = BDGeneral.GetConnection();
 
+            // MODIFICADO: Se agregan las nuevas columnas al SELECT
             const string sql = @"
-            SELECT dni, nombre, apellido, email, password, telefono, estado, fecha_nacimiento, id_rol
-            FROM usuario
-            WHERE email = @Email;";
+            SELECT dni, nombre, apellido, email, password, telefono, estado, fecha_nacimiento, id_rol,
+                   fecha_creacion, usuario_creador_dni
+            FROM usuario
+            WHERE email = @Email;";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@Email", SqlDbType.VarChar, 200).Value = email;
@@ -172,10 +189,14 @@ namespace InmoTech.Repositories
                 Apellido = reader.GetString(reader.GetOrdinal("apellido")),
                 Email = reader.GetString(reader.GetOrdinal("email")),
                 Password = reader.GetString(reader.GetOrdinal("password")), // hash para validación
-                Telefono = reader.GetString(reader.GetOrdinal("telefono")),
+                Telefono = reader.GetString(reader.GetOrdinal("telefono")),
                 Estado = reader.GetBoolean(reader.GetOrdinal("estado")),
                 FechaNacimiento = reader.GetDateTime(reader.GetOrdinal("fecha_nacimiento")),
-                IdRol = reader.GetInt32(reader.GetOrdinal("id_rol"))
+                IdRol = reader.GetInt32(reader.GetOrdinal("id_rol")),
+
+                // MODIFICADO: Se cargan las nuevas propiedades
+                FechaCreacion = reader.GetDateTime(reader.GetOrdinal("fecha_creacion")),
+                UsuarioCreadorDni = reader.GetInt32(reader.GetOrdinal("usuario_creador_dni"))
             };
         }
         #endregion

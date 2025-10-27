@@ -8,6 +8,9 @@
     <Compile Update="Controls\UcContratos.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Controls\UcInmuebles.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Controls\UcInquilinos.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -23,10 +26,10 @@
     <Compile Update="Controls\UcRecibo.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Controls\UcReportesOperador.cs">
+    <Compile Update="Controls\UcReportesAdmin.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Controls\UcReportesAdmin.cs">
+    <Compile Update="Controls\UcReportesOperador.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Forms\FrmBuscarInmueble.cs">
@@ -42,9 +45,6 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="Controls\UcDashboard.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="Controls\UcInmuebles.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\UcReportesPropietario.cs">

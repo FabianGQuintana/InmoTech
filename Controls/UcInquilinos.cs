@@ -1,5 +1,6 @@
 ﻿using InmoTech.Models;
 using InmoTech.Repositories;
+using InmoTech.Security; // <--- AGREGADO
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -119,14 +120,30 @@ namespace InmoTech.Controls
 
                 try
                 {
+                    // ================================================
+                    //  MODIFICADO: Alta de Inquilino
+                    // ================================================
+
+                    // 1. Validar sesión
+                    if (AuthService.CurrentUser == null)
+                    {
+                        MessageBox.Show("Error de sesión. No se puede identificar al usuario creador. Inicie sesión de nuevo.", "Error de Sesión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // 2. Obtener DNI creador
+                    int dniCreador = AuthService.CurrentUser.Dni;
+
                     entidad.Estado = true; // el INSERT lo deja en 1 igual
-                    int filas = _repo.AgregarInquilino(entidad);
+
+                    // 3. Pasar DNI creador al repositorio
+                    int filas = _repo.AgregarInquilino(entidad, dniCreador);
+
                     if (filas == 1)
                     {
                         // Necesitamos recargar de la base o al menos obtener el ID
-                        // Como no tenemos el ID generado, recargamos la lista.
                         // (Idealmente el repo devolvería la entidad completa con su nuevo ID)
-                        CargarDesdeBase(); // Recargamos para obtener el ID real
+                        CargarDesdeBase(); // Recargamos para obtener el ID real y los datos de auditoría
                         MessageBox.Show("Inquilino registrado correctamente.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         LimpiarFormulario();
                         EstablecerModoAlta();
@@ -149,7 +166,7 @@ namespace InmoTech.Controls
             }
             else
             {
-                // Edición
+                // Edición (Sin cambios)
                 entidad.Estado = _enEdicion.Estado;
 
                 try

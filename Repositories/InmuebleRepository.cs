@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using System.Drawing;                  // System.Drawing.Common (si es .NET Core) o System.Drawing (Framework)
+using System.Drawing;
 using Microsoft.Data.SqlClient;
 using InmoTech.Data;
 using InmoTech.Domain.Models;
@@ -18,11 +18,11 @@ namespace InmoTech.Data.Repositories
         // Carpeta base para imágenes: <carpeta app>\Resources\inmuebles\<id_inmueble>\
         private string GetResourcesInmueblesDir(int idInmueble)
         {
-            // 📍 Buscar la raíz del proyecto (donde está el .csproj)
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            // 📍 Buscar la raíz del proyecto (donde está el .csproj)
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            // Si el ejecutable está en bin\Debug o bin\Release, sube 2 niveles
-            var dirInfo = new DirectoryInfo(baseDir);
+            // Si el ejecutable está en bin\Debug o bin\Release, sube 2 niveles
+            var dirInfo = new DirectoryInfo(baseDir);
             while (dirInfo != null && dirInfo.Name != "InmoTech")
             {
                 dirInfo = dirInfo.Parent;
@@ -31,8 +31,8 @@ namespace InmoTech.Data.Repositories
             if (dirInfo == null)
                 throw new Exception("No se pudo ubicar la carpeta raíz del proyecto InmoTech.");
 
-            // Carpeta final dentro de Resources/inmuebles/<id>
-            string recursosDir = Path.Combine(dirInfo.FullName, "Resources", "inmuebles", idInmueble.ToString());
+            // Carpeta final dentro de Resources/inmuebles/<id>
+            string recursosDir = Path.Combine(dirInfo.FullName, "Resources", "inmuebles", idInmueble.ToString());
 
             if (!Directory.Exists(recursosDir))
                 Directory.CreateDirectory(recursosDir);
@@ -50,14 +50,14 @@ namespace InmoTech.Data.Repositories
             return "application/octet-stream";
         }
 
-        // .NET Standard/Framework compatible (similar a Path.GetRelativePath en versiones nuevas)
-        private static string GetRelativePath(string baseDir, string fullPath)
+        // .NET Standard/Framework compatible (similar a Path.GetRelativePath en versiones nuevas)
+        private static string GetRelativePath(string baseDir, string fullPath)
         {
             var baseUri = new Uri(AppendDirectorySeparatorChar(baseDir));
             var fullUri = new Uri(fullPath);
             var rel = baseUri.MakeRelativeUri(fullUri).ToString();
-            // Uri usa '/', convertimos a separador de Windows
-            return Uri.UnescapeDataString(rel).Replace('/', Path.DirectorySeparatorChar);
+            // Uri usa '/', convertimos a separador de Windows
+            return Uri.UnescapeDataString(rel).Replace('/', Path.DirectorySeparatorChar);
         }
 
         private static string AppendDirectorySeparatorChar(string path)
@@ -73,16 +73,18 @@ namespace InmoTech.Data.Repositories
         // ======================================================
         #region CRUD Inmueble (Entidad Principal)
         // ------------------- CRUD Inmueble -------------------
-        public int CrearInmueble(Inmueble i)
+
+        // MODIFICADO: Acepta dniUsuarioCreador
+        public int CrearInmueble(Inmueble i, int dniUsuarioCreador)
         {
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand(@"
-                INSERT INTO dbo.inmueble
-                  (direccion, tipo, descripcion, condiciones, nro_ambientes, amueblado, estado)
-                VALUES
-                  (@direccion, @tipo, @descripcion, @condiciones, @nro_ambientes, @amueblado, @estado);
-                SELECT CAST(SCOPE_IDENTITY() AS int);
-            ", cn))
+                INSERT INTO dbo.inmueble
+                  (direccion, tipo, descripcion, condiciones, nro_ambientes, amueblado, estado, usuario_creador_dni)
+                VALUES
+                  (@direccion, @tipo, @descripcion, @condiciones, @nro_ambientes, @amueblado, @estado, @usuario_creador_dni);
+                SELECT CAST(SCOPE_IDENTITY() AS int);
+            ", cn))
             {
                 cmd.Parameters.Add("@direccion", SqlDbType.VarChar, 200).Value = i.Direccion;
                 cmd.Parameters.Add("@tipo", SqlDbType.VarChar, 80).Value = i.Tipo;
@@ -92,7 +94,10 @@ namespace InmoTech.Data.Repositories
                 cmd.Parameters.Add("@amueblado", SqlDbType.Bit).Value = i.Amueblado;
                 cmd.Parameters.Add("@estado", SqlDbType.Bit).Value = i.Estado; // bit
 
-                return (int)cmd.ExecuteScalar();
+                // MODIFICADO: Se agrega el nuevo parámetro
+                cmd.Parameters.Add("@usuario_creador_dni", SqlDbType.Int).Value = dniUsuarioCreador;
+
+                return (int)cmd.ExecuteScalar();
             }
         }
 
@@ -101,10 +106,11 @@ namespace InmoTech.Data.Repositories
             Inmueble res = null;
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand(@"
-                SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones,
-                       nro_ambientes, amueblado, estado
-                FROM dbo.inmueble
-                WHERE id_inmueble = @id;", cn))
+                SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones,
+                       nro_ambientes, amueblado, estado,
+                       fecha_creacion, usuario_creador_dni
+                FROM dbo.inmueble
+                WHERE id_inmueble = @id;", cn))
             {
                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
                 using (var rd = cmd.ExecuteReader())
@@ -120,8 +126,12 @@ namespace InmoTech.Data.Repositories
                             Condiciones = rd.GetString(4),
                             NroAmbientes = rd.IsDBNull(5) ? (int?)null : rd.GetInt32(5),
                             Amueblado = rd.GetBoolean(6),
-                            Estado = rd.GetBoolean(7) // bit
-                        };
+                            Estado = rd.GetBoolean(7),
+
+                            // MODIFICADO: Leer nuevos campos
+                            FechaCreacion = rd.GetDateTime(8),
+                            UsuarioCreadorDni = rd.GetInt32(9)
+                        };
                     }
                 }
                 if (res != null && incluirImagenes) res.Imagenes = ListarImagenes(idInmueble);
@@ -133,10 +143,11 @@ namespace InmoTech.Data.Repositories
         {
             var lista = new List<Inmueble>();
             var sql = @"
-                SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones,
-                       nro_ambientes, amueblado, estado
-                FROM dbo.inmueble
-                WHERE (1=1)";
+                SELECT id_inmueble, direccion, tipo, ISNULL(descripcion,''), condiciones,
+                       nro_ambientes, amueblado, estado,
+                       fecha_creacion, usuario_creador_dni
+                FROM dbo.inmueble
+                WHERE (1=1)";
             if (soloActivos) sql += " AND estado = 1";
             if (!string.IsNullOrWhiteSpace(filtroTexto))
                 sql += " AND (direccion LIKE @q OR tipo LIKE @q OR condiciones LIKE @q)";
@@ -161,7 +172,11 @@ namespace InmoTech.Data.Repositories
                             Condiciones = rd.GetString(4),
                             NroAmbientes = rd.IsDBNull(5) ? (int?)null : rd.GetInt32(5),
                             Amueblado = rd.GetBoolean(6),
-                            Estado = rd.GetBoolean(7)
+                            Estado = rd.GetBoolean(7),
+
+                            // MODIFICADO: Leer nuevos campos
+                            FechaCreacion = rd.GetDateTime(8),
+                            UsuarioCreadorDni = rd.GetInt32(9)
                         });
                     }
                 }
@@ -171,13 +186,14 @@ namespace InmoTech.Data.Repositories
 
         public int Actualizar(Inmueble i)
         {
+            // NOTA: No se actualizan fecha_creacion ni usuario_creador_dni (es correcto)
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand(@"
-                UPDATE dbo.inmueble
-                   SET direccion=@direccion, tipo=@tipo, descripcion=@descripcion,
-                       condiciones=@condiciones, nro_ambientes=@nro_ambientes,
-                       amueblado=@amueblado, estado=@estado
-                 WHERE id_inmueble=@id;", cn))
+                UPDATE dbo.inmueble
+                   SET direccion=@direccion, tipo=@tipo, descripcion=@descripcion,
+                       condiciones=@condiciones, nro_ambientes=@nro_ambientes,
+                       amueblado=@amueblado, estado=@estado
+                 WHERE id_inmueble=@id;", cn))
             {
                 cmd.Parameters.Add("@direccion", SqlDbType.VarChar, 200).Value = i.Direccion;
                 cmd.Parameters.Add("@tipo", SqlDbType.VarChar, 80).Value = i.Tipo;
@@ -191,8 +207,8 @@ namespace InmoTech.Data.Repositories
             }
         }
 
-        /// <summary> Baja lógica: estado = 0 (false). </summary>
-        public int DarDeBaja(int idInmueble)
+        /// <summary> Baja lógica: estado = 0 (false). </summary>
+        public int DarDeBaja(int idInmueble)
         {
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand("UPDATE dbo.inmueble SET estado = 0 WHERE id_inmueble = @id;", cn))
@@ -209,21 +225,21 @@ namespace InmoTech.Data.Repositories
         #region CRUD Inmueble Imagen (Sub-entidad)
         public int AgregarImagenDesdeArchivo(
       int idInmueble,
-      string archivoOrigen,     // ruta local seleccionada por el usuario
-            string titulo = null,
+      string archivoOrigen,     // ruta local seleccionada por el usuario
+            string titulo = null,
       bool esPortada = false,
       short posicion = 0)
         {
             if (string.IsNullOrWhiteSpace(archivoOrigen) || !File.Exists(archivoOrigen))
                 throw new FileNotFoundException("No se encontró el archivo de imagen.", archivoOrigen);
 
-            // Copiar a Resources\inmuebles\<id>\filename
-            var destDir = GetResourcesInmueblesDir(idInmueble);
+            // Copiar a Resources\inmuebles\<id>\filename
+            var destDir = GetResourcesInmueblesDir(idInmueble);
             var fileName = Path.GetFileName(archivoOrigen);
             var destPath = Path.Combine(destDir, fileName);
 
-            // Evitar colisiones
-            if (File.Exists(destPath))
+            // Evitar colisiones
+            if (File.Exists(destPath))
             {
                 var name = Path.GetFileNameWithoutExtension(fileName);
                 var ext = Path.GetExtension(fileName);
@@ -234,8 +250,8 @@ namespace InmoTech.Data.Repositories
 
             File.Copy(archivoOrigen, destPath);
 
-            // Medidas y metadatos
-            int? w = null, h = null, size = null;
+            // Medidas y metadatos
+            int? w = null, h = null, size = null;
             try
             {
                 using (var img = Image.FromFile(destPath))
@@ -247,23 +263,23 @@ namespace InmoTech.Data.Repositories
             }
             catch { /* si falla, seguimos sin medidas */ }
 
-            // Ruta relativa que guardaremos en DB (para mover la app sin romper enlaces)
-            // Ej: "Resources\inmuebles\12\frente.jpg"
-            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            // Ruta relativa que guardaremos en DB (para mover la app sin romper enlaces)
+            // Ej: "Resources\inmuebles\12\frente.jpg"
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var rutaRel = GetRelativePath(baseDir, destPath);
 
             var extLower = Path.GetExtension(fileName);
             var mime = GetMimeByExtension(extLower);
 
-            // Insert en dbo.inmueble_imagen
-            using (var cn = BDGeneral.GetConnection())
+            // Insert en dbo.inmueble_imagen
+            using (var cn = BDGeneral.GetConnection())
             using (var tr = cn.BeginTransaction())
             using (var cmd = new SqlCommand(@"
-            INSERT INTO dbo.inmueble_imagen
-            (id_inmueble, titulo, nombre_archivo, ruta, content_type, bytes_size, ancho_px, alto_px, es_portada, posicion)
-            VALUES (@id_inmueble, @titulo, @nombre_archivo, @ruta, @content_type, @bytes_size, @ancho_px, @alto_px, @es_portada, @posicion);
-            SELECT CAST(SCOPE_IDENTITY() AS int);
-            ", cn, tr))
+            INSERT INTO dbo.inmueble_imagen
+            (id_inmueble, titulo, nombre_archivo, ruta, content_type, bytes_size, ancho_px, alto_px, es_portada, posicion)
+            VALUES (@id_inmueble, @titulo, @nombre_archivo, @ruta, @content_type, @bytes_size, @ancho_px, @alto_px, @es_portada, @posicion);
+            SELECT CAST(SCOPE_IDENTITY() AS int);
+            ", cn, tr))
             {
                 cmd.Parameters.Add("@id_inmueble", SqlDbType.Int).Value = idInmueble;
                 cmd.Parameters.Add("@titulo", SqlDbType.VarChar, 150).Value = (object)titulo ?? DBNull.Value;
@@ -280,11 +296,11 @@ namespace InmoTech.Data.Repositories
 
                 if (esPortada)
                 {
-                    // deja una sola portada (similar a índice único filtrado)
-                    using (var cmd2 = new SqlCommand(@"
-                    UPDATE dbo.inmueble_imagen
-                       SET es_portada = 0
-                     WHERE id_inmueble = @id_inmueble AND id_imagen <> @id AND es_portada = 1;", cn, tr))
+                    // deja una sola portada (similar a índice único filtrado)
+                    using (var cmd2 = new SqlCommand(@"
+                    UPDATE dbo.inmueble_imagen
+                        SET es_portada = 0
+                        WHERE id_inmueble = @id_inmueble AND id_imagen <> @id AND es_portada = 1;", cn, tr))
                     {
                         cmd2.Parameters.Add("@id_inmueble", SqlDbType.Int).Value = idInmueble;
                         cmd2.Parameters.Add("@id", SqlDbType.Int).Value = newId;
@@ -302,11 +318,11 @@ namespace InmoTech.Data.Repositories
             var lista = new List<InmuebleImagen>();
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new SqlCommand(@"
-            SELECT id_imagen, id_inmueble, titulo, nombre_archivo, ruta, content_type,
-                   bytes_size, ancho_px, alto_px, es_portada, posicion, creado_en, activo
-            FROM dbo.inmueble_imagen
-            WHERE id_inmueble = @id " + (soloActivas ? "AND activo = 1 " : "") + @"
-            ORDER BY es_portada DESC, posicion ASC, id_imagen ASC;", cn))
+            SELECT id_imagen, id_inmueble, titulo, nombre_archivo, ruta, content_type,
+                   bytes_size, ancho_px, alto_px, es_portada, posicion, creado_en, activo
+            FROM dbo.inmueble_imagen
+            WHERE id_inmueble = @id " + (soloActivas ? "AND activo = 1 " : "") + @"
+            ORDER BY es_portada DESC, posicion ASC, id_imagen ASC;", cn))
             {
                 cmd.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
                 using (var rd = cmd.ExecuteReader())
@@ -341,8 +357,8 @@ namespace InmoTech.Data.Repositories
             int idInmueble = 0;
             using (var cn = BDGeneral.GetConnection())
             {
-                // Obtener id_inmueble
-                using (var get = new SqlCommand("SELECT id_inmueble FROM dbo.inmueble_imagen WHERE id_imagen=@id;", cn))
+                // Obtener id_inmueble
+                using (var get = new SqlCommand("SELECT id_inmueble FROM dbo.inmueble_imagen WHERE id_imagen=@id;", cn))
                 {
                     get.Parameters.Add("@id", SqlDbType.Int).Value = idImagen;
                     var o = get.ExecuteScalar();
@@ -368,18 +384,18 @@ namespace InmoTech.Data.Repositories
             }
         }
 
-        /// <summary>
-        /// Elimina el registro y, opcionalmente, el archivo físico.
-        /// </summary>
-        public int EliminarImagen(int idImagen, bool borrarArchivoFisico = true)
+        /// <summary>
+        /// Elimina el registro y, opcionalmente, el archivo físico.
+        /// </summary>
+        public int EliminarImagen(int idImagen, bool borrarArchivoFisico = true)
         {
             string ruta = null;
             int idInmueble = 0;
 
             using (var cn = BDGeneral.GetConnection())
             {
-                // Obtener ruta para borrar archivo y carpeta
-                using (var get = new SqlCommand("SELECT id_inmueble, ruta FROM dbo.inmueble_imagen WHERE id_imagen=@id;", cn))
+                // Obtener ruta para borrar archivo y carpeta
+                using (var get = new SqlCommand("SELECT id_inmueble, ruta FROM dbo.inmueble_imagen WHERE id_imagen=@id;", cn))
                 {
                     get.Parameters.Add("@id", SqlDbType.Int).Value = idImagen;
                     using (var rd = get.ExecuteReader())
@@ -406,8 +422,8 @@ namespace InmoTech.Data.Repositories
                         var abs = Path.IsPathRooted(ruta) ? ruta : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ruta);
                         if (File.Exists(abs)) File.Delete(abs);
 
-                        // Si la carpeta del inmueble queda vacía, intentar borrarla
-                        var dir = GetResourcesInmueblesDir(idInmueble);
+                        // Si la carpeta del inmueble queda vacía, intentar borrarla
+                        var dir = GetResourcesInmueblesDir(idInmueble);
                         if (Directory.Exists(dir) && Directory.GetFiles(dir).Length == 0)
                             Directory.Delete(dir, true);
                     }
@@ -442,27 +458,27 @@ namespace InmoTech.Data.Repositories
 
             var lista = new List<InmuebleLite>();
             var sql = @"
-            ;WITH q AS (
-               SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
-               FROM dbo.inmueble
-               WHERE (@term='' 
-                      OR direccion   LIKE @like
-                      OR tipo        LIKE @like
-                      OR condiciones LIKE @like)
-                 AND (@estado IS NULL OR estado = @estado)
-            )
-            SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
-            FROM q
-            ORDER BY direccion
-            OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY;
+            ;WITH q AS (
+                SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
+                FROM dbo.inmueble
+                WHERE (@term='' 
+                       OR direccion   LIKE @like
+                       OR tipo        LIKE @like
+                       OR condiciones LIKE @like)
+                  AND (@estado IS NULL OR estado = @estado)
+            )
+            SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
+            FROM q
+            ORDER BY direccion
+            OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY;
 
-            SELECT COUNT(1)
-            FROM dbo.inmueble
-            WHERE (@term='' 
-                   OR direccion   LIKE @like
-                   OR tipo        LIKE @like
-                   OR condiciones LIKE @like)
-              AND (@estado IS NULL OR estado = @estado);";
+            SELECT COUNT(1)
+            FROM dbo.inmueble
+            WHERE (@term='' 
+                  OR direccion   LIKE @like
+                  OR tipo        LIKE @like
+                  OR condiciones LIKE @like)
+              AND (@estado IS NULL OR estado = @estado);";
 
             using (var cn = BDGeneral.GetConnection())
             using (var cmd = new Microsoft.Data.SqlClient.SqlCommand(sql, cn))
@@ -506,8 +522,8 @@ namespace InmoTech.Data.Repositories
             public string Tipo { get; set; } = "";
             public int? NroAmbientes { get; set; }
             public bool Amueblado { get; set; }
-            public bool Estado { get; set; }  // true=Activo
-        }
+            public bool Estado { get; set; }  // true=Activo
+        }
         #endregion
-    }
+    }
 }
