@@ -1,9 +1,9 @@
 ﻿using InmoTech.Services;
-using InmoTech.Models; // 👈 Añadir este using
+using InmoTech.Models;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq; // Para usar .Any()
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -13,15 +13,18 @@ namespace InmoTech.Controls
     public partial class UcAIAssistant : UserControl
     {
         private readonly string _apiKey;
-
-        private readonly List<ContratoDTO> _contratos; // 👈 Nuevo campo
+        private readonly List<ContratoDTO> _contratos;
         private readonly List<PagoDTO> _pagos;
-        private TextBox txtChatHistory;
+
+        // --- 🌟 CAMBIOS DE UI ---
+        // Reemplazamos el TextBox por un TableLayoutPanel para las burbujas
+        private TableLayoutPanel tlpChatHistory;
+        private Panel pnlContainer; // Contenedor para el TLP con scroll
         private TextBox txtPrompt;
         private Button btnSend;
         private TableLayoutPanel root;
+        // -------------------------
 
-        // Pasamos la API key al abrir el chat
         public UcAIAssistant(string apiKey, List<ContratoDTO> contratos, List<PagoDTO> pagos)
         {
             _apiKey = apiKey;
@@ -34,6 +37,9 @@ namespace InmoTech.Controls
 
             BuildUi();
             HookEvents();
+
+            // 🌟 CORRECCIÓN: Mensaje inicial movido al evento Load
+            // AppendToHistory("Asistente IA: ", "¿Cómo puedo ayudarte a analizar tus reportes?");
         }
 
         private void BuildUi()
@@ -48,28 +54,39 @@ namespace InmoTech.Controls
                 ColumnCount = 1,
                 RowCount = 2
             };
-            // Fila 0: Historial (ocupa todo el espacio)
             root.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            // Fila 1: Input y botón (tamaño fijo)
             root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-
             Controls.Add(root);
 
-            // --- Historial de Chat ---
-            txtChatHistory = new TextBox
+            // --- 🌟 NUEVO Historial de Chat (Panel con TLP) ---
+            // Usamos un Panel exterior que NO se auto-redimensiona
+            pnlContainer = new Panel
             {
                 Dock = DockStyle.Fill,
-                Multiline = true,
-                ReadOnly = true,
-                ScrollBars = ScrollBars.Vertical,
                 BackColor = Color.White,
-                Font = new Font("Segoe UI", 10f),
                 Margin = new Padding(0, 0, 0, 8),
-                Text = "Asistente IA: ¿Cómo puedo ayudarte a analizar tus reportes?" + Environment.NewLine
+                AutoScroll = true // 👈 El Panel exterior gestiona el scroll
             };
-            root.Controls.Add(txtChatHistory, 0, 0);
 
-            // --- Panel de Input ---
+            // El TableLayoutPanel interior SÍ se auto-redimensiona
+            tlpChatHistory = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top, // Se ancla arriba del Panel
+                AutoSize = true,       // Crecerá verticalmente
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                BackColor = Color.White,
+                ColumnCount = 2, // Columna 0 para IA, Columna 1 para Usuario
+                RowCount = 1
+            };
+            tlpChatHistory.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpChatHistory.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpChatHistory.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // La primera fila
+
+            pnlContainer.Controls.Add(tlpChatHistory);
+            root.Controls.Add(pnlContainer, 0, 0);
+            // ----------------------------------------------------
+
+            // --- Panel de Input (Sin cambios) ---
             var inputPanel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -78,8 +95,8 @@ namespace InmoTech.Controls
                 ColumnCount = 2,
                 RowCount = 1
             };
-            inputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F)); // Input
-            inputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize)); // Botón
+            inputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            inputPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             root.Controls.Add(inputPanel, 0, 1);
 
             txtPrompt = new TextBox
@@ -93,7 +110,7 @@ namespace InmoTech.Controls
             inputPanel.Controls.Add(txtPrompt, 0, 0);
 
             btnSend = UiTheme.PrimaryButton("Enviar");
-            btnSend.Width = 120; // Ancho más pequeño
+            btnSend.Width = 120;
             inputPanel.Controls.Add(btnSend, 1, 0);
 
             ResumeLayout();
@@ -101,17 +118,38 @@ namespace InmoTech.Controls
 
         private void HookEvents()
         {
-            // Evento para enviar con 'Enter'
+            // 🌟 CORRECCIÓN: Añadimos el manejador del evento Load
+            this.Load += UcAIAssistant_Load;
+
             txtPrompt.KeyDown += (s, e) =>
             {
                 if (e.KeyCode == Keys.Enter && !e.Shift)
                 {
-                    e.SuppressKeyPress = true; // Evita el 'ding' de Windows
+                    e.SuppressKeyPress = true;
                     btnSend.PerformClick();
                 }
             };
 
             btnSend.Click += async (s, e) => await SendPromptAsync();
+
+            // 🌟 NUEVO: Hacemos que el TLP se ajuste al ancho del panel
+            pnlContainer.Resize += (s, e) =>
+            {
+                tlpChatHistory.Width = pnlContainer.ClientSize.Width;
+            };
+        }
+
+        // 🌟 CORRECCIÓN: Nuevo método para manejar el evento Load
+        private void UcAIAssistant_Load(object sender, EventArgs e)
+        {
+            // Forzamos el ajuste de ancho aquí para asegurar que tlpChatHistory.Width tenga un valor
+            if (pnlContainer.ClientSize.Width > 0)
+            {
+                tlpChatHistory.Width = pnlContainer.ClientSize.Width;
+            }
+
+            // Añadimos el mensaje inicial ahora que el control está cargado y dimensionado
+            AppendToHistory("Asistente IA: ", "¿Cómo puedo ayudarte a analizar tus reportes?");
         }
 
         private async Task SendPromptAsync()
@@ -123,13 +161,12 @@ namespace InmoTech.Controls
             }
 
             SetLoading(true);
-            AppendToHistory("Usuario: ", prompt);
+            AppendToHistory("Usuario: ", prompt); // 👈 Llama al nuevo método
             txtPrompt.Clear();
 
-            // 👈 Llamada al servicio con los datos
             string response = await GeminiService.GenerateContentAsync(_apiKey, prompt, _contratos, _pagos);
 
-            AppendToHistory("Asistente IA: ", response);
+            AppendToHistory("Asistente IA: ", response); // 👈 Llama al nuevo método
             SetLoading(false);
         }
 
@@ -152,19 +189,52 @@ namespace InmoTech.Controls
             }
         }
 
+        // --- 🌟 MÉTODO DE BURBUJAS COMPLETAMENTE NUEVO ---
         private void AppendToHistory(string prefix, string text)
         {
-            var sb = new StringBuilder();
-            sb.Append(prefix);
+            // 1. Crear la burbuja (un Label con estilo)
+            var bubble = new Label
+            {
+                Text = text.Replace("\n", Environment.NewLine),
+                Font = new Font("Segoe UI", 10.5f),
+                ForeColor = Color.Black,
+                Padding = new Padding(12),
+                Margin = new Padding(10, 8, 10, 8),
+                AutoSize = true,
+                // El truco para el auto-wrap:
+                // 🌟 CORRECCIÓN: Usar pnlContainer.ClientSize.Width en lugar de tlpChatHistory.Width
+                // Esto asegura que usemos el ancho del contenedor padre, que es más fiable.
+                MaximumSize = new Size((int)(pnlContainer.ClientSize.Width * 0.45), 0) // Max 45% del ancho
+            };
 
-            // Formatea la respuesta para que se vea bien en el TextBox
-            sb.Append(text.Replace("\n", Environment.NewLine));
+            // 2. Añadir una nueva fila al TLP
+            tlpChatHistory.RowCount++;
+            tlpChatHistory.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-            sb.Append(Environment.NewLine);
-            sb.Append(Environment.NewLine);
+            // 3. Aplicar estilo y alinear
+            if (prefix == "Usuario: ")
+            {
+                bubble.BackColor = UiTheme.Primary; // Color principal
+                bubble.ForeColor = Color.White;
+                // Añadir a la Columna 1 (Derecha)
+                tlpChatHistory.Controls.Add(bubble, 1, tlpChatHistory.RowCount - 1);
+                // Añadir un panel vacío a la Columna 0 (Izquierda) para empujar
+                tlpChatHistory.Controls.Add(new Panel { Dock = DockStyle.Fill }, 0, tlpChatHistory.RowCount - 1);
+            }
+            else // Asistente IA
+            {
+                bubble.BackColor = Color.FromArgb(235, 237, 239); // Gris claro
+                bubble.ForeColor = UiTheme.TextMain;
+                // Añadir a la Columna 0 (Izquierda)
+                tlpChatHistory.Controls.Add(bubble, 0, tlpChatHistory.RowCount - 1);
+                // Añadir un panel vacío a la Columna 1 (Derecha)
+                tlpChatHistory.Controls.Add(new Panel { Dock = DockStyle.Fill }, 1, tlpChatHistory.RowCount - 1);
+            }
 
-            txtChatHistory.AppendText(sb.ToString());
-            txtChatHistory.ScrollToCaret();
+            // 4. Forzar el scroll hacia abajo
+            pnlContainer.ScrollControlIntoView(bubble);
         }
     }
 }
+
+
