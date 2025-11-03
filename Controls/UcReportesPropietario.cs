@@ -1,4 +1,5 @@
-﻿using InmoTech.Models;
+﻿using DotNetEnv;
+using InmoTech.Models;
 using InmoTech.Repositories;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
+using DotNetEnv;
 
 namespace InmoTech.Controls
 {
@@ -16,6 +18,7 @@ namespace InmoTech.Controls
         private DateTimePicker dtpDesde, dtpHasta;
         private Button btnRefrescar, btnExportVencidas, btnExportVencer;
         private Button btnPagos;
+        private Button btnChatAI;
         private Label lblKpiIngresos, lblKpiPagos, lblKpiContratos;
         private DataGridView grdVencidas, grdPorVencer;
 
@@ -114,8 +117,10 @@ namespace InmoTech.Controls
             btnMorosidad = UiTheme.PrimaryButton("Morosidad");
             btnTopInquilinos = UiTheme.PrimaryButton("Top");
             btnPagos = UiTheme.PrimaryButton("Pagos");
+            btnChatAI = UiTheme.PrimaryButton("Asistente IA");
+            btnChatAI.BackColor = UiTheme.Success;
             accesos.Controls.AddRange(new Control[] {
-                btnOperadores, btnInmuebles, btnMetodosPago, btnMorosidad, btnTopInquilinos, btnPagos   // 👈 incluir
+                btnOperadores, btnInmuebles, btnMetodosPago, btnMorosidad, btnTopInquilinos, btnPagos,btnChatAI   // 👈 incluir
             });
 
             var filtrosContainer = new Panel { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
@@ -216,8 +221,56 @@ namespace InmoTech.Controls
             btnMorosidad.Click += (s, e) => AbrirVentana(new UcReporteMorosidad(dtpDesde.Value, dtpHasta.Value));
             btnTopInquilinos.Click += (s, e) => AbrirVentana(new UcReporteInquilinos(dtpDesde.Value, dtpHasta.Value));
             btnPagos.Click += (s, e) => AbrirVentana(new UcReportePagos(dtpDesde.Value, dtpHasta.Value)); // 👈 nuevo
-
+            btnChatAI.Click += (s, e) => AbrirAsistenteIA();
         }
+
+        private void AbrirAsistenteIA()
+        {
+            try
+            {
+                // 1. Carga las variables desde el archivo .env
+                // (Asegúrate de que el .env tenga "Copiar si es más reciente" en sus Propiedades)
+                Env.Load();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: No se pudo encontrar o cargar el archivo .env.\n{ex.Message}",
+                                "Error de Configuración",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                return;
+            }
+
+            // 2. Lee la API key desde las variables de entorno cargadas
+            string apiKey = Env.GetString("GEMINI_API_KEY");
+
+            // 3. Valida que la key exista y no sea el placeholder
+            if (string.IsNullOrEmpty(apiKey) || apiKey == "AQUI_VA_TU_API_KEY_DE_GEMINI")
+            {
+                MessageBox.Show("Error: Debes configurar tu 'GEMINI_API_KEY' en el archivo .env",
+                                "Configuración Requerida",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 4. Abre el chat (esto es igual a tu código)
+            var chatControl = new UcAIAssistant(apiKey);
+
+            var f = new Form
+            {
+                StartPosition = FormStartPosition.CenterParent,
+                Width = 600,
+                Height = 740,
+                Text = "Asistente IA",
+                AutoScaleMode = AutoScaleMode.Dpi
+            };
+            chatControl.Dock = DockStyle.Fill;
+            f.Controls.Add(chatControl);
+            f.ShowDialog();
+        }
+
+
 
         private void SetDefaults()
         {
