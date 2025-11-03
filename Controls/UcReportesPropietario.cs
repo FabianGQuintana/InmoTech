@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using DotNetEnv;
+using System.Linq; // Para el .Any()
 
 namespace InmoTech.Controls
 {
@@ -224,12 +225,17 @@ namespace InmoTech.Controls
             btnChatAI.Click += (s, e) => AbrirAsistenteIA();
         }
 
-        private void AbrirAsistenteIA()
+        private async void AbrirAsistenteIA() // 👈 Cambiado a async
         {
+            // --- 🌟 CORRECCIÓN AQUÍ 🌟 ---
+            // Declaramos las listas aquí para que existan fuera del bloque try
+            List<ContratoDTO> contratosParaAI = new List<ContratoDTO>();
+            List<PagoDTO> pagosParaAI = new List<PagoDTO>();
+            string apiKey = "";
+            // -------------------------------------
+
             try
             {
-                // 1. Carga las variables desde el archivo .env
-                // (Asegúrate de que el .env tenga "Copiar si es más reciente" en sus Propiedades)
                 Env.Load();
             }
             catch (Exception ex)
@@ -241,10 +247,8 @@ namespace InmoTech.Controls
                 return;
             }
 
-            // 2. Lee la API key desde las variables de entorno cargadas
-            string apiKey = Env.GetString("GEMINI_API_KEY");
+            apiKey = Env.GetString("GEMINI_API_KEY");
 
-            // 3. Valida que la key exista y no sea el placeholder
             if (string.IsNullOrEmpty(apiKey) || apiKey == "AQUI_VA_TU_API_KEY_DE_GEMINI")
             {
                 MessageBox.Show("Error: Debes configurar tu 'GEMINI_API_KEY' en el archivo .env",
@@ -254,8 +258,39 @@ namespace InmoTech.Controls
                 return;
             }
 
-            // 4. Abre el chat (esto es igual a tu código)
-            var chatControl = new UcAIAssistant(apiKey);
+            try
+            {
+                // Instanciamos el repositorio unificado
+                var repoAI = new ReporteAiRepository();
+
+                // Puedes usar los filtros de fecha de tu reporte principal
+                var desde = dtpDesde.Value.Date;
+                var hasta = dtpHasta.Value.Date.AddDays(1).AddSeconds(-1);
+
+                // Llamamos a los métodos del mismo repositorio
+                contratosParaAI = await repoAI.GetContratosAsync(desde, hasta);
+                pagosParaAI = await repoAI.GetPagosAsync(desde, hasta);
+
+                if (!contratosParaAI.Any() && !pagosParaAI.Any())
+                {
+                    MessageBox.Show("Advertencia: No se encontraron datos de contratos o pagos para el período seleccionado. La IA tendrá información limitada.",
+                                    "Sin Datos",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar datos de la base de datos para la IA: {ex.Message}",
+                                "Error de DB",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                return;
+            }
+
+            // ¡NUEVO! Pasar los datos al constructor del UcAIAssistant
+            // Ahora 'apiKey', 'contratosParaAI' y 'pagosParaAI' son visibles aquí
+            var chatControl = new UcAIAssistant(apiKey, contratosParaAI, pagosParaAI);
 
             var f = new Form
             {
@@ -269,6 +304,7 @@ namespace InmoTech.Controls
             f.Controls.Add(chatControl);
             f.ShowDialog();
         }
+
 
 
 

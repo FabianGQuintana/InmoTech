@@ -1,7 +1,11 @@
-﻿using InmoTech.Services; // El servicio que acabamos de crear
+﻿using InmoTech.Services;
+using InmoTech.Models; // 👈 Añadir este using
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq; // Para usar .Any()
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace InmoTech.Controls
@@ -10,15 +14,19 @@ namespace InmoTech.Controls
     {
         private readonly string _apiKey;
 
+        private readonly List<ContratoDTO> _contratos; // 👈 Nuevo campo
+        private readonly List<PagoDTO> _pagos;
         private TextBox txtChatHistory;
         private TextBox txtPrompt;
         private Button btnSend;
         private TableLayoutPanel root;
 
         // Pasamos la API key al abrir el chat
-        public UcAIAssistant(string apiKey)
+        public UcAIAssistant(string apiKey, List<ContratoDTO> contratos, List<PagoDTO> pagos)
         {
             _apiKey = apiKey;
+            _contratos = contratos;
+            _pagos = pagos;
 
             UiTheme.EnableHighDpi(this);
             DoubleBuffered = true;
@@ -114,15 +122,13 @@ namespace InmoTech.Controls
                 return;
             }
 
-            // Deshabilitar UI mientras piensa
             SetLoading(true);
             AppendToHistory("Usuario: ", prompt);
             txtPrompt.Clear();
 
-            // Llamar al servicio
-            string response = await GeminiService.GenerateContentAsync(_apiKey, prompt);
+            // 👈 Llamada al servicio con los datos
+            string response = await GeminiService.GenerateContentAsync(_apiKey, prompt, _contratos, _pagos);
 
-            // Mostrar respuesta
             AppendToHistory("Asistente IA: ", response);
             SetLoading(false);
         }

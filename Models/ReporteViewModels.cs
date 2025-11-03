@@ -123,4 +123,23 @@ namespace InmoTech.Models
         public DateTime FechaFin { get; set; }
         public int DiasRestantes { get; set; }
     }
+    public class ContratoDTO
+    {
+        public int IdContrato { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public decimal Monto { get; set; }
+        public int IdInmueble { get; set; }
+        public int IdInquilino { get; set; } // Asumo que id_persona se refiere al inquilino
+        public bool Estado { get; set; } // 'Pagado', 'Activo', etc. (varchar en DB) -> CORREGIDO a bool (bit en DB)
+    }
+    public class PagoDTO
+    {
+        public int IdPago { get; set; }
+        public decimal MontoTotal { get; set; }
+        public DateTime FechaRegistro { get; set; }
+        public int IdContrato { get; set; }
+        public string MetodoPago { get; set; } // Descripción del método de pago
+        public string Estado { get; set; } // 'Pagado' (varchar en DB)
+    }
 }
