@@ -26,6 +26,24 @@
     <Compile Update="Controls\UcRecibo.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Controls\UcReporteInmuebles.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UcReporteInquilinos.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UcReporteMetodosPago.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UcReporteMorosidad.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UcReporteOperadores.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Controls\UcReportePagos.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Controls\UcReportesAdmin.cs">
       <SubType>UserControl</SubType>
     </Compile>
