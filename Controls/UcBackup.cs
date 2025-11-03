@@ -3,6 +3,10 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
+using System.Threading;
+using System.Threading.Tasks;
+using InmoTech.Services;
+
 
 namespace InmoTech.Controls
 {
@@ -41,12 +45,22 @@ namespace InmoTech.Controls
         #endregion
 
         // ======================================================
+        //  REGIÓN: Campos de Servicio / Control de Tarea
+        // ======================================================
+        #region Campos de Servicio
+        private readonly BackupService _backupService = new BackupService();
+        private CancellationTokenSource? _cts;
+        #endregion
+
+
+        // ======================================================
         //  REGIÓN: Constructor
         // ======================================================
         #region Constructor
         public UcBackup()
         {
             InitializeComponent();
+            btnCrear.Click += BtnCrear_Click;
 
             // Valores por defecto
             cmbCompresion.SelectedIndex = 0; // "Ninguna"
@@ -187,6 +201,79 @@ Ruta final:    {salida}";
             MessageBox.Show("Se generó la simulación del backup.\nRevisá la previsualización.", "Simulación OK",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        private async void BtnCrear_Click(object? sender, EventArgs e)
+        {
+            if (!Validar(out var msg))
+            {
+                MessageBox.Show(msg, "Faltan datos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Levanto config actual
+            var cfg = GetConfig();
+            var fullPath = BackupService.BuildFinalPath(cfg.Destino, cfg.NombreArchivo, cfg.AgregarFecha);
+
+            // Si existe y no quieren sobrescribir, pregunto
+            if (System.IO.File.Exists(fullPath) && !cfg.Sobrescribir)
+            {
+                var r = MessageBox.Show(
+                    "El archivo ya existe. ¿Deseás sobrescribirlo?",
+                    "Archivo existente", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (r != DialogResult.Yes) return;
+            }
+
+            // UI: deshabilito botones mientras corre
+            ToggleUi(false);
+            lblEstado.Text = "Ejecutando backup…";
+            lblEstado.ForeColor = System.Drawing.Color.DarkSlateGray;
+
+            _cts = new CancellationTokenSource();
+            var progress = new Progress<string>(s =>
+            {
+                lblEstado.Text = s;
+                txtPreview.AppendText((txtPreview.Text.EndsWith(Environment.NewLine) ? "" : Environment.NewLine) + s + Environment.NewLine);
+            });
+
+            try
+            {
+                await _backupService.CreateBackupAsync(
+                    fullPath,
+                    overwrite: cfg.Sobrescribir,
+                    compressionLevel: cfg.Compresion,
+                    verify: cfg.Verificar,
+                    progress: progress,
+                    ct: _cts.Token);
+
+                MessageBox.Show($"Backup creado correctamente.\n\nArchivo:\n{fullPath}",
+                    "Backup OK", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                lblEstado.Text = "Backup finalizado correctamente ✔";
+                lblEstado.ForeColor = System.Drawing.Color.DarkGreen;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo completar el backup.\n\nDetalle:\n{ex.Message}",
+                    "Error de backup", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblEstado.Text = $"Error: {ex.Message}";
+                lblEstado.ForeColor = System.Drawing.Color.Firebrick;
+            }
+            finally
+            {
+                ToggleUi(true);
+                _cts?.Dispose();
+                _cts = null;
+            }
+        }
+
+        private void ToggleUi(bool enabled)
+        {
+            btnElegirCarpeta.Enabled = enabled;
+            btnProbarRuta.Enabled = enabled;
+            btnSimular.Enabled = enabled;
+            btnCrear.Enabled = enabled;
+            Cursor = enabled ? Cursors.Default : Cursors.WaitCursor;
+        }
+
         #endregion
 
         // ======================================================

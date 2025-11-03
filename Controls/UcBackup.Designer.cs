@@ -33,6 +33,7 @@ namespace InmoTech.Controls
         private Button btnProbarRuta;
         private Button btnSimular;
         private Label lblEstado;
+        private Button btnCrear;
 
         // Preview
         private TextBox txtPreview;
@@ -47,6 +48,7 @@ namespace InmoTech.Controls
 
         private void InitializeComponent()
         {
+
             lblTitulo = new Label();
             cardRuta = new Panel();
             tlCard = new TableLayoutPanel();
@@ -293,6 +295,20 @@ namespace InmoTech.Controls
             btnSimular.Size = new Size(81, 35);
             btnSimular.TabIndex = 1;
             btnSimular.Text = "Simular";
+            // 
+            // btnCrear
+            // 
+            btnCrear = new Button();
+            btnCrear.AutoSize = true;
+            btnCrear.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            btnCrear.Location = new Point(0, 0);
+            btnCrear.Margin = new Padding(12, 0, 0, 0);
+            btnCrear.Name = "btnCrear";
+            btnCrear.Size = new Size(119, 35);
+            btnCrear.TabIndex = 2;
+            btnCrear.Text = "Crear backup";
+            pnlBtns.Controls.Add(btnCrear);
+
             // 
             // lblEstado
             // 

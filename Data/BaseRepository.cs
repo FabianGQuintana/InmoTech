@@ -1,22 +1,17 @@
 ﻿using System.Data;
-using System.Data.SqlClient; // Asegúrate de tener el paquete System.Data.SqlClient NuGet instalado si no lo tienes.
+using System.Data.SqlClient; 
 using System.Threading.Tasks;
 
 namespace InmoTech.Data
 {
     public abstract class BaseRepository
     {
-        // ⚠️ IMPORTANTE: Aquí deberás poner tu cadena de conexión a la base de datos.
-        // Lo ideal sería cargarla desde un App.config o .env también.
-        // Por ahora, la ponemos aquí como placeholder para que funcione.
-        private readonly string _connectionString = "Data Source=Ivan\\SQLEXPRESS;" +
+        private readonly string _connectionString = "Data Source=localhost\\MSSQLSERVER04;" +
                                                     "Initial Catalog=inmotech;" +
                                                     "Integrated Security=SSPI;" +
                                                     "Encrypt=True;" +
                                                     "TrustServerCertificate=True;" +
                                                     "Persist Security Info=False;";
-        // Ejemplo: "Data Source=.;Initial Catalog=InmoTechDB;Integrated Security=True"; para SQL Server local
-        // Ejemplo: "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;";
 
         protected async Task<T> ExecuteReaderAsync<T>(string query, Func<SqlDataReader, T> mapFunction)
         {
