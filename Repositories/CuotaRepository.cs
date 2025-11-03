@@ -56,10 +56,10 @@ namespace InmoTech.Repositories
             using var conexion = BDGeneral.GetConnection();
 
             const string sql = @"
-            SELECT id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago
-            FROM cuota
-            WHERE id_contrato = @IdContrato
-            ORDER BY nro_cuota;";
+            SELECT id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago
+            FROM cuota
+            WHERE id_contrato = @IdContrato
+            ORDER BY nro_cuota;";
 
             using var cmd = new SqlCommand(sql, conexion);
             cmd.Parameters.Add("@IdContrato", SqlDbType.Int).Value = idContrato;
@@ -67,17 +67,41 @@ namespace InmoTech.Repositories
             using var rd = cmd.ExecuteReader();
             var list = new List<Cuota>();
 
+            // *** CAMBIO: Obtener fecha de hoy ANTES del bucle ***
+            DateTime hoy = DateTime.Today;
+
+            // Obtener los índices de las columnas una sola vez
+            int ordIdContrato = rd.GetOrdinal("id_contrato");
+            int ordNroCuota = rd.GetOrdinal("nro_cuota");
+            int ordFechaVenc = rd.GetOrdinal("fecha_vencimiento");
+            int ordImporte = rd.GetOrdinal("importe");
+            int ordEstado = rd.GetOrdinal("estado");
+            int ordIdPago = rd.GetOrdinal("id_pago");
+
+
             while (rd.Read())
             {
-                list.Add(new Cuota
+                var cuota = new Cuota
                 {
-                    IdContrato = rd.GetInt32(0),
-                    NroCuota = rd.GetInt32(1),
-                    FechaVencimiento = rd.GetDateTime(2),
-                    Importe = rd.GetDecimal(3),
-                    Estado = rd.GetString(4),
-                    IdPago = rd.IsDBNull(5) ? null : rd.GetInt32(5)
-                });
+                    IdContrato = rd.GetInt32(ordIdContrato),
+                    NroCuota = rd.GetInt32(ordNroCuota),
+                    FechaVencimiento = rd.GetDateTime(ordFechaVenc),
+                    Importe = rd.GetDecimal(ordImporte),
+                    Estado = rd.GetString(ordEstado),
+                    IdPago = rd.IsDBNull(ordIdPago) ? null : rd.GetInt32(ordIdPago)
+                };
+
+                // *** INICIO: Lógica para calcular estado Vencida ***
+                // Si la cuota está 'Pendiente', no tiene pago asociado, y la fecha de vencimiento es anterior a hoy...
+                if (cuota.Estado == "Pendiente" && cuota.IdPago == null && cuota.FechaVencimiento.Date < hoy)
+                {
+                    // ...cambiamos el estado a 'Vencida' SOLO en el objeto que vamos a devolver.
+                    // ¡Esto NO actualiza la base de datos!
+                    cuota.Estado = "Vencida";
+                }
+                // *** FIN: Lógica para calcular estado Vencida ***
+
+                list.Add(cuota);
             }
 
             return list;

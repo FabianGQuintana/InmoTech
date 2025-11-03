@@ -209,7 +209,6 @@ namespace InmoTech.Controls
                 FechaInicio = dtpInicio.Value.Date,
                 FechaFin = dtpFin.Value.Date,
                 Monto = nudMonto.Value,
-                Condiciones = null,
                 IdInmueble = _selInmuebleId.Value,
                 IdPersona = _selPersonaId.Value,
                 FechaCreacion = DateTime.Now,

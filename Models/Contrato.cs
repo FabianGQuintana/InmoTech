@@ -10,10 +10,9 @@ namespace InmoTech.Models
         #region Propiedades de Persistencia (Base de Datos)
         public int IdContrato { get; set; }
         public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }   // NOT NULL
-
-        public decimal Monto { get; set; }
-        public string? Condiciones { get; set; }
+        public DateTime FechaFin { get; set; }  // NOT NULL
+        public decimal Monto { get; set; }
+        // public string? Condiciones { get; set; } // <<--- LÍNEA ELIMINADA
         public int IdInmueble { get; set; }
         public int IdPersona { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -27,9 +26,8 @@ namespace InmoTech.Models
         #region Propiedades Extendidas (Para la UI/Reports)
         // Para la UI
         public string? NombreInquilino { get; set; }
-
         public string? NombreUsuario { get; set; }
         public string? DireccionInmueble { get; set; }
         #endregion
-    }
+    }
 }
