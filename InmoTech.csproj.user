@@ -74,5 +74,8 @@
     <Compile Update="Controls\UcUsuarios.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Security\NoPasteTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

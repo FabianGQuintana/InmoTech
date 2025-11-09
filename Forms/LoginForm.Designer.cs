@@ -32,8 +32,8 @@
             panel1 = new Panel();
             chkMostrarPassword = new CheckBox();
             btnLogin = new Button();
-            txtPassword = new TextBox();
-            txtEmail = new TextBox();
+            this.txtEmail = new InmoTech.NoPasteTextBox();
+            this.txtPassword = new InmoTech.NoPasteTextBox();
             label2 = new Label();
             label1 = new Label();
             label3 = new Label();
@@ -161,8 +161,8 @@
         private PictureBox pictureBox1;
         private Panel panel1;
         private Button btnLogin;
-        private TextBox txtPassword;
-        private TextBox txtEmail;
+        private InmoTech.NoPasteTextBox txtEmail;  
+        private InmoTech.NoPasteTextBox txtPassword; 
         private Label label2;
         private Label label1;
         private Label label3;
