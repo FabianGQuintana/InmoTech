@@ -1,16 +1,26 @@
-﻿// UcDashboard.cs (cards + botón "Ver" centrado)
+﻿
+using InmoTech.Repositories; 
+using InmoTech.Models;      
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Globalization; // Para formatear el dinero
 
 namespace InmoTech
 {
     public partial class UcDashboard : UserControl
     {
         // ======================================================
-        //  REGIÓN: Constructor y Inicialización
+        // REGIÓN: Repositorios (NUEVO)
+        // ======================================================
+        #region Repositorios
+        private readonly DashboardRepository _dashboardRepository = new();
+        #endregion
+
+        // ======================================================
+        // REGIÓN: Constructor y Inicialización
         // ======================================================
         #region Constructor y Inicialización
         public UcDashboard()
@@ -25,75 +35,91 @@ namespace InmoTech
             Seed();
         }
 
+        // ... (IsDesigner se mantiene igual) ...
         private static bool IsDesigner()
         {
             return LicenseManager.UsageMode == LicenseUsageMode.Designtime
-                       || Process.GetCurrentProcess().ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase);
+                           || Process.GetCurrentProcess().ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase);
         }
         #endregion
 
-        // ======================================================
-        //  REGIÓN: Modelo de Datos (Record)
-        // ======================================================
-        #region Modelo de Datos (Record)
-        // ------ MODELO ------
-        private record CardInmueble(
-            string Titulo,
-            string Direccion,
-            string Tipo,
-            int Ambientes,
-            string Estado,
-            Image Foto
-        );
-        #endregion
 
         // ======================================================
-        //  REGIÓN: Carga de Datos y Renderizado (Seed)
+        // REGIÓN: Carga de Datos y Renderizado (Seed) - MODIFICADO
         // ======================================================
         #region Carga de Datos y Renderizado (Seed)
         // ------ DATA + RENDER ------
         private void Seed()
         {
-
-            // KPIs
-            lblKpiProp.Text = "12";
-            lblKpiInq.Text = "11";
-            lblKpiIngreso.Text = "$563.432,32";
-            lblKpiPend.Text = "4";
-
-            // Cards
-            flPropiedades.Controls.Clear();
-            flPropiedades.FlowDirection = FlowDirection.LeftToRight;
-            flPropiedades.WrapContents = true;
-
-            var cards = new[]
+            try
             {
-                new CardInmueble("Casa Jardín", "Rivadavia 567", "Casa", 4, "Disponible", Properties.Resources.casa1),
-                new CardInmueble("Apartamento Centro", "Alvear 1917 – 4B", "Departamento", 2, "Disponible", Properties.Resources.casa2),
-                new CardInmueble("Casa Moderna", "Junín 1645", "Casa", 5, "Reservado", Properties.Resources.casa3),
-                new CardInmueble("Dúplex Norte", "San Martín 802", "Dúplex", 3, "Alquilado", Properties.Resources.casa4)
-            };
+                // 1. Obtener todos los datos del repositorio
+                var data = _dashboardRepository.GetDashboardData();
 
-            foreach (var c in cards)
-                flPropiedades.Controls.Add(CreatePropertyCard(c));
+                // 2. KPIs Dinámicos
+                lblKpiProp.Text = data.TotalPropiedades.ToString();
+                lblKpiInq.Text = data.TotalInquilinos.ToString();
 
-            // Contratos (demo)
-            dgvContratos.Rows.Clear();
-            dgvContratos.Rows.Add("C-1024", "Juan Pérez", "Calle 123 – Dpto 4B", "Activo");
-            dgvContratos.Rows.Add("C-1025", "Ana Gómez", "Calle 1917 – 4B", "Activo");
-            dgvContratos.Rows.Add("C-1027", "Inquilino 3", "Avenida 456", "Inactivo");
-            dgvContratos.Rows.Add("C-1028", "María López", "Calle 123", "Activo");
-            dgvContratos.Rows.Add("C-1029", "Inquilino 6", "Avenida 456", "Inactivo");
+                // Formateo del ingreso usando la cultura actual (ej: "$563.432,32")
+                lblKpiIngreso.Text = data.IngresoTotalMes.ToString("C", CultureInfo.CurrentCulture);
+                lblKpiPend.Text = data.PagosPendientes.ToString();
+
+                // 3. Cards de Propiedades Dinámicas
+                flPropiedades.Controls.Clear();
+                flPropiedades.FlowDirection = FlowDirection.LeftToRight;
+                flPropiedades.WrapContents = true;
+
+                // Usamos la lista dinámica del repositorio
+                foreach (var c in data.InmueblesDisponibles)
+                    flPropiedades.Controls.Add(CreatePropertyCard(c));
+
+                if (data.InmueblesDisponibles.Count == 0)
+                {
+                    flPropiedades.Controls.Add(new Label { Text = "No hay propiedades disponibles.", ForeColor = Color.White, AutoSize = true, Padding = new Padding(10) });
+                }
+
+                // 4. Contratos por Vencer Dinámicos
+                dgvContratos.DataSource = data.ContratosVencer;
+
+                // Asegurar que las columnas tengan encabezados amigables después de DataBinding
+                if (dgvContratos.Columns.Contains("id_contrato")) dgvContratos.Columns["id_contrato"].HeaderText = "Contrato";
+                if (dgvContratos.Columns.Contains("InquilinoNombre")) dgvContratos.Columns["InquilinoNombre"].HeaderText = "Inquilino";
+                if (dgvContratos.Columns.Contains("InmuebleDireccion")) dgvContratos.Columns["InmuebleDireccion"].HeaderText = "Inmueble";
+                if (dgvContratos.Columns.Contains("estado")) dgvContratos.Columns["estado"].HeaderText = "Estado";
+                if (dgvContratos.Columns.Contains("fecha_fin")) dgvContratos.Columns["fecha_fin"].HeaderText = "Vencimiento";
+
+            }
+            catch (Exception ex)
+            {
+                // Manejo de errores de carga (ej. conexión a la BD)
+                MessageBox.Show($"Error al cargar datos del Dashboard: {ex.Message}", "Error de Conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Opcional: Establecer valores predeterminados o vaciar KPIs en caso de fallo
+                lblKpiProp.Text = "N/A";
+                lblKpiIngreso.Text = "$0,00";
+            }
         }
         #endregion
 
         // ======================================================
-        //  REGIÓN: Renderizado de Tarjeta (Card)
+        // REGIÓN: Renderizado de Tarjeta (Card) - MODIFICADO
         // ======================================================
         #region Renderizado de Tarjeta (Card)
         // ------ UI CARD ------
-        private Control CreatePropertyCard(CardInmueble d)
+        // El argumento ahora usa el modelo InmuebleCard
+        private Control CreatePropertyCard(InmuebleCard d)
         {
+            // PENDIENTE: Aquí debes añadir tu lógica para cargar la imagen real 
+            // de la tabla dbo.inmueble_imagen usando d.IdInmueble.
+            // Mientras tanto, se usa un recurso por defecto o Properties.Resources.casa_default
+            Image imagenInmueble;
+            try
+            {
+                // **IMPLEMENTAR CARGA DE IMAGEN POR IdInmueble AQUÍ**
+                imagenInmueble = Properties.Resources.casa1; // Sustituir por la carga real
+            }
+            catch { imagenInmueble = Properties.Resources.casa1; } // Fallback
+
             var card = new Panel
             {
                 Width = 340,
@@ -106,7 +132,7 @@ namespace InmoTech
 
             var pic = new PictureBox
             {
-                Image = d.Foto,
+                Image = imagenInmueble,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 Width = 150,
                 Height = 120,
@@ -114,6 +140,8 @@ namespace InmoTech
                 BackColor = Color.White
             };
             card.Controls.Add(pic);
+
+            // ... (resto del código del TableLayoutPanel right) ...
 
             var right = new TableLayoutPanel
             {
@@ -157,17 +185,18 @@ namespace InmoTech
                 Width = 76,
                 Height = 26,
                 TabStop = false,
-                UseVisualStyleBackColor = true
+                UseVisualStyleBackColor = true,
+                Tag = d.IdInmueble // Asignar el ID al botón para saber qué ver
             };
             actions.Resize += (_, __) =>
             {
                 btn.Left = (actions.Width - btn.Width) / 2;
-                btn.Top = actions.Height - btn.Height; // pegado abajo y centrado
+                btn.Top = actions.Height - btn.Height;
             };
             actions.Controls.Add(btn);
 
             btn.Click += (_, __) => MessageBox.Show(
-                $"{d.Titulo}\n{d.Direccion}\n{d.Tipo} • {d.Ambientes} amb. • {d.Estado}",
+                $"ID Inmueble: {d.IdInmueble}\n{d.Titulo}\n{d.Direccion}\n{d.Tipo} • {d.Ambientes} amb. • {d.Estado}",
                 "Inmueble", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             right.Controls.Add(lblTituloCard, 0, 0);
@@ -180,7 +209,7 @@ namespace InmoTech
         #endregion
 
         // ======================================================
-        //  REGIÓN: Handlers de Plantilla (Vacíos)
+        // REGIÓN: Handlers de Plantilla (Vacíos)
         // ======================================================
         #region Handlers de Plantilla (Vacíos)
         // Handlers plantilla
