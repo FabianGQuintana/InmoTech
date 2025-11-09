@@ -20,11 +20,63 @@ namespace InmoTech.Repositories
 
             try
             {
-                // =====================
-                // 1️⃣ INSERTAR CONTRATO (Sin 'condiciones')
-                // =====================
+                // ----------------------------------------------
+                // 0) VALIDACIONES ATÓMICAS (mismo TRX + locks)
+                //    - Inmueble: activo y condiciones válidas
+                //    - Inquilino(persona): activo
+                // ----------------------------------------------
+
+                // Bloqueo de fila del inmueble para evitar carreras de "doble contratación"
+                const string sqlCheckInmueble = @"
+                    SELECT estado, condiciones
+                    FROM dbo.inmueble WITH (UPDLOCK, ROWLOCK)
+                    WHERE id_inmueble = @IdInmueble;";
+
+                bool inmuebleActivo;
+                string condicionesInmueble = "";
+
+                using (var cmdCheckI = new SqlCommand(sqlCheckInmueble, conexion, transaccion))
+                {
+                    cmdCheckI.Parameters.Add("@IdInmueble", SqlDbType.Int).Value = c.IdInmueble;
+                    using var rd = cmdCheckI.ExecuteReader();
+                    if (!rd.Read())
+                        throw new Exception("El inmueble seleccionado no existe.");
+                    inmuebleActivo = rd.GetBoolean(0);
+                    condicionesInmueble = rd.GetString(1);
+                }
+
+                if (!inmuebleActivo)
+                    throw new Exception("El inmueble no está activo.");
+
+                var condUpper = (condicionesInmueble ?? "").Trim().ToUpperInvariant();
+                if (condUpper != "DISPONIBLE" && condUpper != "A ESTRENAR" && condUpper != "A ESTRENAR.")
+                    throw new Exception("El inmueble no está en condición 'Disponible' o 'A estrenar'.");
+
+                // Validación del inquilino (persona) activo
+                const string sqlCheckPersona = @"
+                    SELECT estado
+                    FROM dbo.persona WITH (UPDLOCK, ROWLOCK)
+                    WHERE id_persona = @IdPersona;";
+
+                bool personaActiva;
+
+                using (var cmdCheckP = new SqlCommand(sqlCheckPersona, conexion, transaccion))
+                {
+                    cmdCheckP.Parameters.Add("@IdPersona", SqlDbType.Int).Value = c.IdPersona;
+                    var o = cmdCheckP.ExecuteScalar();
+                    if (o == null)
+                        throw new Exception("El inquilino seleccionado no existe.");
+                    personaActiva = Convert.ToByte(o) == 1; // en tu esquema persona.estado es bit
+                }
+
+                if (!personaActiva)
+                    throw new Exception("El inquilino está inactivo.");
+
+                // ----------------------------------------------
+                // 1) INSERTAR CONTRATO
+                // ----------------------------------------------
                 const string sqlContrato = @"
-                    INSERT INTO contrato
+                    INSERT INTO dbo.contrato
                         (fecha_inicio, fecha_fin, monto, id_inmueble, id_persona, fecha_creacion, dni_usuario, estado)
                     OUTPUT INSERTED.id_contrato
                     VALUES
@@ -40,23 +92,19 @@ namespace InmoTech.Repositories
                 pMonto.Scale = 2;
                 pMonto.Value = c.Monto;
 
-                // Parámetro @Condiciones eliminado
-
                 cmdContrato.Parameters.Add("@IdInmueble", SqlDbType.Int).Value = c.IdInmueble;
                 cmdContrato.Parameters.Add("@IdPersona", SqlDbType.Int).Value = c.IdPersona;
-                cmdContrato.Parameters.Add("@FechaCreacion", SqlDbType.DateTime).Value = c.FechaCreacion; // Considerar DEFAULT GETDATE() en DB
+                cmdContrato.Parameters.Add("@FechaCreacion", SqlDbType.DateTime).Value = c.FechaCreacion;
                 cmdContrato.Parameters.Add("@DniUsuario", SqlDbType.Int).Value = c.DniUsuario;
                 cmdContrato.Parameters.Add("@Estado", SqlDbType.Bit).Value = c.Estado;
 
                 int nuevoIdContrato = Convert.ToInt32(cmdContrato.ExecuteScalar());
 
-                // =====================
-                // 2️⃣ GENERAR CUOTAS
-                // =====================
+                // ----------------------------------------------
+                // 2) GENERAR CUOTAS (una por mes)
+                // ----------------------------------------------
                 int totalMeses = ((c.FechaFin.Year - c.FechaInicio.Year) * 12) + (c.FechaFin.Month - c.FechaInicio.Month);
-                // Si termina el mismo mes que empieza pero días después, es al menos 1 mes/cuota
                 if (totalMeses == 0 && c.FechaFin >= c.FechaInicio) totalMeses = 1;
-
 
                 if (totalMeses <= 0)
                     throw new Exception("La fecha de fin debe ser igual o posterior a la fecha de inicio del contrato.");
@@ -66,12 +114,9 @@ namespace InmoTech.Repositories
                     : new DateTime(c.FechaInicio.Year, c.FechaInicio.Month, 1).AddMonths(1).AddDays(9);
 
                 const string sqlCuota = @"
-                    INSERT INTO cuota (id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago)
+                    INSERT INTO dbo.cuota (id_contrato, nro_cuota, fecha_vencimiento, importe, estado, id_pago)
                     VALUES (@IdContrato, @NroCuota, @FechaVencimiento, @Importe, @Estado, NULL);";
 
-                // =====================
-                // 3️⃣ INSERTAR UNA CUOTA POR MES
-                // =====================
                 for (int i = 1; i <= totalMeses; i++)
                 {
                     DateTime fechaVencimiento = primerVencimiento.AddMonths(i - 1);
@@ -91,16 +136,30 @@ namespace InmoTech.Repositories
                     cmdCuota.ExecuteNonQuery();
                 }
 
-                // =====================
-                // 4️⃣ CONFIRMAR TODO
-                // =====================
+                // ----------------------------------------------
+                // 3) CAMBIAR CONDICIÓN DEL INMUEBLE A 'Ocupado'
+                // ----------------------------------------------
+                const string sqlOcuparInmueble = @"
+                    UPDATE dbo.inmueble
+                       SET condiciones = N'Ocupado'
+                     WHERE id_inmueble = @IdInmueble;";
+
+                using (var cmdUpd = new SqlCommand(sqlOcuparInmueble, conexion, transaccion))
+                {
+                    cmdUpd.Parameters.Add("@IdInmueble", SqlDbType.Int).Value = c.IdInmueble;
+                    cmdUpd.ExecuteNonQuery();
+                }
+
+                // ----------------------------------------------
+                // 4) CONFIRMAR TODO
+                // ----------------------------------------------
                 transaccion.Commit();
-                return 1; // Indica éxito (se insertó 1 contrato y sus cuotas)
+                return 1;
             }
             catch
             {
                 transaccion.Rollback();
-                throw; // Re-lanza la excepción para que sea manejada más arriba
+                throw;
             }
         }
         #endregion
@@ -113,7 +172,6 @@ namespace InmoTech.Repositories
         {
             using var conexion = BDGeneral.GetConnection();
 
-            // Quitado 'c.condiciones' del SELECT
             const string sql = @"
             SELECT  c.id_contrato, c.fecha_inicio, c.fecha_fin, c.monto,
                     c.id_inmueble, c.id_persona, c.fecha_creacion, c.dni_usuario, c.estado,
@@ -133,7 +191,6 @@ namespace InmoTech.Repositories
             using var reader = cmd.ExecuteReader();
             var lista = new List<Contrato>();
 
-            // Obtener ordinales una vez
             int ordIdContrato = reader.GetOrdinal("id_contrato");
             int ordInicio = reader.GetOrdinal("fecha_inicio");
             int ordFin = reader.GetOrdinal("fecha_fin");
@@ -147,7 +204,6 @@ namespace InmoTech.Repositories
             int ordDirInm = reader.GetOrdinal("DireccionInmueble");
             int ordNomUsr = reader.GetOrdinal("NombreUsuario");
 
-
             while (reader.Read())
             {
                 lista.Add(new Contrato
@@ -156,7 +212,6 @@ namespace InmoTech.Repositories
                     FechaInicio = reader.GetDateTime(ordInicio),
                     FechaFin = reader.GetDateTime(ordFin),
                     Monto = reader.GetDecimal(ordMonto),
-                    // Condiciones eliminada
                     IdInmueble = reader.GetInt32(ordIdInm),
                     IdPersona = reader.GetInt32(ordIdPer),
                     FechaCreacion = reader.GetDateTime(ordCreacion),
@@ -173,7 +228,6 @@ namespace InmoTech.Repositories
         public Contrato? ObtenerPorId(int idContrato)
         {
             using var conexion = BDGeneral.GetConnection();
-            // Seleccionar columnas explícitamente sin 'condiciones'
             const string sql = @"
                 SELECT id_contrato, fecha_inicio, fecha_fin, monto,
                        id_inmueble, id_persona, fecha_creacion, dni_usuario, estado
@@ -201,7 +255,6 @@ namespace InmoTech.Repositories
                 FechaInicio = reader.GetDateTime(ordInicio),
                 FechaFin = reader.GetDateTime(ordFin),
                 Monto = reader.GetDecimal(ordMonto),
-                // Condiciones eliminada
                 IdInmueble = reader.GetInt32(ordIdInm),
                 IdPersona = reader.GetInt32(ordIdPer),
                 FechaCreacion = reader.GetDateTime(ordCreacion),
@@ -231,7 +284,6 @@ namespace InmoTech.Repositories
         {
             using var conexion = BDGeneral.GetConnection();
 
-            // Quitado 'condiciones = @Condiciones' del UPDATE
             const string sql = @"
             UPDATE contrato SET
                 fecha_inicio = @Inicio,
@@ -251,8 +303,6 @@ namespace InmoTech.Repositories
             var pMonto = cmd.Parameters.Add("@Monto", SqlDbType.Decimal);
             pMonto.Precision = 12; pMonto.Scale = 2; pMonto.Value = c.Monto;
 
-            // Parámetro @Condiciones eliminado
-
             cmd.Parameters.Add("@IdInmueble", SqlDbType.Int).Value = c.IdInmueble;
             cmd.Parameters.Add("@IdPersona", SqlDbType.Int).Value = c.IdPersona;
             cmd.Parameters.Add("@DniUsuario", SqlDbType.Int).Value = c.DniUsuario;
@@ -264,6 +314,37 @@ namespace InmoTech.Repositories
 
         public int DarDeBajaContrato(int idContrato) => ActualizarEstado(idContrato, false);
         public int RestaurarContrato(int idContrato) => ActualizarEstado(idContrato, true);
+        #endregion
+
+        // ======================================================
+        //  REGIÓN: Verificaciones
+        // ======================================================
+        #region Verificaciones
+        /// <summary>
+        /// Devuelve true si existe al menos un contrato ACTIVO (estado=1)
+        /// asociado al inmueble indicado.
+        /// </summary>
+        public bool ExisteContratoActivoPorInmueble(int idInmueble)
+        {
+            using var cn = BDGeneral.GetConnection();
+            const string sql = @"SELECT TOP (1) 1 FROM contrato WHERE id_inmueble = @id AND estado = 1;";
+            using var cmd = new SqlCommand(sql, cn);
+            cmd.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
+            var o = cmd.ExecuteScalar();
+            return o != null;
+        }
+
+        // Devuelve true si la persona (inquilino) tiene al menos un contrato ACTIVO (estado = 1)
+        public bool ExisteContratoActivoPorPersona(int idPersona)
+        {
+            using var cn = InmoTech.Data.BDGeneral.GetConnection();
+            const string sql = @"IF EXISTS (SELECT 1 FROM dbo.contrato WHERE id_persona = @id AND estado = 1)
+                         SELECT 1 ELSE SELECT 0;";
+            using var cmd = new Microsoft.Data.SqlClient.SqlCommand(sql, cn);
+            cmd.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = idPersona;
+            return Convert.ToInt32(cmd.ExecuteScalar()) == 1;
+        }
+
         #endregion
     }
 }

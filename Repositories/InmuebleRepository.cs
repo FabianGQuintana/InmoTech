@@ -451,15 +451,17 @@ namespace InmoTech.Data.Repositories
         // ======================================================
         #region Consultas Paginadas
         public (List<InmuebleLite> items, int total) BuscarPaginado(
-      string term, bool? soloActivos, int page, int pageSize)
+            string term, bool? soloActivos, int page, int pageSize)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 20;
 
             var lista = new List<InmuebleLite>();
+
+            // 👉 AGREGADO: columna 'condiciones' en la CTE y en el SELECT externo
             var sql = @"
             ;WITH q AS (
-                SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
+                SELECT id_inmueble, direccion, tipo, condiciones, nro_ambientes, amueblado, estado
                 FROM dbo.inmueble
                 WHERE (@term='' 
                        OR direccion   LIKE @like
@@ -467,7 +469,7 @@ namespace InmoTech.Data.Repositories
                        OR condiciones LIKE @like)
                   AND (@estado IS NULL OR estado = @estado)
             )
-            SELECT id_inmueble, direccion, tipo, nro_ambientes, amueblado, estado
+            SELECT id_inmueble, direccion, tipo, condiciones, nro_ambientes, amueblado, estado
             FROM q
             ORDER BY direccion
             OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY;
@@ -498,9 +500,10 @@ namespace InmoTech.Data.Repositories
                         IdInmueble = rd.GetInt32(0),
                         Direccion = rd.GetString(1),
                         Tipo = rd.GetString(2),
-                        NroAmbientes = rd.IsDBNull(3) ? (int?)null : rd.GetInt32(3),
-                        Amueblado = rd.GetBoolean(4),
-                        Estado = rd.GetBoolean(5)
+                        Condiciones = rd.GetString(3), // 👈 NUEVO
+                        NroAmbientes = rd.IsDBNull(4) ? (int?)null : rd.GetInt32(4),
+                        Amueblado = rd.GetBoolean(5),
+                        Estado = rd.GetBoolean(6)
                     });
                 }
                 rd.NextResult(); rd.Read();
@@ -520,6 +523,7 @@ namespace InmoTech.Data.Repositories
             public int IdInmueble { get; set; }
             public string Direccion { get; set; } = "";
             public string Tipo { get; set; } = "";
+            public string Condiciones { get; set; } = "";   // 👈 NUEVO
             public int? NroAmbientes { get; set; }
             public bool Amueblado { get; set; }
             public bool Estado { get; set; }  // true=Activo

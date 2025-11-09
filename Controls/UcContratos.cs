@@ -34,6 +34,9 @@ namespace InmoTech.Controls
             dataGridView1.AutoGenerateColumns = false;
             dataGridView1.DataSource = _bs;
 
+            // (Opcional) si querés reforzar desde la UI:
+            // try { nudMonto.Minimum = 0.01m; } catch {}
+
             // Handlers de inicialización
             Load += UcContratos_Load;
 
@@ -43,7 +46,6 @@ namespace InmoTech.Controls
 
             // Handlers de la UI (Formulario)
             btnBuscarInmueble.Click += BtnBuscarInmueble_Click;
-            // btnBuscarInquilino.Click += btnBuscarInquilino_Click; // LÍNEA ELIMINADA
             btnGuardar.Click += BtnGuardar_Click;
             btnCancelar.Click += (s, e) => LimpiarFormulario();
             BEstado.Click += BEstado_Click;
@@ -71,8 +73,6 @@ namespace InmoTech.Controls
             dataGridView1.Columns["colMonto"].DefaultCellStyle.Format = "C2";
             dataGridView1.Columns["colFechaCreacion"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
 
-            // Se elimina el bucle que seteaba el texto del botón en la celda
-
             // Forzar actualización del estado del botón después de refrescar
             DataGridView1_SelectionChanged(this, EventArgs.Empty);
         }
@@ -83,24 +83,18 @@ namespace InmoTech.Controls
         // ======================================================
         #region Manejadores de Eventos de la Grilla (DataGridView)
 
-        // MÉTODO NUEVO: Se ejecuta cada vez que el usuario selecciona una fila diferente
         private void DataGridView1_SelectionChanged(object? sender, EventArgs e)
         {
-            // Si hay al menos una fila seleccionada
             if (dataGridView1.SelectedRows.Count > 0)
             {
-                // Habilitamos el botón
                 BEstado.Enabled = true;
-                // Obtenemos el contrato de la fila seleccionada
                 var contrato = (Contrato)dataGridView1.SelectedRows[0].DataBoundItem;
-                // Cambiamos el texto del botón según el estado del contrato
                 BEstado.Text = contrato.Estado ? "Anular" : "Restaurar";
             }
             else
             {
-                // Si no hay ninguna fila seleccionada, deshabilitamos el botón
                 BEstado.Enabled = false;
-                BEstado.Text = "Anular"; // Texto por defecto
+                BEstado.Text = "Anular";
             }
         }
 
@@ -115,8 +109,6 @@ namespace InmoTech.Controls
                 e.FormattingApplied = true;
             }
         }
-
-        // MÉTODO ELIMINADO: DataGridView1_CellContentClick ya no se usa
         #endregion
 
         // ======================================================
@@ -124,17 +116,13 @@ namespace InmoTech.Controls
         // ======================================================
         #region Manejadores de Eventos del Formulario (Botones)
 
-        // MÉTODO NUEVO: Lógica centralizada para anular o restaurar
         private void BEstado_Click(object? sender, EventArgs e)
         {
-            // Verificamos si hay una fila seleccionada
             if (dataGridView1.SelectedRows.Count == 0) return;
 
-            // Obtenemos el contrato seleccionado
             var contrato = (Contrato)dataGridView1.SelectedRows[0].DataBoundItem;
             var id = contrato.IdContrato;
 
-            // Si el contrato está Activo, queremos anularlo
             if (contrato.Estado)
             {
                 var confirm = MessageBox.Show($"¿Está seguro que desea anular el contrato N°{id}?",
@@ -142,18 +130,18 @@ namespace InmoTech.Controls
 
                 if (confirm == DialogResult.Yes)
                 {
-                    _repo.ActualizarEstado(id, false); // Damos de baja
-                    MessageBox.Show("El contrato ha sido anulado.", "Operación Exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    _repo.ActualizarEstado(id, false);
+                    MessageBox.Show("El contrato ha sido anulado.", "Operación Exitosa",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
-            // Si el contrato está Inactivo, queremos restaurarlo
             else
             {
-                _repo.ActualizarEstado(id, true); // Damos de alta
-                MessageBox.Show("El contrato ha sido restaurado.", "Operación Exitosa", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                _repo.ActualizarEstado(id, true);
+                MessageBox.Show("El contrato ha sido restaurado.", "Operación Exitosa",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
-            // Refrescamos la grilla para que se vean los cambios
             RefrescarGrilla();
         }
 
@@ -203,6 +191,14 @@ namespace InmoTech.Controls
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            // ✅ Validación solicitada: monto > 0
+            if (nudMonto.Value <= 0)
+            {
+                MessageBox.Show("El monto del alquiler debe ser mayor a 0.", "Atención",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                nudMonto.Focus();
+                return;
+            }
 
             var nuevo = new Contrato
             {
@@ -221,7 +217,7 @@ namespace InmoTech.Controls
                 var filas = _repo.AgregarContrato(nuevo);
                 if (filas > 0)
                 {
-                    MessageBox.Show("Contrato guardado correctamente.", "OK",
+                    MessageBox.Show("Contrato guardado correctamente. El inmueble fue marcado como 'Ocupado'.", "OK",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     RefrescarGrilla();
                     LimpiarFormulario();
@@ -229,7 +225,7 @@ namespace InmoTech.Controls
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar el contrato:\n{ex.Message}",
+                MessageBox.Show($"No se pudo guardar el contrato:\n{ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

@@ -21,6 +21,7 @@ namespace InmoTech.Controls
         #region Campos Privados y Repositorios
         private readonly BindingList<Inquilino> _binding = new();
         private readonly InquilinoRepository _repo = new();
+        private readonly ContratoRepository _repoContrato = new(); // <<< NUEVO
         private Inquilino? _enEdicion;
 
         // ErrorProvider para validaciones visuales
@@ -29,6 +30,12 @@ namespace InmoTech.Controls
         // Normalización
         private bool _normalizando;
         private static readonly TextInfo _ti = CultureInfo.GetCultureInfo("es-AR").TextInfo;
+
+        // >>> NUEVO: guardia para evitar doble ejecución de Guardar
+        private bool _guardando = false;
+
+        // >>> NUEVO: guardia de reentrancia para el toggle del grid
+        private bool _toggleEnCurso = false;
         #endregion
 
         // ======================================================
@@ -50,15 +57,22 @@ namespace InmoTech.Controls
             Load += UcInquilinos_Load;
             Resize += (_, __) => AjustarLayout();
 
-            // DataGrid (solo los que el diseñador NO engancha)
+            // DataGrid (asegurar 1 sola suscripción)
+            dataGridInquilinos.CellFormatting -= dataGridInquilinos_CellFormatting;
             dataGridInquilinos.CellFormatting += dataGridInquilinos_CellFormatting;
+
+            dataGridInquilinos.CellDoubleClick -= dataGridInquilinos_CellDoubleClick;
             dataGridInquilinos.CellDoubleClick += dataGridInquilinos_CellDoubleClick;
+
+            dataGridInquilinos.CellContentClick -= dataGridInquilinos_CellContentClick;
             dataGridInquilinos.CellContentClick += dataGridInquilinos_CellContentClick;
 
-            // Handlers de botones del formulario (los del diseñador suelen ser privados en el designer.cs)
+            // >>> CAMBIO MINIMO: limpiar y suscribir SOLO Guardar para evitar doble ejecución
+            btnGuardar.Click -= BtnGuardar_Click;
             btnGuardar.Click += BtnGuardar_Click;
-            btnCancelar.Click += BtnCancelar_Click;
 
+            // Cancelar queda como estaba
+            btnCancelar.Click += BtnCancelar_Click;
 
             // Validaciones de entrada
             txtDni.KeyPress += SoloDigitos_KeyPress;
@@ -99,110 +113,116 @@ namespace InmoTech.Controls
         // ====================== Guardar (Alta / Edición) ======================
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
-            LimpiarErrores();
-            if (!TryValidarFormulario(out var errores))
-            {
-                MessageBox.Show(string.Join(Environment.NewLine, errores), "Revisá los datos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+            // >>> NUEVO: guardia y UX
+            if (_guardando) return;
+            _guardando = true;
+            btnGuardar.Enabled = false;
 
-            var entidad = MapearFormulario();
-
-            if (_enEdicion == null)
+            try
             {
-                // Alta — duplicados locales y por SQL unique
-                if (_binding.Any(x => x.Dni == entidad.Dni))
+                LimpiarErrores();
+                if (!TryValidarFormulario(out var errores))
                 {
-                    ep.SetError(txtDni, "DNI duplicado.");
-                    MessageBox.Show("Ya existe un inquilino con ese DNI.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(string.Join(Environment.NewLine, errores), "Revisá los datos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                try
-                {
-                    // ================================================
-                    //  MODIFICADO: Alta de Inquilino
-                    // ================================================
+                var entidad = MapearFormulario();
 
-                    // 1. Validar sesión
-                    if (AuthService.CurrentUser == null)
+                if (_enEdicion == null)
+                {
+                    // Alta — duplicados locales y por SQL unique
+                    if (_binding.Any(x => x.Dni == entidad.Dni))
                     {
-                        MessageBox.Show("Error de sesión. No se puede identificar al usuario creador. Inicie sesión de nuevo.", "Error de Sesión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ep.SetError(txtDni, "DNI duplicado.");
+                        MessageBox.Show("Ya existe un inquilino con ese DNI.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
 
-                    // 2. Obtener DNI creador
-                    int dniCreador = AuthService.CurrentUser.Dni;
-
-                    entidad.Estado = true; // el INSERT lo deja en 1 igual
-
-                    // 3. Pasar DNI creador al repositorio
-                    int filas = _repo.AgregarInquilino(entidad, dniCreador);
-
-                    if (filas == 1)
+                    try
                     {
-                        // Necesitamos recargar de la base o al menos obtener el ID
-                        // (Idealmente el repo devolvería la entidad completa con su nuevo ID)
-                        CargarDesdeBase(); // Recargamos para obtener el ID real y los datos de auditoría
-                        MessageBox.Show("Inquilino registrado correctamente.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        LimpiarFormulario();
-                        EstablecerModoAlta();
+                        // Sesión
+                        if (AuthService.CurrentUser == null)
+                        {
+                            MessageBox.Show("Error de sesión. No se puede identificar al usuario creador. Inicie sesión de nuevo.", "Error de Sesión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        int dniCreador = AuthService.CurrentUser.Dni;
+                        entidad.Estado = true;
+
+                        int filas = _repo.AgregarInquilino(entidad, dniCreador);
+
+                        if (filas == 1)
+                        {
+                            CargarDesdeBase(); // Recarga para tener IDs y datos de auditoría
+                            MessageBox.Show("Inquilino registrado correctamente.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            LimpiarFormulario();
+                            EstablecerModoAlta();
+                            return; // <<< salimos acá; nada más que hacer
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se pudo insertar el inquilino.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
                     }
-                    else
+                    catch (SqlException ex) when (ex.Number is 2627 or 2601)
                     {
-                        MessageBox.Show("No se pudo insertar el inquilino.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        // UNIQUE (DNI/Email)
+                        MessageBox.Show("Ya existe un inquilino con ese DNI o Email.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ep.SetError(txtDni, "Duplicado.");
+                        return;
                     }
                 }
-                catch (SqlException ex) when (ex.Number is 2627 or 2601)
+                else
                 {
-                    // UNIQUE (DNI/Email)
-                    MessageBox.Show("Ya existe un inquilino con ese DNI o Email.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    ep.SetError(txtDni, "Duplicado.");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al registrar:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Edición (Sin cambios)
+                    entidad.Estado = _enEdicion.Estado;
+
+                    try
+                    {
+                        int filas = _repo.ActualizarInquilino(entidad);
+                        if (filas == 1)
+                        {
+                            // Actualizar la instancia en el BindingList
+                            _enEdicion.Nombre = entidad.Nombre;
+                            _enEdicion.Apellido = entidad.Apellido;
+                            _enEdicion.Telefono = entidad.Telefono;
+                            _enEdicion.Email = entidad.Email;
+                            _enEdicion.Direccion = entidad.Direccion;
+                            _enEdicion.FechaNacimiento = entidad.FechaNacimiento;
+
+                            int idx = _binding.IndexOf(_enEdicion);
+                            if (idx >= 0) _binding.ResetItem(idx);
+
+                            MessageBox.Show("Inquilino actualizado correctamente.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            LimpiarFormulario();
+                            EstablecerModoAlta();
+                            return;
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se actualizó el inquilino (verificá el DNI).", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+                    }
+                    catch (SqlException ex) when (ex.Number is 2627 or 2601)
+                    {
+                        MessageBox.Show("Ya existe un inquilino con ese Email.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ep.SetError(txtEmail, "Email duplicado.");
+                        return;
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                // Edición (Sin cambios)
-                entidad.Estado = _enEdicion.Estado;
-
-                try
-                {
-                    int filas = _repo.ActualizarInquilino(entidad);
-                    if (filas == 1)
-                    {
-                        // Actualizar la instancia en el BindingList
-                        _enEdicion.Nombre = entidad.Nombre;
-                        _enEdicion.Apellido = entidad.Apellido;
-                        _enEdicion.Telefono = entidad.Telefono;
-                        _enEdicion.Email = entidad.Email;
-                        _enEdicion.Direccion = entidad.Direccion;
-                        _enEdicion.FechaNacimiento = entidad.FechaNacimiento;
-
-                        int idx = _binding.IndexOf(_enEdicion);
-                        if (idx >= 0) _binding.ResetItem(idx);
-
-                        MessageBox.Show("Inquilino actualizado correctamente.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        LimpiarFormulario();
-                        EstablecerModoAlta();
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se actualizó el inquilino (verificá el DNI).", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-                catch (SqlException ex) when (ex.Number is 2627 or 2601)
-                {
-                    MessageBox.Show("Ya existe un inquilino con ese Email.", "Duplicado", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    ep.SetError(txtEmail, "Email duplicado.");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al actualizar:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                MessageBox.Show($"Error al guardar/actualizar:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _guardando = false;
+                btnGuardar.Enabled = true;
             }
         }
 
@@ -354,6 +374,7 @@ namespace InmoTech.Controls
             ep.SetError(txtTelefono, "");
             ep.SetError(txtEmail, "");
             ep.SetError(dateTimePicker1, "");
+            ep.SetError(txtDireccion, "");
         }
         #endregion
 
@@ -371,45 +392,77 @@ namespace InmoTech.Controls
 
         private void dataGridInquilinos_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            // Guardia de reentrancia: evita dobles ejecuciones
+            if (_toggleEnCurso) return;
+            _toggleEnCurso = true;
 
-            string name = dataGridInquilinos.Columns[e.ColumnIndex].Name;
-            if (name == "colEditar")
+            try
             {
-                if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is Inquilino i)
-                    CargarParaEditar(i);
+                if (e.RowIndex < 0) return;
+
+                string name = dataGridInquilinos.Columns[e.ColumnIndex].Name;
+                if (name == "colEditar")
+                {
+                    if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is Inquilino i)
+                        CargarParaEditar(i);
+                }
+                else if (name == "colToggle")
+                {
+                    if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is not Inquilino i) return;
+                    bool nuevo = !i.Estado;
+
+                    // Si estamos por dar de baja, verificar contratos activos
+                    if (i.Estado && !nuevo)
+                    {
+                        // 1) Confirmación de baja
+                        var ok = MessageBox.Show(
+                            $"¿Seguro que querés dar de baja a {i.NombreCompleto} (DNI {i.Dni})?",
+                            "Confirmar baja",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                        if (ok != DialogResult.Yes) return;
+
+                        // 2) Buscar id_persona y validar contratos activos
+                        int? idPersona = _repo.ObtenerIdPersonaPorDni(i.Dni);
+                        if (idPersona == null)
+                        {
+                            MessageBox.Show("No se encontró el registro de persona asociado al DNI.", "Datos incompletos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+
+                        if (_repoContrato.ExisteContratoActivoPorPersona(idPersona.Value))
+                        {
+                            MessageBox.Show(
+                                "No podés dar de baja este inquilino porque tiene contratos ACTIVOS asociados.\n" +
+                                "Anulá esos contratos y volvé a intentar.",
+                                "Operación no permitida",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                            return;
+                        }
+                    }
+
+                    try
+                    {
+                        int filas = _repo.ActualizarEstado(i.Dni, nuevo);
+                        if (filas == 1)
+                        {
+                            i.Estado = nuevo;
+                            _binding.ResetItem(e.RowIndex);
+                        }
+                        else
+                        {
+                            MessageBox.Show("No se pudo cambiar el estado.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error al actualizar estado:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
-            else if (name == "colToggle")
+            finally
             {
-                if (dataGridInquilinos.Rows[e.RowIndex].DataBoundItem is not Inquilino i) return;
-                bool nuevo = !i.Estado;
-
-                if (i.Estado && !nuevo)
-                {
-                    var ok = MessageBox.Show(
-                        $"¿Seguro que querés dar de baja a {i.NombreCompleto} (DNI {i.Dni})?",
-                        "Confirmar baja",
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-                    if (ok != DialogResult.Yes) return;
-                }
-
-                try
-                {
-                    int filas = _repo.ActualizarEstado(i.Dni, nuevo);
-                    if (filas == 1)
-                    {
-                        i.Estado = nuevo;
-                        _binding.ResetItem(e.RowIndex);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se pudo cambiar el estado.", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al actualizar estado:\n{ex.Message}", "Inquilinos", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                _toggleEnCurso = false;
             }
         }
 

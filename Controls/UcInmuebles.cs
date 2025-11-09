@@ -3,10 +3,12 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions; // <<< AGREGADO
 using System.Windows.Forms;
 using InmoTech.Data.Repositories;
 using InmoTech.Domain.Models;
 using InmoTech.Security; // <--- AGREGADO
+using InmoTech.Repositories; // <<< AGREGADO (para consultar contratos)
 
 namespace InmoTech
 {
@@ -17,8 +19,12 @@ namespace InmoTech
         // ======================================================
         #region Campos Privados
         private readonly InmuebleRepository _repo = new InmuebleRepository();
+        private readonly ContratoRepository _repoContrato = new ContratoRepository(); // <<< AGREGADO
         private int? _editandoId = null;
         private string _imagenPendiente = null;
+
+        // Proveedor de errores (solo se usa al guardar)
+        private readonly ErrorProvider _err = new ErrorProvider();
         #endregion
 
         // ======================================================
@@ -31,15 +37,33 @@ namespace InmoTech
 
             if (!IsDesigner())
             {
+                // Desactivamos la validación automática de WinForms
+                this.AutoValidate = AutoValidate.Disable;
+
                 Load += UcInmuebles_Load;
                 btnGuardar.Click += BtnGuardar_Click;
                 btnCancelar.Click += (s, e) => LimpiarFormulario();
                 btnCargarImagen.Click += BtnCargarImagen_Click;
                 btnQuitarImagen.Click += (s, e) => { _imagenPendiente = null; pbFoto.Image = null; };
 
-                // >>> MODIFICADO <<<: Se reemplaza CellClick por CellDoubleClick y se agrega el evento para el botón de estado.
+                // Reemplaza CellClick por doble clic y botón de estado
                 dgvInmuebles.CellDoubleClick += DgvInmuebles_CellDoubleClick;
                 BEstado.Click += BEstado_Click;
+
+                // ---- Handlers de entrada (no validan, solo filtran caracteres)
+                // Dirección: letras, números y signos básicos
+                txtDireccion.KeyPress += LetrasNumerosBasicos_KeyPress;
+
+                // Descripción: texto libre controlado (sin caracteres peligrosos)
+                txtDescripcion.KeyPress += Descripcion_KeyPress;
+
+                // NumericUpDown: rango recomendado
+                nudAmbientes.Minimum = 0;
+                nudAmbientes.Maximum = 50;
+
+                // Configuración ErrorProvider
+                _err.BlinkStyle = ErrorBlinkStyle.NeverBlink;
+                _err.ContainerControl = this;
             }
         }
 
@@ -49,6 +73,12 @@ namespace InmoTech
 
         private void UcInmuebles_Load(object sender, EventArgs e)
         {
+            // Límites de longitud y ayudas
+            txtDireccion.MaxLength = 120;
+            txtDescripcion.MaxLength = 800;
+            txtDireccion.ShortcutsEnabled = true;
+            txtDescripcion.ShortcutsEnabled = true;
+
             // Combos
             cboTipo.Items.Clear();
             cboTipo.Items.AddRange(new object[] { "Casa", "Departamento", "PH", "Local", "Galpón", "Oficina", "Terreno" });
@@ -83,8 +113,12 @@ namespace InmoTech
 
         private void BtnGuardar_Click(object sender, EventArgs e)
         {
+            // Limpio errores previos cada vez que intento guardar
+            LimpiarErrores();
+
             if (!ValidarFormulario(out var error))
             {
+                // Mensaje general; los detalles quedan en cada control con ErrorProvider
                 MessageBox.Show(error, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -93,23 +127,15 @@ namespace InmoTech
             {
                 if (_editandoId == null)
                 {
-                    // ================================================
-                    //  MODIFICADO: Alta de Inmueble
-                    // ================================================
-
-                    // 1. Validar sesión
+                    // Alta
                     if (AuthService.CurrentUser == null)
                     {
                         MessageBox.Show("Error de sesión. No se puede identificar al usuario creador. Inicie sesión de nuevo.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
-                    // 2. Obtener DNI creador
                     int dniCreador = AuthService.CurrentUser.Dni;
 
-                    // 3. Leer formulario
                     var nuevo = LeerFormulario();
-
-                    // 4. Pasar DNI creador al repositorio
                     int id = _repo.CrearInmueble(nuevo, dniCreador);
 
                     if (!string.IsNullOrWhiteSpace(_imagenPendiente) && File.Exists(_imagenPendiente))
@@ -117,10 +143,10 @@ namespace InmoTech
                 }
                 else
                 {
-                    // Edición (Sin cambios)
+                    // Edición
                     var entidad = LeerFormulario();
                     entidad.IdInmueble = _editandoId.Value;
-                    // Mantenemos el estado (activo/inactivo) que ya tenía
+
                     var original = _repo.ObtenerPorId(_editandoId.Value);
                     if (original != null) entidad.Estado = original.Estado;
 
@@ -139,16 +165,13 @@ namespace InmoTech
             }
         }
 
-        // >>> NUEVO <<<: Manejador para el doble clic en la grilla (inicia edición).
         private void DgvInmuebles_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return; // Ignorar clics en la cabecera
-
+            if (e.RowIndex < 0) return; // Ignorar cabecera
             int id = Convert.ToInt32(dgvInmuebles.Rows[e.RowIndex].Cells["colId"].Value);
             CargarParaEditar(id);
         }
 
-        // >>> NUEVO <<<: Manejador para el botón de Baja/Activar.
         private void BEstado_Click(object sender, EventArgs e)
         {
             if (_editandoId == null) return;
@@ -160,6 +183,24 @@ namespace InmoTech
 
                 bool activar = !inmueble.Estado;
                 string accion = activar ? "ACTIVAR" : "dar de BAJA";
+
+                // <<< VERIFICACIÓN AGREGADA: impedir baja si hay contratos activos >>>
+                if (!activar) // estamos por dar de baja (estado = 0)
+                {
+                    bool tieneContratoActivo = _repoContrato.ExisteContratoActivoPorInmueble(inmueble.IdInmueble);
+                    if (tieneContratoActivo)
+                    {
+                        MessageBox.Show(
+                            "No podés dar de baja este inmueble porque tiene contratos ACTIVOS asociados.\n" +
+                            "Anulá esos contratos y volvé a intentar.",
+                            "Operación no permitida",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning
+                        );
+                        return;
+                    }
+                }
+                // <<< FIN verificación >>>
 
                 var resp = MessageBox.Show($"¿Deseas {accion} este inmueble?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (resp != DialogResult.Yes) return;
@@ -175,7 +216,6 @@ namespace InmoTech
                 MessageBox.Show("No se pudo cambiar el estado.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         #endregion
 
         // ======================================================
@@ -192,8 +232,8 @@ namespace InmoTech
                 foreach (var x in lista)
                 {
                     Image thumb = null;
-                    var portada = _repo.ListarImagenes(x.IdInmueble).FirstOrDefault(im => im.EsPortada)
-                                    ?? _repo.ListarImagenes(x.IdInmueble).FirstOrDefault();
+                    var imgs = _repo.ListarImagenes(x.IdInmueble);
+                    var portada = imgs.FirstOrDefault(im => im.EsPortada) ?? imgs.FirstOrDefault();
 
                     if (portada != null)
                     {
@@ -203,15 +243,14 @@ namespace InmoTech
                         if (File.Exists(abs)) thumb = Escalar(CargarBitmapSinLock(abs), 64, 48);
                     }
 
-                    // >>> MODIFICADO <<<: Se pasan textos ("Sí"/"No") en lugar de booleanos.
                     dgvInmuebles.Rows.Add(
                         x.IdInmueble,
                         x.Direccion,
                         x.Tipo,
                         x.NroAmbientes ?? 0,
-                        x.Amueblado ? "Amueblado" : "Sin Amueblar", // Convertir a texto
+                        x.Amueblado ? "Amueblado" : "Sin Amueblar",
                         x.Condiciones,
-                        x.Estado ? "Activo" : "Inactivo",      // Convertir a texto
+                        x.Estado ? "Activo" : "Inactivo",
                         thumb
                     );
                 }
@@ -240,7 +279,6 @@ namespace InmoTech
                 nudAmbientes.Value = Math.Max(nudAmbientes.Minimum, Math.Min(nudAmbientes.Maximum, i.NroAmbientes ?? 0));
                 chkAmueblado.Checked = i.Amueblado;
 
-                // >>> MODIFICADO <<<: Habilita el botón de estado y ajusta su texto.
                 BEstado.Enabled = true;
                 BEstado.Text = i.Estado ? "Baja" : "Activar";
 
@@ -257,9 +295,6 @@ namespace InmoTech
                 MessageBox.Show("Error al cargar inmueble.\n" + ex.Message, "Inmuebles", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-        // >>> ELIMINADO <<<: El método AlternarEstado ya no es necesario, su lógica se movió a BEstado_Click.
-
         #endregion
 
         // ======================================================
@@ -269,39 +304,99 @@ namespace InmoTech
 
         private Inmueble LeerFormulario()
         {
+            // Normalizamos espacios y caracteres peligrosos antes de crear el modelo
+            var direccion = NormalizarDireccion(txtDireccion.Text);
+            var descripcion = NormalizarDescripcion(txtDescripcion.Text);
+
             return new Inmueble
             {
-                Direccion = (txtDireccion.Text ?? "").Trim(),
+                Direccion = direccion,
                 Tipo = cboTipo.SelectedItem?.ToString() ?? "",
-                Descripcion = (txtDescripcion.Text ?? "").Trim(),
+                Descripcion = descripcion,
                 Condiciones = cboEstado.SelectedItem?.ToString() ?? "Disponible",
                 NroAmbientes = (int)nudAmbientes.Value,
                 Amueblado = chkAmueblado.Checked,
-                Estado = true // Al crear, siempre está activo por defecto.
+                Estado = true // Al crear, activo por defecto
             };
         }
 
         private bool ValidarFormulario(out string error)
         {
             error = "";
+            bool ok = true;
+
+            // Dirección
             var direccion = (txtDireccion.Text ?? "").Trim();
-            var tipoSel = cboTipo.SelectedItem?.ToString() ?? "";
-            var condicionesSel = cboEstado.SelectedItem?.ToString() ?? "";
+            if (direccion.Length == 0)
+            {
+                _err.SetError(txtDireccion, "La dirección es obligatoria.");
+                ok = false;
+            }
+            else if (direccion.Length < 5)
+            {
+                _err.SetError(txtDireccion, "La dirección debe tener al menos 5 caracteres.");
+                ok = false;
+            }
+            else if (!Regex.IsMatch(direccion, DireccionRegex, RegexOptions.CultureInvariant))
+            {
+                _err.SetError(txtDireccion, "Dirección inválida. Permitido: letras, números, espacios y .,#-/ºª°");
+                ok = false;
+            }
+
+            // Tipo
+            if (cboTipo.SelectedIndex < 0)
+            {
+                _err.SetError(cboTipo, "Seleccioná un tipo de inmueble.");
+                ok = false;
+            }
+
+            // Ambientes
             var ambientes = (int)nudAmbientes.Value;
+            if (ambientes < 0)
+            {
+                _err.SetError(nudAmbientes, "El número de ambientes no puede ser negativo.");
+                ok = false;
+            }
 
-            if (direccion.Length == 0) { error = "La dirección es obligatoria."; txtDireccion.Focus(); return false; }
-            if (string.IsNullOrWhiteSpace(tipoSel)) { error = "Seleccioná un tipo de inmueble."; cboTipo.Focus(); return false; }
-            if (ambientes < 0) { error = "El número de ambientes no puede ser negativo."; nudAmbientes.Focus(); return false; }
-            if (string.IsNullOrWhiteSpace(condicionesSel)) { error = "Seleccioná una condición."; cboEstado.Focus(); return false; }
+            // Condición
+            if (cboEstado.SelectedIndex < 0)
+            {
+                _err.SetError(cboEstado, "Seleccioná una condición.");
+                ok = false;
+            }
 
-            return true;
+            // Regla cruzada simple
+            if (cboEstado.SelectedItem?.ToString() == "Ocupado" && ambientes == 0)
+            {
+                _err.SetError(nudAmbientes, "Si el inmueble está 'Ocupado', debe tener al menos 1 ambiente.");
+                ok = false;
+            }
+
+            // Descripción (opcional, pero controlada si existe)
+            var desc = (txtDescripcion.Text ?? "").Trim();
+            if (desc.Length > 0 && !Regex.IsMatch(desc, DescripcionRegex, RegexOptions.CultureInvariant))
+            {
+                _err.SetError(txtDescripcion, "Descripción: se permiten letras, números, espacios y puntuación básica.");
+                ok = false;
+            }
+
+            if (!ok)
+                error = "Revisá los campos marcados.";
+
+            return ok;
         }
         #endregion
 
         // ======================================================
-        //  REGIÓN: Metodos de Utilidad
+        //  REGIÓN: Métodos de Utilidad y Validadores
         // ======================================================
-        #region Métodos de Utilidad
+        #region Métodos de Utilidad y Validadores
+
+        // Regex precompilados
+        private const string LetrasRegex = @"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$";
+        private const string DireccionRegex = @"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\s\.\,\#\-/ºª°]+$";
+        private const string DescripcionRegex = @"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\s\.\,\;\:\-\(\)\/\#\!¿\?¡""'%]+$";
+
         private static void SelectItem(ComboBox cbo, string value)
         {
             for (int i = 0; i < cbo.Items.Count; i++)
@@ -330,9 +425,10 @@ namespace InmoTech
 
             btnGuardar.Text = "Guardar";
 
-            // >>> MODIFICADO <<<: Se deshabilita y resetea el botón de estado.
             BEstado.Enabled = false;
             BEstado.Text = "Baja";
+
+            LimpiarErrores();
 
             txtDireccion.Clear();
             cboTipo.SelectedIndex = -1;
@@ -343,6 +439,60 @@ namespace InmoTech
 
             pbFoto.Image = null;
             txtDireccion.Focus();
+        }
+
+        private void LimpiarErrores()
+        {
+            _err.SetError(txtDireccion, "");
+            _err.SetError(txtDescripcion, "");
+            _err.SetError(cboTipo, "");
+            _err.SetError(cboEstado, "");
+            _err.SetError(nudAmbientes, "");
+        }
+
+        // -------- Normalizadores (evitan espacios dobles y caracteres raros)
+        private static string NormalizarEspacios(string s) =>
+            Regex.Replace((s ?? "").Trim(), @"\s{2,}", " ");
+
+        private static string NormalizarDireccion(string s)
+        {
+            s = NormalizarEspacios(s);
+            // Evitar inyección de separadores raros
+            s = Regex.Replace(s, @"[^\w\s\.\,\#\-/ºª°ÁÉÍÓÚÜÑáéíóúüñ]", "");
+            return s;
+        }
+
+        private static string NormalizarDescripcion(string s)
+        {
+            s = NormalizarEspacios(s);
+            // Permitimos puntuación básica, eliminamos caracteres de control
+            s = Regex.Replace(s, @"[^\w\s\.\,\;\:\-\(\)\/\#\!¿\?¡""'%ÁÉÍÓÚÜÑáéíóúüñ]", "");
+            return s;
+        }
+
+        // -------- KeyPress handlers reutilizables (NO validan foco, solo filtran caracteres)
+        private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar)) return;
+            e.Handled = !Regex.IsMatch(e.KeyChar.ToString(), @"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]");
+        }
+
+        private void LetrasNumerosBasicos_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar)) return;
+            e.Handled = !Regex.IsMatch(e.KeyChar.ToString(), @"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\.\,\#\-/\sºª°]");
+        }
+
+        private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar)) return;
+            e.Handled = !char.IsDigit(e.KeyChar);
+        }
+
+        private void Descripcion_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar)) return;
+            e.Handled = !Regex.IsMatch(e.KeyChar.ToString(), @"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\.\,\;\:\-\(\)\/\#\!¿\?¡""'%\s]");
         }
         #endregion
 

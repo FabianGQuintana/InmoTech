@@ -21,10 +21,10 @@ namespace InmoTech.Forms
         private Button btnCancelar;
         private System.Windows.Forms.Timer timerBuscar;
 
-
         // Columnas del DataGridView (todas TextBoxColumn)
         private DataGridViewTextBoxColumn colDireccion;
         private DataGridViewTextBoxColumn colTipo;
+        private DataGridViewTextBoxColumn colCondiciones; // 👈 NUEVA
         private DataGridViewTextBoxColumn colAmb;
         private DataGridViewTextBoxColumn colAmueblado;
         private DataGridViewTextBoxColumn colActivo;
@@ -49,6 +49,7 @@ namespace InmoTech.Forms
             this.dgv = new System.Windows.Forms.DataGridView();
             this.colDireccion = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colTipo = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colCondiciones = new System.Windows.Forms.DataGridViewTextBoxColumn(); // 👈 NUEVA
             this.colAmb = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colAmueblado = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colActivo = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -100,13 +101,13 @@ namespace InmoTech.Forms
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtBuscar.Location = new System.Drawing.Point(111, 57);
             this.txtBuscar.Name = "txtBuscar";
-            this.txtBuscar.Size = new System.Drawing.Size(540, 23);
+            this.txtBuscar.Size = new System.Drawing.Size(500, 23);
             this.txtBuscar.TabIndex = 0;
             // 
             // lblEstado
             // 
             this.lblEstado.AutoSize = true;
-            this.lblEstado.Location = new System.Drawing.Point(667, 60);
+            this.lblEstado.Location = new System.Drawing.Point(617, 60);
             this.lblEstado.Name = "lblEstado";
             this.lblEstado.Size = new System.Drawing.Size(45, 15);
             this.lblEstado.TabIndex = 3;
@@ -117,16 +118,15 @@ namespace InmoTech.Forms
             this.cboEstado.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cboEstado.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboEstado.FormattingEnabled = true;
-            // items cargados en el diseñador
             this.cboEstado.Items.AddRange(new object[] {
             "Todos",
             "Activos",
             "Inactivos"});
-            this.cboEstado.Location = new System.Drawing.Point(718, 57);
+            this.cboEstado.Location = new System.Drawing.Point(668, 57);
             this.cboEstado.Name = "cboEstado";
-            this.cboEstado.Size = new System.Drawing.Size(170, 23);
+            this.cboEstado.Size = new System.Drawing.Size(220, 23);
             this.cboEstado.TabIndex = 1;
-            this.cboEstado.SelectedIndex = 1; // Activos por defecto
+            this.cboEstado.SelectedIndex = 1;
             // 
             // dgv
             // 
@@ -143,6 +143,7 @@ namespace InmoTech.Forms
             this.dgv.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colDireccion,
             this.colTipo,
+            this.colCondiciones, // 👈 insertada acá
             this.colAmb,
             this.colAmueblado,
             this.colActivo});
@@ -170,6 +171,13 @@ namespace InmoTech.Forms
             this.colTipo.FillWeight = 80F;
             this.colTipo.ReadOnly = true;
             // 
+            // colCondiciones
+            // 
+            this.colCondiciones.DataPropertyName = "Condiciones";
+            this.colCondiciones.HeaderText = "Condición";
+            this.colCondiciones.FillWeight = 90F;
+            this.colCondiciones.ReadOnly = true;
+            // 
             // colAmb
             // 
             this.colAmb.DataPropertyName = "NroAmbientes";
@@ -180,7 +188,7 @@ namespace InmoTech.Forms
             // 
             // colAmueblado
             // 
-            this.colAmueblado.DataPropertyName = "Amueblado"; // bool → se formatea a "Sí/No" en CellFormatting
+            this.colAmueblado.DataPropertyName = "Amueblado";
             this.colAmueblado.HeaderText = "Amuebl.";
             this.colAmueblado.FillWeight = 40F;
             this.colAmueblado.ReadOnly = true;
@@ -188,7 +196,7 @@ namespace InmoTech.Forms
             // 
             // colActivo
             // 
-            this.colActivo.DataPropertyName = "Estado"; // bool → se formatea a "Activo/Inactivo" en CellFormatting
+            this.colActivo.DataPropertyName = "Estado";
             this.colActivo.HeaderText = "Activo";
             this.colActivo.FillWeight = 35F;
             this.colActivo.ReadOnly = true;

@@ -42,7 +42,7 @@ namespace InmoTech.Forms
                 if (e.KeyCode == Keys.Enter) { e.Handled = true; ElegirActual(); }
             };
 
-            // formateo booleanos → texto
+            // formateo booleanos → texto + color para Condiciones
             dgv.CellFormatting += Dgv_CellFormatting;
         }
 
@@ -93,6 +93,17 @@ namespace InmoTech.Forms
             {
                 e.Value = ac ? "Activo" : "Inactivo";
                 e.FormattingApplied = true;
+            }
+            else if (prop == "Condiciones" && e.Value is string cond)
+            {
+                // (Opcional) un poco de semáforo visual
+                var c = cond.Trim().ToUpperInvariant();
+                if (c == "DISPONIBLE" || c == "A ESTRENAR")
+                    dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.ForeColor = System.Drawing.Color.ForestGreen;
+                else if (c == "RESERVADO")
+                    dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.ForeColor = System.Drawing.Color.DarkOrange;
+                else if (c == "OCUPADO")
+                    dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.ForeColor = System.Drawing.Color.Firebrick;
             }
         }
 

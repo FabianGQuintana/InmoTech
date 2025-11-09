@@ -16,16 +16,12 @@ namespace InmoTech.Controls
         #region Campos y Eventos
         private readonly Contrato _contrato;
         private readonly CuotaRepository _repoCuotas = new CuotaRepository();
-
-        // --- REPOSITORIO AÑADIDO ---
         private readonly ReciboRepository _repoRecibo = new ReciboRepository();
 
         private List<Cuota> _cuotas = new();
 
         public event EventHandler? Volver;
         public event EventHandler<(Contrato contrato, Cuota cuota)>? PagarCuotaSolicitado;
-
-        // El evento VerReciboSolicitado ya no es necesario aquí.
         #endregion
 
         // ======================================================
@@ -103,21 +99,23 @@ namespace InmoTech.Controls
             var cuota = _cuotas[e.RowIndex];
 
             // Formato de fecha y monto
-            if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "FechaVencimiento" && e.Value is DateTime dt) { e.Value = dt.ToString("dd/MM/yyyy"); }
-            else if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "Importe" && e.Value is decimal dec) { e.Value = $"$ {dec:N0}"; }
+            if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "FechaVencimiento" && e.Value is DateTime dt)
+                e.Value = dt.ToString("dd/MM/yyyy");
+            else if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "Importe" && e.Value is decimal dec)
+                e.Value = $"$ {dec:N0}";
 
-            // Formato de color de celda por estado
+            // Color por estado
             if (dgvCuotas.Columns[e.ColumnIndex].DataPropertyName == "Estado")
             {
                 string estado = e.Value?.ToString() ?? "";
                 var cell = dgvCuotas.Rows[e.RowIndex].Cells[e.ColumnIndex];
                 cell.Style.ForeColor = Color.Black;
-                if (estado == "Pagada") { cell.Style.BackColor = Color.FromArgb(210, 243, 223); }
-                else if (estado == "Vencida") { cell.Style.BackColor = Color.FromArgb(255, 230, 150); }
-                else if (estado == "Pendiente") { cell.Style.BackColor = Color.FromArgb(255, 245, 200); }
+                if (estado == "Pagada") cell.Style.BackColor = Color.FromArgb(210, 243, 223);
+                else if (estado == "Vencida") cell.Style.BackColor = Color.FromArgb(255, 230, 150);
+                else if (estado == "Pendiente") cell.Style.BackColor = Color.FromArgb(255, 245, 200);
             }
 
-            // Lógica para el texto del botón
+            // Texto del botón
             if (dgvCuotas.Columns[e.ColumnIndex] is DataGridViewButtonColumn)
             {
                 var buttonCell = (DataGridViewButtonCell)dgvCuotas.Rows[e.RowIndex].Cells[e.ColumnIndex];
@@ -134,19 +132,40 @@ namespace InmoTech.Controls
             if (cuota.Estado == "Pagada")
             {
                 if (cuota.IdPago.HasValue)
-                {
-                    // --- CAMBIO PRINCIPAL: Llama al método local para mostrar el recibo ---
                     MostrarVistaRecibo(cuota.IdPago.Value);
-                }
                 else
-                {
                     MessageBox.Show("Esta cuota está pagada pero no tiene un pago asociado.", "Error de Datos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                return;
             }
-            else // Si no está pagada, dispara el evento para pagarla (como antes)
+
+            // ===========================
+            // VALIDACIÓN: pagar fuera de orden
+            // ===========================
+            // 1) Cuota impaga más antigua (menor nro) — es la “siguiente a pagar”
+            var primeraImpaga = _cuotas
+                .Where(c => !EsPagada(c))
+                .OrderBy(c => c.NroCuota)
+                .FirstOrDefault();
+
+            // 2) ¿Existen impagas anteriores al nro seleccionado?
+            bool tieneImpagasPrevias = _cuotas
+                .Any(c => c.NroCuota < cuota.NroCuota && !EsPagada(c));
+
+            if (primeraImpaga != null && tieneImpagasPrevias && cuota.NroCuota != primeraImpaga.NroCuota)
             {
-                PagarCuotaSolicitado?.Invoke(this, (_contrato, cuota));
+                var r = MessageBox.Show(
+                    $"Tenés cuotas impagas anteriores (Cuota {primeraImpaga.NroCuota}).\n\n" +
+                    $"¿Deseás continuar pagando la Cuota {cuota.NroCuota} igualmente?",
+                    "Confirmar pago fuera de orden",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2);
+
+                if (r != DialogResult.Yes) return;
             }
+
+            // Continuar flujo normal de pago
+            PagarCuotaSolicitado?.Invoke(this, (_contrato, cuota));
         }
         #endregion
 
@@ -154,8 +173,8 @@ namespace InmoTech.Controls
         //  REGIÓN: Métodos Auxiliares
         // ======================================================
         #region Métodos Auxiliares
+        private static bool EsPagada(Cuota c) => string.Equals(c.Estado, "Pagada", StringComparison.OrdinalIgnoreCase);
 
-        // --- MÉTODO NUEVO PARA MOSTRAR LA VISTA FLOTANTE ---
         private void MostrarVistaRecibo(int idPago)
         {
             try
@@ -170,13 +189,8 @@ namespace InmoTech.Controls
                     {
                         Text = "Visor de Recibo",
                         StartPosition = FormStartPosition.CenterParent,
-
-                        // --- CAMBIO 1: Usar un borde fijo para que no se pueda redimensionar y se vea mejor ---
                         FormBorderStyle = FormBorderStyle.FixedToolWindow,
-
-                        // --- CAMBIO 2 (EL MÁS IMPORTANTE): Calcular el tamaño dinámicamente ---
                         Size = new System.Drawing.Size(ucRecibo.Width + 20, ucRecibo.Height + 40),
-
                         MaximizeBox = false,
                         MinimizeBox = false
                     };
@@ -200,15 +214,16 @@ namespace InmoTech.Controls
 
         private void ActualizarResumen()
         {
-            decimal totalPagado = _cuotas.Where(c => c.Estado == "Pagada").Sum(c => c.Importe);
-            decimal totalPendiente = _cuotas.Where(c => c.Estado != "Pagada").Sum(c => c.Importe);
+            decimal totalPagado = _cuotas.Where(c => EsPagada(c)).Sum(c => c.Importe);
+            decimal totalPendiente = _cuotas.Where(c => !EsPagada(c)).Sum(c => c.Importe);
             lblAtraso.Text = $"{totalPendiente:N0}";
             lblTotal.Text = $"{totalPagado + totalPendiente:N0}";
         }
 
         private int ObtenerCantidadMeses()
         {
-            return ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12) + (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
+            return ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12) +
+                   (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
         }
         #endregion
 
