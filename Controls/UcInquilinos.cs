@@ -13,15 +13,23 @@ using System.Windows.Forms;
 
 namespace InmoTech.Controls
 {
+    /// <summary>
+    /// Control de usuario para gestionar inquilinos: alta, edición, activación/inactivación,
+    /// validación de formulario y grilla de listado.
+    /// </summary>
     public partial class UcInquilinos : UserControl
     {
         // ======================================================
         //  REGIÓN: Privados y Repositorios
         // ======================================================
         #region Campos Privados y Repositorios
+        /// <summary>Lista enlazada a la grilla.</summary>
         private readonly BindingList<Inquilino> _binding = new();
+        /// <summary>Repositorio de inquilinos.</summary>
         private readonly InquilinoRepository _repo = new();
+        /// <summary>Repositorio de contratos (para validar bajas).</summary>
         private readonly ContratoRepository _repoContrato = new(); // <<< NUEVO
+        /// <summary>Entidad actualmente en edición (null si es alta).</summary>
         private Inquilino? _enEdicion;
 
         // ErrorProvider para validaciones visuales
@@ -42,6 +50,9 @@ namespace InmoTech.Controls
         //  REGIÓN: Constructor y Inicialización
         // ======================================================
         #region Constructor y Inicialización
+        /// <summary>
+        /// Inicializa componentes, configura validaciones, grilla y handlers principales.
+        /// </summary>
         public UcInquilinos()
         {
             InitializeComponent();
@@ -87,6 +98,9 @@ namespace InmoTech.Controls
             txtApellido.KeyPress += SoloLetras_KeyPress;
         }
 
+        /// <summary>
+        /// Carga inicial de datos, configuración de UI y estados por defecto.
+        /// </summary>
         private void UcInquilinos_Load(object? sender, EventArgs e)
         {
             if (DesignMode || (Site?.DesignMode ?? false)) return;
@@ -110,7 +124,10 @@ namespace InmoTech.Controls
         //  REGIÓN: Persistencia de Datos (Guardar / Cargar)
         // ======================================================
         #region Persistencia de Datos (Guardar / Cargar)
-        // ====================== Guardar (Alta / Edición) ======================
+        /// <summary>
+        /// Maneja alta/edición del inquilino con validaciones y feedback de UI.
+        /// Usa guardias para evitar ejecuciones duplicadas.
+        /// </summary>
         private void BtnGuardar_Click(object? sender, EventArgs e)
         {
             // >>> NUEVO: guardia y UX
@@ -226,6 +243,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Recarga el binding desde base de datos con manejo de errores.
+        /// </summary>
         private void CargarDesdeBase()
         {
             try
@@ -248,7 +268,9 @@ namespace InmoTech.Controls
         //  REGIÓN: Mapeo, Validación y Estado de UI
         // ======================================================
         #region Mapeo, Validación y Estado de UI
-        // ====================== Mapeo / Validación / Estados ======================
+        /// <summary>
+        /// Crea un <see cref="Inquilino"/> con los valores del formulario.
+        /// </summary>
         private Inquilino MapearFormulario() => new()
         {
             Dni = int.Parse(txtDni.Text.Trim()),
@@ -260,6 +282,9 @@ namespace InmoTech.Controls
             FechaNacimiento = dateTimePicker1.Value.Date
         };
 
+        /// <summary>
+        /// Carga datos de un inquilino en controles para edición.
+        /// </summary>
         private void CargarParaEditar(Inquilino i)
         {
             _enEdicion = i;
@@ -280,6 +305,9 @@ namespace InmoTech.Controls
             txtNombre.Focus();
         }
 
+        /// <summary>
+        /// Valida entradas del formulario y acumula errores.
+        /// </summary>
         private bool TryValidarFormulario(out List<string> errores)
         {
             errores = new();
@@ -343,6 +371,9 @@ namespace InmoTech.Controls
             return errores.Count == 0;
         }
 
+        /// <summary>
+        /// Pone el formulario en modo alta (sin entidad en edición).
+        /// </summary>
         private void EstablecerModoAlta()
         {
             _enEdicion = null;
@@ -352,6 +383,9 @@ namespace InmoTech.Controls
             LListaInquilinos.Text = "Lista de inquilinos";
         }
 
+        /// <summary>
+        /// Limpia controles y errores, restablece valores por defecto.
+        /// </summary>
         private void LimpiarFormulario()
         {
             LimpiarErrores();
@@ -366,6 +400,9 @@ namespace InmoTech.Controls
             dataGridInquilinos.ClearSelection();
         }
 
+        /// <summary>
+        /// Elimina mensajes de ErrorProvider asociados a los controles.
+        /// </summary>
         private void LimpiarErrores()
         {
             ep.SetError(txtNombre, "");
@@ -382,7 +419,9 @@ namespace InmoTech.Controls
         //  REGIÓN: Grilla: Acciones y Formato
         // ======================================================
         #region Grilla: Acciones y Formato
-        // ====================== Grilla: Acciones/Formato ======================
+        /// <summary>
+        /// Doble clic en fila para cargar la edición.
+        /// </summary>
         private void dataGridInquilinos_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -390,6 +429,9 @@ namespace InmoTech.Controls
                 CargarParaEditar(i);
         }
 
+        /// <summary>
+        /// Maneja botones de la grilla: Editar / Activar-Inactivar (con validaciones).
+        /// </summary>
         private void dataGridInquilinos_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
             // Guardia de reentrancia: evita dobles ejecuciones
@@ -466,6 +508,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Formatea la columna de estado a texto legible.
+        /// </summary>
         private void dataGridInquilinos_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -481,7 +526,9 @@ namespace InmoTech.Controls
         //  REGIÓN: UI / Grid / Helpers
         // ======================================================
         #region UI / Grid / Helpers
-        // ====================== UI / Grid / Helpers ======================
+        /// <summary>
+        /// Crea columnas de la grilla y establece formato/anchos.
+        /// </summary>
         private void ConfigurarGrilla()
         {
             dataGridInquilinos.AutoGenerateColumns = false;
@@ -506,6 +553,9 @@ namespace InmoTech.Controls
             dataGridInquilinos.Columns.Add(new DataGridViewButtonColumn { Name = "colToggle", HeaderText = "Activar/Inactivar", Text = "Cambiar", UseColumnTextForButtonValue = true, Width = 120 });
         }
 
+        /// <summary>
+        /// Ajusta tamaños/posiciones de paneles y grilla según el tamaño del control.
+        /// </summary>
         private void AjustarLayout()
         {
             int margen = 15;
@@ -537,6 +587,9 @@ namespace InmoTech.Controls
             dataGridInquilinos.Height = altoDisponible;
         }
 
+        /// <summary>
+        /// Activa doble buffer en DataGridView para mejorar el scroll.
+        /// </summary>
         private static void HabilitarDoubleBuffer(DataGridView dgv)
         {
             try
@@ -553,11 +606,12 @@ namespace InmoTech.Controls
         //  REGIÓN: Normalización y Manejo de Input
         // ======================================================
         #region Normalización y Manejo de Input
-        // --- Normalización/Inputs ---
+        /// <summary>Permite sólo dígitos (para DNI).</summary>
         private void SoloDigitos_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
         }
+        /// <summary>Filtra caracteres no numéricos al cambiar el texto (DNI).</summary>
         private void SoloDigitos_TextChanged(object? sender, EventArgs e)
         {
             if (sender is not TextBox tb) return;
@@ -570,6 +624,7 @@ namespace InmoTech.Controls
             tb.SelectionStart = Math.Min(countBefore, tb.Text.Length);
         }
 
+        /// <summary>Permite dígitos, +, -, espacios (teléfono).</summary>
         private void SoloDigitosPermisivos_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
@@ -577,6 +632,7 @@ namespace InmoTech.Controls
             bool ok = char.IsDigit(c) || c == '+' || c == '-' || char.IsWhiteSpace(c);
             if (!ok) e.Handled = true;
         }
+        /// <summary>Normaliza cadena de teléfono conservando dígitos y símbolos permitidos.</summary>
         private void SoloTelefonos_TextChanged(object? sender, EventArgs e)
         {
             // Permite dígitos, +, -, espacios
@@ -590,6 +646,7 @@ namespace InmoTech.Controls
             tb.SelectionStart = Math.Min(caret, tb.Text.Length);
         }
 
+        /// <summary>Convierte texto a Título (Title Case) sin mover el caret perceptiblemente.</summary>
         private void TitleCase_TextChanged(object? sender, EventArgs e)
         {
             if (_normalizando || sender is not TextBox tb) return;
@@ -603,6 +660,7 @@ namespace InmoTech.Controls
             _normalizando = false;
         }
 
+        /// <summary>Permite letras, espacios, apóstrofe y guion (nombres/apellidos).</summary>
         private void SoloLetras_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
@@ -616,6 +674,9 @@ namespace InmoTech.Controls
         //  REGIÓN: Handlers de Plantilla (Vacíos/Designer)
         // ======================================================
         #region Handlers de Plantilla (Vacíos/Designer)
+        /// <summary>
+        /// Cancela edición y vuelve a modo alta.
+        /// </summary>
         private void BtnCancelar_Click(object sender, EventArgs e)
         {
             _enEdicion = null;
@@ -623,7 +684,9 @@ namespace InmoTech.Controls
             EstablecerModoAlta();
         }
 
-        // Stub requerido por el diseñador (Click en el label del listado)
+        /// <summary>
+        /// Stub requerido por el diseñador.
+        /// </summary>
         private void label1_Click(object sender, EventArgs e) { /* no-op */ }
         #endregion
     }

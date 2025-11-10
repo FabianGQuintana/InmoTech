@@ -1,4 +1,12 @@
-﻿using InmoTech.Data;
+﻿// ============================================================================
+// InmoTech.Repositories.PagoRepository
+// ----------------------------------------------------------------------------
+// Repositorio para gestionar pagos: alta y consultas (por ID y por contrato).
+// Incluye notificación a dashboard tras inserciones exitosas.
+// Documentación breve y concisa. No se modifica la lógica original.
+// ============================================================================
+
+using InmoTech.Data;
 using InmoTech.Models;
 using InmoTech.Services;
 using Microsoft.Data.SqlClient;
@@ -10,23 +18,33 @@ using InmoTech.Services;
 
 namespace InmoTech.Repositories
 {
+    /// <summary>
+    /// Provee operaciones de creación y lectura para la entidad <see cref="Pago"/>.
+    /// </summary>
     public class PagoRepository
     {
         // ======================================================
         //  REGIÓN: Operaciones de Creación (Create)
         // ======================================================
         #region Operaciones de Creación (Create)
+
+        /// <summary>
+        /// Inserta un nuevo pago y devuelve su identificador generado.
+        /// Dispara una notificación de cambio de dashboard al completar.
+        /// </summary>
+        /// <param name="p">Entidad <see cref="Pago"/> a persistir.</param>
+        /// <returns>ID del pago insertado.</returns>
         public int Agregar(Pago p)
         {
             using var cn = BDGeneral.GetConnection();
             const string sql = @"
-                INSERT INTO pago
-                (fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
-                 detalle, estado, fecha_registro, id_persona, usuario_creador, activo)
-                OUTPUT INSERTED.id_pago
-                VALUES
-                (@FechaPago, @Monto, @IdUsuario, @IdMetodo, @IdContrato, @NroCuota,
-                 @Detalle, @Estado, @FechaRegistro, @IdPersona, @UsuarioCreador, @Activo);";
+                INSERT INTO pago
+                (fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
+                 detalle, estado, fecha_registro, id_persona, usuario_creador, activo)
+                OUTPUT INSERTED.id_pago
+                VALUES
+                (@FechaPago, @Monto, @IdUsuario, @IdMetodo, @IdContrato, @NroCuota,
+                 @Detalle, @Estado, @FechaRegistro, @IdPersona, @UsuarioCreador, @Activo);";
 
             using var cmd = new SqlCommand(sql, cn);
 
@@ -59,13 +77,19 @@ namespace InmoTech.Repositories
         //  REGIÓN: Operaciones de Consulta (Read)
         // ======================================================
         #region Operaciones de Consulta (Read)
+
+        /// <summary>
+        /// Obtiene un pago por su identificador.
+        /// </summary>
+        /// <param name="idPago">ID del pago.</param>
+        /// <returns>Instancia de <see cref="Pago"/> o <c>null</c> si no existe.</returns>
         public Pago? ObtenerPorId(int idPago)
         {
             using var cn = BDGeneral.GetConnection();
             const string sql = @"
-            SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
-                   detalle, estado, fecha_registro, id_persona, usuario_creador, activo
-            FROM pago WHERE id_pago = @Id;";
+            SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
+                   detalle, estado, fecha_registro, id_persona, usuario_creador, activo
+            FROM pago WHERE id_pago = @Id;";
 
             using var cmd = new SqlCommand(sql, cn);
             cmd.Parameters.Add("@Id", SqlDbType.Int).Value = idPago;
@@ -91,14 +115,19 @@ namespace InmoTech.Repositories
             };
         }
 
+        /// <summary>
+        /// Obtiene todos los pagos asociados a un contrato dado, ordenados por fecha de pago descendente.
+        /// </summary>
+        /// <param name="idContrato">ID del contrato.</param>
+        /// <returns>Lista de <see cref="Pago"/>.</returns>
         public List<Pago> ObtenerPorContrato(int idContrato)
         {
             using var cn = BDGeneral.GetConnection();
             const string sql = @"
-                SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
-                       detalle, estado, fecha_registro, id_persona, usuario_creador, activo
-                FROM pago WHERE id_contrato = @IdContrato
-                ORDER BY fecha_pago DESC;";
+                SELECT id_pago, fecha_pago, monto_total, id_usuario, id_metodo_pago, id_contrato, nro_cuota,
+                       detalle, estado, fecha_registro, id_persona, usuario_creador, activo
+                FROM pago WHERE id_contrato = @IdContrato
+                ORDER BY fecha_pago DESC;";
 
             using var cmd = new SqlCommand(sql, cn);
             cmd.Parameters.Add("@IdContrato", SqlDbType.Int).Value = idContrato;

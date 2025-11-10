@@ -1,4 +1,13 @@
-﻿using InmoTech.Data;
+﻿// ============================================================================
+// InmoTech.Repositories.ContratoRepository
+// ----------------------------------------------------------------------------
+// Repositorio para operaciones CRUD y de verificación sobre la entidad Contrato.
+// Incluye lógica transaccional para alta de contratos con generación de cuotas,
+// validaciones atómicas y actualización de estado del inmueble.
+// NOTA: La documentación es breve y no modifica el código original.
+// ============================================================================
+
+using InmoTech.Data;
 using InmoTech.Models;
 using Microsoft.Data.SqlClient;
 using System;
@@ -8,12 +17,28 @@ using InmoTech.Services;
 
 namespace InmoTech.Repositories
 {
+    /// <summary>
+    /// Provee métodos para crear, leer, actualizar y verificar contratos.
+    /// Maneja transacciones al dar de alta un contrato (incluye cuotas e impacto en inmueble).
+    /// </summary>
     public class ContratoRepository
     {
         // ======================================================
         //  REGIÓN: Operaciones de Creación y Lógica Transaccional
         // ======================================================
         #region Operaciones de Creación y Lógica Transaccional
+
+        /// <summary>
+        /// Crea un contrato junto con sus cuotas mensuales y marca el inmueble como <c>Ocupado</c>.
+        /// Realiza validaciones atómicas sobre inmueble e inquilino y confirma en una única transacción.
+        /// </summary>
+        /// <param name="c">Entidad <see cref="Contrato"/> a persistir (con fechas, monto, FK, usuario, estado).</param>
+        /// <returns>Siempre <c>1</c> si la operación completa se confirma.</returns>
+        /// <exception cref="Exception">
+        /// Se lanza si el inmueble o la persona no existen/están inactivos,
+        /// si el inmueble no está <c>Disponible</c>/<c>A estrenar</c>,
+        /// o si las fechas son inválidas.
+        /// </exception>
         public int AgregarContrato(Contrato c)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -172,6 +197,13 @@ namespace InmoTech.Repositories
         //  REGIÓN: Operaciones de Consulta (Read)
         // ======================================================
         #region Operaciones de Consulta (Read)
+
+        /// <summary>
+        /// Obtiene una lista de contratos, opcionalmente filtrada por DNI de usuario creador.
+        /// Incluye datos enriquecidos (inquilino, inmueble y usuario).
+        /// </summary>
+        /// <param name="dniUsuario">DNI del usuario para filtrar (o <c>null</c> para todos).</param>
+        /// <returns>Lista de <see cref="Contrato"/> ordenada por fecha de inicio descendente.</returns>
         public List<Contrato> ObtenerContratos(int? dniUsuario = null)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -229,6 +261,11 @@ namespace InmoTech.Repositories
             return lista;
         }
 
+        /// <summary>
+        /// Obtiene un contrato por su identificador primario.
+        /// </summary>
+        /// <param name="idContrato">ID del contrato.</param>
+        /// <returns>Instancia de <see cref="Contrato"/> o <c>null</c> si no existe.</returns>
         public Contrato? ObtenerPorId(int idContrato)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -272,6 +309,13 @@ namespace InmoTech.Repositories
         //  REGIÓN: Operaciones de Actualización (Update/Estado)
         // ======================================================
         #region Operaciones de Actualización (Update/Estado)
+
+        /// <summary>
+        /// Actualiza el campo <c>estado</c> del contrato.
+        /// </summary>
+        /// <param name="idContrato">ID del contrato.</param>
+        /// <param name="estado">Nuevo estado (true=activo, false=inactivo).</param>
+        /// <returns>Cantidad de filas afectadas.</returns>
         public int ActualizarEstado(int idContrato, bool estado)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -292,6 +336,11 @@ namespace InmoTech.Repositories
             return rowsAffected;
         }
 
+        /// <summary>
+        /// Actualiza datos primarios del contrato (fechas, monto, FKs, usuario y estado).
+        /// </summary>
+        /// <param name="c">Entidad <see cref="Contrato"/> con los valores a persistir.</param>
+        /// <returns>Cantidad de filas afectadas.</returns>
         public int ActualizarContrato(Contrato c)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -332,7 +381,18 @@ namespace InmoTech.Repositories
             return rowsAffected;
         }
 
+        /// <summary>
+        /// Marca un contrato como inactivo (baja lógica).
+        /// </summary>
+        /// <param name="idContrato">ID del contrato.</param>
+        /// <returns>Filas afectadas.</returns>
         public int DarDeBajaContrato(int idContrato) => ActualizarEstado(idContrato, false);
+
+        /// <summary>
+        /// Restaura un contrato a activo.
+        /// </summary>
+        /// <param name="idContrato">ID del contrato.</param>
+        /// <returns>Filas afectadas.</returns>
         public int RestaurarContrato(int idContrato) => ActualizarEstado(idContrato, true);
         #endregion
 
@@ -340,10 +400,12 @@ namespace InmoTech.Repositories
         //  REGIÓN: Verificaciones
         // ======================================================
         #region Verificaciones
+
         /// <summary>
-        /// Devuelve true si existe al menos un contrato ACTIVO (estado=1)
-        /// asociado al inmueble indicado.
+        /// Verifica si existe al menos un contrato activo para un inmueble.
         /// </summary>
+        /// <param name="idInmueble">ID del inmueble.</param>
+        /// <returns><c>true</c> si existe contrato activo; en caso contrario, <c>false</c>.</returns>
         public bool ExisteContratoActivoPorInmueble(int idInmueble)
         {
             using var cn = BDGeneral.GetConnection();
@@ -354,7 +416,11 @@ namespace InmoTech.Repositories
             return o != null;
         }
 
-        // Devuelve true si la persona (inquilino) tiene al menos un contrato ACTIVO (estado = 1)
+        /// <summary>
+        /// Verifica si una persona (inquilino) posee al menos un contrato activo.
+        /// </summary>
+        /// <param name="idPersona">ID de la persona.</param>
+        /// <returns><c>true</c> si tiene contrato activo; en caso contrario, <c>false</c>.</returns>
         public bool ExisteContratoActivoPorPersona(int idPersona)
         {
             using var cn = InmoTech.Data.BDGeneral.GetConnection();

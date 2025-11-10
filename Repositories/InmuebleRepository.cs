@@ -10,6 +10,10 @@ using InmoTech.Services;
 
 namespace InmoTech.Data.Repositories
 {
+    /// <summary>
+    /// Repositorio de acceso a datos para la entidad <see cref="Inmueble"/> y sus imágenes asociadas.
+    /// Gestiona operaciones CRUD, manejo de archivos de imagen en disco y notificaciones de actualización del dashboard.
+    /// </summary>
     public class InmuebleRepository
     {
         // ======================================================
@@ -17,9 +21,17 @@ namespace InmoTech.Data.Repositories
         // ======================================================
         #region Helpers de Archivos y Directorios
         // Carpeta base para imágenes: <carpeta app>\Resources\inmuebles\<id_inmueble>\
+
+        /// <summary>
+        /// Obtiene (y crea si no existe) la carpeta de recursos para un inmueble específico dentro de
+        /// <c>Resources/inmuebles/&lt;id&gt;</c>, partiendo de la raíz del proyecto <c>InmoTech</c>.
+        /// </summary>
+        /// <param name="idInmueble">Identificador del inmueble.</param>
+        /// <returns>Ruta absoluta a la carpeta del inmueble.</returns>
+        /// <exception cref="Exception">Si no se encuentra la carpeta raíz del proyecto InmoTech.</exception>
         private string GetResourcesInmueblesDir(int idInmueble)
         {
-            // 📍 Buscar la raíz del proyecto (donde está el .csproj)
+            // Buscar la raíz del proyecto (donde está el .csproj)
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
 
             // Si el ejecutable está en bin\Debug o bin\Release, sube 2 niveles
@@ -41,7 +53,11 @@ namespace InmoTech.Data.Repositories
             return recursosDir;
         }
 
-
+        /// <summary>
+        /// Devuelve el content-type/mime esperado para una extensión de imagen conocida.
+        /// </summary>
+        /// <param name="ext">Extensión con punto (p. ej. ".jpg").</param>
+        /// <returns>Mime type correspondiente; si no se reconoce, <c>application/octet-stream</c>.</returns>
         private static string GetMimeByExtension(string ext)
         {
             ext = (ext ?? "").ToLowerInvariant();
@@ -51,7 +67,10 @@ namespace InmoTech.Data.Repositories
             return "application/octet-stream";
         }
 
-        // .NET Standard/Framework compatible (similar a Path.GetRelativePath en versiones nuevas)
+        /// <summary>
+        /// Obtiene la ruta relativa desde un directorio base a una ruta completa.
+        /// Equivalente a <c>Path.GetRelativePath</c> en frameworks más nuevos.
+        /// </summary>
         private static string GetRelativePath(string baseDir, string fullPath)
         {
             var baseUri = new Uri(AppendDirectorySeparatorChar(baseDir));
@@ -61,6 +80,9 @@ namespace InmoTech.Data.Repositories
             return Uri.UnescapeDataString(rel).Replace('/', Path.DirectorySeparatorChar);
         }
 
+        /// <summary>
+        /// Asegura que una ruta termine con separador de directorio.
+        /// </summary>
         private static string AppendDirectorySeparatorChar(string path)
         {
             if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
@@ -75,6 +97,13 @@ namespace InmoTech.Data.Repositories
         #region CRUD Inmueble (Entidad Principal)
         // ------------------- CRUD Inmueble -------------------
 
+        /// <summary>
+        /// Crea un nuevo registro de <see cref="Inmueble"/> y devuelve el ID generado.
+        /// Dispara una notificación de actualización del dashboard si la inserción fue exitosa.
+        /// </summary>
+        /// <param name="i">Entidad a insertar.</param>
+        /// <param name="dniUsuarioCreador">DNI del usuario que crea el registro (auditoría).</param>
+        /// <returns>ID del inmueble creado.</returns>
         public int CrearInmueble(Inmueble i, int dniUsuarioCreador)
         {
             using (var cn = BDGeneral.GetConnection())
@@ -108,6 +137,12 @@ namespace InmoTech.Data.Repositories
             }
         }
 
+        /// <summary>
+        /// Obtiene un inmueble por ID. Opcionalmente incluye la lista de imágenes asociadas.
+        /// </summary>
+        /// <param name="idInmueble">ID a buscar.</param>
+        /// <param name="incluirImagenes">Si <c>true</c>, carga <see cref="ListarImagenes"/>.</param>
+        /// <returns>Entidad <see cref="Inmueble"/> o <c>null</c> si no existe.</returns>
         public Inmueble ObtenerPorId(int idInmueble, bool incluirImagenes = false)
         {
             Inmueble res = null;
@@ -146,6 +181,13 @@ namespace InmoTech.Data.Repositories
             return res;
         }
 
+        /// <summary>
+        /// Lista inmuebles con filtros simples por texto y estado activo.
+        /// Ordena descendentemente por <c>id_inmueble</c>.
+        /// </summary>
+        /// <param name="filtroTexto">Texto a buscar en dirección, tipo o condiciones.</param>
+        /// <param name="soloActivos">Si <c>true</c>, solo estado = 1.</param>
+        /// <returns>Colección de <see cref="Inmueble"/>.</returns>
         public List<Inmueble> Listar(string filtroTexto = null, bool soloActivos = true)
         {
             var lista = new List<Inmueble>();
@@ -191,6 +233,12 @@ namespace InmoTech.Data.Repositories
             return lista;
         }
 
+        /// <summary>
+        /// Actualiza campos editables de un inmueble existente (no altera auditoría).
+        /// Notifica al dashboard si hubo cambios.
+        /// </summary>
+        /// <param name="i">Entidad con datos a persistir (Id requerido).</param>
+        /// <returns>Cantidad de filas afectadas.</returns>
         public int Actualizar(Inmueble i)
         {
             // NOTA: No se actualizan fecha_creacion ni usuario_creador_dni (es correcto)
@@ -222,7 +270,11 @@ namespace InmoTech.Data.Repositories
             }
         }
 
-        /// <summary> Baja lógica: estado = 0 (false). </summary>
+        /// <summary> 
+        /// Realiza baja lógica de un inmueble (establece <c>estado = 0</c>).
+        /// </summary>
+        /// <param name="idInmueble">ID a desactivar.</param>
+        /// <returns>Filas afectadas.</returns>
         public int DarDeBaja(int idInmueble)
         {
             using (var cn = BDGeneral.GetConnection())
@@ -245,18 +297,31 @@ namespace InmoTech.Data.Repositories
         // REGIÓN: CRUD Inmueble Imagen (Sub-entidad) - MODIFICADO
         // ======================================================
         #region CRUD Inmueble Imagen (Sub-entidad)
+
+        /// <summary>
+        /// Agrega una imagen a un inmueble copiando primero el archivo al repositorio local
+        /// (<c>Resources/inmuebles/&lt;id&gt;</c>) y luego persistiendo su registro en BD.
+        /// Si <paramref name="esPortada"/> es <c>true</c>, quita la portada anterior.
+        /// </summary>
+        /// <param name="idInmueble">ID del inmueble dueño de la imagen.</param>
+        /// <param name="archivoOrigen">Ruta de archivo fuente a copiar.</param>
+        /// <param name="titulo">Título opcional.</param>
+        /// <param name="esPortada">Marca la imagen como portada del inmueble.</param>
+        /// <param name="posicion">Orden relativo de la imagen.</param>
+        /// <returns>ID de la imagen creada.</returns>
+        /// <exception cref="FileNotFoundException">Si no existe el archivo de origen.</exception>
         public int AgregarImagenDesdeArchivo(
-    int idInmueble,
-    string archivoOrigen,
-    string titulo = null,
-    bool esPortada = false,
-    short posicion = 0)
+            int idInmueble,
+            string archivoOrigen,
+            string titulo = null,
+            bool esPortada = false,
+            short posicion = 0)
         {
             if (string.IsNullOrWhiteSpace(archivoOrigen) || !File.Exists(archivoOrigen))
                 throw new FileNotFoundException("No se encontró el archivo de imagen.", archivoOrigen);
 
             // ---------- 1) Preparar paths y copiar archivo físico ----------
-            var destDir = GetResourcesInmueblesDir(idInmueble);        // ...\Resources\inmuebles\<id>\
+            var destDir = GetResourcesInmueblesDir(idInmueble);        
             var fileName = Path.GetFileName(archivoOrigen);
             var destPath = Path.Combine(destDir, fileName);
 
@@ -272,7 +337,7 @@ namespace InmoTech.Data.Repositories
 
             File.Copy(archivoOrigen, destPath);
 
-            // Metadatos opcionales
+            // Metadatos opcionales (intento de lectura de ancho/alto y tamaño)
             int? w = null, h = null, size = null;
             try
             {
@@ -352,7 +417,13 @@ namespace InmoTech.Data.Repositories
             }
         }
 
-
+        /// <summary>
+        /// Lista las imágenes asociadas a un inmueble, opcionalmente filtrando solo las activas.
+        /// Orden: portada primero, luego por posición e ID.
+        /// </summary>
+        /// <param name="idInmueble">ID de inmueble.</param>
+        /// <param name="soloActivas">Si <c>true</c>, filtra <c>activo = 1</c>.</param>
+        /// <returns>Colección de <see cref="InmuebleImagen"/>.</returns>
         public List<InmuebleImagen> ListarImagenes(int idInmueble, bool soloActivas = true)
         {
             var lista = new List<InmuebleImagen>();
@@ -392,6 +463,12 @@ namespace InmoTech.Data.Repositories
             return lista;
         }
 
+        /// <summary>
+        /// Marca una imagen como portada. Asegura exclusividad de portada por inmueble.
+        /// Notifica al dashboard si la operación fue exitosa.
+        /// </summary>
+        /// <param name="idImagen">ID de la imagen a promover como portada.</param>
+        /// <returns>Filas afectadas (0 si no existe).</returns>
         public int SetPortada(int idImagen)
         {
             int idInmueble = 0;
@@ -432,8 +509,12 @@ namespace InmoTech.Data.Repositories
         }
 
         /// <summary>
-        /// Elimina el registro y, opcionalmente, el archivo físico.
+        /// Elimina un registro de imagen y, opcionalmente, intenta borrar el archivo físico asociado.
+        /// Notifica al dashboard si la operación afectó filas.
         /// </summary>
+        /// <param name="idImagen">ID de la imagen.</param>
+        /// <param name="borrarArchivoFisico">Si <c>true</c>, intenta eliminar el archivo en disco.</param>
+        /// <returns>Filas afectadas.</returns>
         public int EliminarImagen(int idImagen, bool borrarArchivoFisico = true)
         {
             string ruta = null;
@@ -477,6 +558,12 @@ namespace InmoTech.Data.Repositories
             }
         }
 
+        /// <summary>
+        /// Actualiza la posición/orden de una imagen.
+        /// </summary>
+        /// <param name="idImagen">ID de la imagen.</param>
+        /// <param name="nuevaPosicion">Nueva posición relativa.</param>
+        /// <returns>Filas afectadas.</returns>
         public int ReordenarImagen(int idImagen, short nuevaPosicion)
         {
             using (var cn = BDGeneral.GetConnection())
@@ -503,8 +590,12 @@ namespace InmoTech.Data.Repositories
         #region Carga de Imagen Portada (NUEVO)
 
         /// <summary> 
-        /// Obtiene la imagen de portada de un inmueble del sistema de archivos. 
+        /// Obtiene la imagen de portada de un inmueble desde el sistema de archivos.
+        /// Lee la ruta desde BD y devuelve un <see cref="Image"/> cargado en memoria
+        /// para evitar locks de archivo.
         /// </summary>
+        /// <param name="idInmueble">ID del inmueble.</param>
+        /// <returns>Instancia de <see cref="Image"/> o <c>null</c> si no hay portada o falla la carga.</returns>
         public Image? ObtenerImagenPortada(int idInmueble)
         {
             string? rutaRelativa = null;
@@ -559,6 +650,16 @@ namespace InmoTech.Data.Repositories
         //  REGIÓN: Consultas Paginadas
         // ======================================================
         #region Consultas Paginadas
+
+        /// <summary>
+        /// Realiza una búsqueda paginada devolviendo un conjunto liviano (<see cref="InmuebleLite"/>) y el total.
+        /// Filtra por término (dirección, tipo o condiciones) y estado (activo/any).
+        /// </summary>
+        /// <param name="term">Término de búsqueda; si vacío, no filtra por texto.</param>
+        /// <param name="soloActivos">Si <c>true</c> filtra por <c>estado = 1</c>; si <c>null</c> no filtra estado.</param>
+        /// <param name="page">Página (1-based).</param>
+        /// <param name="pageSize">Tamaño de página (&gt;=1).</param>
+        /// <returns>Tupla con <c>items</c> y <c>total</c>.</returns>
         public (List<InmuebleLite> items, int total) BuscarPaginado(
             string term, bool? soloActivos, int page, int pageSize)
         {
@@ -626,19 +727,35 @@ namespace InmoTech.Data.Repositories
         //  REGIÓN: DTO
         // ======================================================
         #region Data Transfer Object (DTO)
-        // DTO liviano para la grilla del buscador
+
+        /// <summary>
+        /// DTO liviano proyectado para listados/paginación en grillas.
+        /// </summary>
         public sealed class InmuebleLite
         {
+            /// <summary>ID de inmueble.</summary>
             public int IdInmueble { get; set; }
+            /// <summary>Dirección completa.</summary>
             public string Direccion { get; set; } = "";
+            /// <summary>Tipo (casa, depto, etc.).</summary>
             public string Tipo { get; set; } = "";
+            /// <summary>Condiciones de alquiler/venta.</summary>
             public string Condiciones { get; set; } = "";   // 👈 NUEVO
+            /// <summary>Número de ambientes (puede ser null).</summary>
             public int? NroAmbientes { get; set; }
+            /// <summary>Indica si está amueblado.</summary>
             public bool Amueblado { get; set; }
+            /// <summary>Estado lógico (true=activo).</summary>
             public bool Estado { get; set; }  // true=Activo
         }
         #endregion
 
+        /// <summary>
+        /// Actualiza el campo <c>condiciones</c> de un inmueble y notifica al dashboard si hubo cambios.
+        /// </summary>
+        /// <param name="idInmueble">ID del inmueble a actualizar.</param>
+        /// <param name="nuevaCondicion">Texto de condiciones.</param>
+        /// <returns>Filas afectadas.</returns>
         public int ActualizarCondicion(int idInmueble, string nuevaCondicion)
         {
             using (var cn = BDGeneral.GetConnection())

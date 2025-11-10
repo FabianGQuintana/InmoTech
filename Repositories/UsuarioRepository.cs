@@ -1,4 +1,11 @@
-﻿using InmoTech.Data;
+﻿// ============================================================================
+// InmoTech.Repositories.UsuarioRepository
+// ----------------------------------------------------------------------------
+// Repositorio para operaciones CRUD y autenticación sobre la entidad Usuario.
+// La documentación es breve y concisa, y NO modifica el código original.
+// ============================================================================
+
+using InmoTech.Data;
 using InmoTech.Models;
 using InmoTech.Security;
 using Microsoft.Data.SqlClient;
@@ -8,6 +15,10 @@ using System.Data;
 
 namespace InmoTech.Repositories
 {
+    /// <summary>
+    /// Provee métodos para crear, actualizar, consultar y administrar estado de usuarios,
+    /// así como verificar credenciales de acceso.
+    /// </summary>
     public class UsuarioRepository
     {
         // ======================================================
@@ -17,7 +28,12 @@ namespace InmoTech.Repositories
         // ================
         // INSERT
         // ================
-        // MODIFICADO: Ahora acepta el DNI del usuario creador
+        /// <summary>
+        /// Inserta un nuevo usuario aplicando hash a la contraseña.
+        /// </summary>
+        /// <param name="usuario">Datos del usuario a crear.</param>
+        /// <param name="dniUsuarioCreador">DNI del usuario que crea el registro.</param>
+        /// <returns>Número de filas afectadas.</returns>
         public int AgregarUsuario(Usuario usuario, int dniUsuarioCreador)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -51,6 +67,12 @@ namespace InmoTech.Repositories
         // ... (La región de UPDATE no se toca, esos campos no deben actualizarse) ...
         #region Operaciones de Actualización (Update)
         // (Sin cambios aquí)
+        /// <summary>
+        /// Actualiza datos del usuario. Opcionalmente actualiza y re-hashea la contraseña.
+        /// </summary>
+        /// <param name="usuario">Entidad con los nuevos valores.</param>
+        /// <param name="actualizarPassword">Si es <c>true</c>, actualiza la contraseña.</param>
+        /// <returns>Número de filas afectadas.</returns>
         public int ActualizarUsuario(Usuario usuario, bool actualizarPassword)
         {
             // ... (código existente sin modificar) ...
@@ -110,6 +132,10 @@ namespace InmoTech.Repositories
         // ================
         // SELECT ALL
         // ================
+        /// <summary>
+        /// Obtiene la lista completa de usuarios, incluyendo metadatos de creación.
+        /// </summary>
+        /// <returns>Lista de <see cref="Usuario"/>.</returns>
         public List<Usuario> ObtenerUsuarios()
         {
             using var connection = BDGeneral.GetConnection();
@@ -165,6 +191,11 @@ namespace InmoTech.Repositories
         // ================
         // OBTENER POR EMAIL
         // ================
+        /// <summary>
+        /// Obtiene un usuario por su email (incluye el hash de contraseña para validación).
+        /// </summary>
+        /// <param name="email">Correo electrónico a buscar.</param>
+        /// <returns><see cref="Usuario"/> o <c>null</c> si no existe.</returns>
         public Usuario? ObtenerPorEmail(string email)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -208,6 +239,12 @@ namespace InmoTech.Repositories
         // ================
         // ESTADO
         // ================
+        /// <summary>
+        /// Actualiza el estado (activo/inactivo) de un usuario.
+        /// </summary>
+        /// <param name="dni">DNI del usuario.</param>
+        /// <param name="estado">Nuevo estado (true = activo).</param>
+        /// <returns>Número de filas afectadas.</returns>
         public int ActualizarEstado(int dni, bool estado)
         {
             using var conexion = BDGeneral.GetConnection();
@@ -220,6 +257,11 @@ namespace InmoTech.Repositories
             return cmd.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// Marca al usuario como inactivo (baja lógica).
+        /// </summary>
+        /// <param name="dni">DNI del usuario.</param>
+        /// <returns>Número de filas afectadas.</returns>
         public int DarDeBajaUsuario(int dni) => ActualizarEstado(dni, false);
         #endregion
 
@@ -230,18 +272,24 @@ namespace InmoTech.Repositories
         // ================
         // LOGIN
         // ================
+        /// <summary>
+        /// Valida credenciales comparando el password plano con el hash almacenado y verifica estado activo.
+        /// </summary>
+        /// <param name="email">Correo electrónico del usuario.</param>
+        /// <param name="passwordPlano">Contraseña en texto plano a verificar.</param>
+        /// <returns>Usuario autenticado sin hash en memoria, o <c>null</c> si falla.</returns>
         public Usuario? ValidarCredenciales(string email, string passwordPlano)
         {
             var user = ObtenerPorEmail(email);
             if (user is null) return null;
 
-            //  Verificar hash + estado
-            bool ok = PasswordHasher.Verify(passwordPlano, user.Password);
+            //  Verificar hash + estado
+            bool ok = PasswordHasher.Verify(passwordPlano, user.Password);
             if (!ok || !user.Estado) return null;
 
             user.Password = string.Empty; //  nunca exponer hash
-            return user;
+            return user;
         }
         #endregion
-    }
+    }
 }

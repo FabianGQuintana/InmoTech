@@ -254,23 +254,28 @@ namespace InmoTech.Repositories
                     cu.id_contrato          AS IdContrato,
                     cu.nro_cuota            AS NroCuota,
                     cu.fecha_vencimiento    AS FechaVencimiento,
-                    DATEDIFF(DAY, cu.fecha_vencimiento, @Hasta) AS DiasAtraso,
+                    DATEDIFF(DAY, CAST(cu.fecha_vencimiento AS date), CAST(@Hasta AS date)) AS DiasAtraso,
                     per.apellido + ', ' + per.nombre AS Inquilino,
                     i.id_inmueble,
                     i.direccion             AS Inmueble,
                     cu.importe
                 FROM cuota cu
-                INNER JOIN contrato c ON c.id_contrato = cu.id_contrato
-                INNER JOIN persona per ON per.id_persona = c.id_persona
-                INNER JOIN inmueble i ON i.id_inmueble = c.id_inmueble
+                INNER JOIN contrato c   ON c.id_contrato   = cu.id_contrato
+                INNER JOIN persona per  ON per.id_persona  = c.id_persona
+                INNER JOIN inmueble i   ON i.id_inmueble   = c.id_inmueble
                 LEFT JOIN pago p
-                   ON p.id_contrato = cu.id_contrato
-                  AND p.nro_cuota   = cu.nro_cuota
-                  AND p.estado = @EstadoPagado
-                WHERE cu.estado = @CuotaPendiente
-                  AND cu.fecha_vencimiento BETWEEN @Desde AND @Hasta
-                  AND p.id_pago IS NULL
-                ORDER BY DiasAtraso DESC, cu.fecha_vencimiento;";
+                    ON  p.id_contrato = cu.id_contrato
+                    AND p.nro_cuota   = cu.nro_cuota
+                    AND p.estado      = @EstadoPagado
+                WHERE 
+                    c.estado = 1                                           -- ✅ solo contratos activos
+                    AND @Hasta BETWEEN c.fecha_inicio AND c.fecha_fin      -- ✅ activo al corte
+                    AND cu.estado = @CuotaPendiente
+                    AND p.id_pago IS NULL                                  -- ✅ sin pago aplicado
+                    AND DATEDIFF(DAY, CAST(cu.fecha_vencimiento AS date), CAST(@Hasta AS date)) > 0  -- ✅ vencidas (no incluye hoy)
+                ORDER BY DiasAtraso DESC, cu.fecha_vencimiento;
+            ";
+
 
             using var cn = BDGeneral.GetConnection();
             using var cmd = new SqlCommand(sql, cn);
