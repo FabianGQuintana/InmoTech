@@ -66,7 +66,7 @@ namespace InmoTech.Controls
         }
 
         /// <summary>
-        /// Completa los labels de cabecera con datos del contrato (inquilino, inmueble, fechas, totales).
+        /// Completa los labels de cabecera con datos del contrato (inquilino, inmueble y fechas).
         /// </summary>
         private void CargarCabeceraContrato()
         {
@@ -74,9 +74,7 @@ namespace InmoTech.Controls
             lblInquilino.Text = $"Inquilino: {_contrato.NombreInquilino}";
             lblInmueble.Text = $"Inmueble: {_contrato.DireccionInmueble}";
             lblFechas.Text = $"Inicio – Fin:  {_contrato.FechaInicio:dd/MM/yyyy} – {_contrato.FechaFin:dd/MM/yyyy}";
-            lblTotal.Text = $"{_contrato.Monto * ObtenerCantidadMeses():N0}";
-            lblCuotas.Text = ObtenerCantidadMeses().ToString();
-            ActualizarResumen();
+            // KPIs removidos: Total, Atraso y Cuotas
         }
 
         /// <summary>
@@ -251,26 +249,6 @@ namespace InmoTech.Controls
             {
                 MessageBox.Show($"Ocurrió un error al intentar mostrar el recibo:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        /// <summary>
-        /// Calcula y muestra en cabecera los totales pagado/pendiente del contrato.
-        /// </summary>
-        private void ActualizarResumen()
-        {
-            decimal totalPagado = _cuotas.Where(c => EsPagada(c)).Sum(c => c.Importe);
-            decimal totalPendiente = _cuotas.Where(c => !EsPagada(c)).Sum(c => c.Importe);
-            lblAtraso.Text = $"{totalPendiente:N0}";
-            lblTotal.Text = $"{totalPagado + totalPendiente:N0}";
-        }
-
-        /// <summary>
-        /// Devuelve la cantidad de meses entre inicio y fin del contrato (sin incluir el mes final incompleto).
-        /// </summary>
-        private int ObtenerCantidadMeses()
-        {
-            return ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12) +
-                   (_contrato.FechaFin.Month - _contrato.FechaInicio.Month);
         }
         #endregion
 
