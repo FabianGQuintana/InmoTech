@@ -1,6 +1,6 @@
-﻿// DashboardRepository.cs
-using InmoTech.Data; // Para BDGeneral
-using InmoTech.Models; // Para DashboardData, InmuebleCard
+﻿
+using InmoTech.Data;
+using InmoTech.Models;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -20,48 +20,44 @@ namespace InmoTech.Repositories
             using var cn = BDGeneral.GetConnection();
 
             // ======================================================
-            // 1. CONSULTA DE KPIS CORREGIDA POR ERRORES ANTERIORES
+            // 1. CONSULTA DE KPIS CORREGIDA Y SIMPLIFICADA
             // ======================================================
-
             const string sqlKpis = @"
                 -- KPI 1: Total Propiedades Disponibles (OK)
                 SELECT COUNT(id_inmueble) FROM dbo.inmueble WHERE estado = 1;
 
-                -- KPI 2: Total Inquilinos (OK)
-                SELECT COUNT(p.id_persona) 
-                FROM dbo.persona p
-                INNER JOIN dbo.usuario u ON p.dni = u.dni        -- 1. Relacionar Persona con Usuario (por DNI)
-                INNER JOIN dbo.rol r ON u.id_rol = r.id_rol      -- 2. Relacionar Usuario con Rol (por id_rol)
-                WHERE r.nombre_rol = 'Inquilino' AND p.estado = 1; -- 3. Filtrar por el rol y el estado ACTIVO de la persona
+                -- KPI 2: Total Inquilinos (CORREGIDO: Personas con Contrato Activo)
+                -- Se cuenta la cantidad de personas únicas (inquilinos) que tienen al menos un contrato activo (estado = 1).
+                SELECT COUNT(DISTINCT id_persona)
+                FROM dbo.contrato
+                WHERE estado = 1;
 
-                -- KPI 3: Ingreso Total del Mes (CORRECCIÓN: Se prueba contra los estados de pago comunes)
-                SELECT ISNULL(SUM(monto_total), 0) FROM dbo.pago 
-                -- Filtro de fecha para el mes actual (Reintroducido)
-                WHERE YEAR(fecha_pago) = YEAR(GETDATE()) AND MONTH(fecha_pago) = MONTH(GETDATE()) 
+                -- KPI 3: Ingreso Total del Mes (OK)
+                SELECT ISNULL(SUM(monto_total), 0) FROM dbo.pago
+                -- Filtro de fecha para el mes actual
+                WHERE YEAR(fecha_pago) = YEAR(GETDATE()) AND MONTH(fecha_pago) = MONTH(GETDATE())
                 -- Se prueba contra COMPLETED o PAGADO, ignorando capitalización
-                AND (UPPER(estado) = 'COMPLETADO' OR UPPER(estado) = 'PAGADO') AND activo = 1; 
+                AND (UPPER(estado) = 'COMPLETADO' OR UPPER(estado) = 'PAGADO') AND activo = 1;
 
-                -- KPI 4: Pagos Pendientes (Se asume el estado 'PENDIENTE')
-                SELECT COUNT(id_pago) FROM dbo.pago 
-                WHERE UPPER(estado) = 'PENDIENTE' AND activo = 1; 
+                -- KPI 4: Pagos Pendientes (ELIMINADO DE LA CONSULTA SQL)
 
-                -- CONSULTA 5: Propiedades Disponibles (Sin TOP para traer todas las activas)
-                SELECT id_inmueble, direccion, tipo, nro_ambientes, estado 
-                FROM dbo.inmueble 
-                WHERE estado = 1 
+                -- CONSULTA 4: Propiedades Disponibles (Sin TOP para traer todas las activas) -> ANTES ERA LA CONSULTA 5
+                SELECT id_inmueble, direccion, tipo, nro_ambientes, estado
+                FROM dbo.inmueble
+                WHERE estado = 1
                 ORDER BY fecha_creacion DESC;
                 
-                -- CONSULTA 6: Contratos Por Vencer (OK)
-                SELECT TOP 5 
-                    c.id_contrato, 
+                -- CONSULTA 5: Contratos Por Vencer (OK) -> ANTES ERA LA CONSULTA 6
+                SELECT TOP 5
+                    c.id_contrato,
                     p.nombre + ' ' + p.apellido AS InquilinoNombre,
                     i.direccion AS InmuebleDireccion,
-                    c.estado, 
+                    c.estado,
                     c.fecha_fin
                 FROM dbo.contrato c
                 INNER JOIN dbo.inmueble i ON c.id_inmueble = i.id_inmueble
                 INNER JOIN dbo.persona p ON c.id_persona = p.id_persona
-                WHERE c.estado = 1 
+                WHERE c.estado = 1
                 AND c.fecha_fin BETWEEN GETDATE() AND DATEADD(day, 90, GETDATE());
             ";
 
@@ -79,11 +75,8 @@ namespace InmoTech.Repositories
             reader.NextResult();
             if (reader.Read()) data.IngresoTotalMes = reader.IsDBNull(0) ? 0 : reader.GetDecimal(0);
 
-            // 4. Leer KPI: Pagos Pendientes
-            reader.NextResult();
-            if (reader.Read()) data.PagosPendientes = reader.GetInt32(0);
+            // 4. Leer Propiedades Disponibles (Cards) - AHORA ES EL 4TO RESULTADO
 
-            // 5. Leer Propiedades Disponibles (Cards) 
             reader.NextResult();
             while (reader.Read())
             {
@@ -101,7 +94,7 @@ namespace InmoTech.Repositories
                 });
             }
 
-            // 6. Leer Contratos Por Vencer (DataGridView)
+            // 5. Leer Contratos Por Vencer (DataGridView) - AHORA ES EL 5TO RESULTADO
             reader.NextResult();
             var contratosVencer = new DataTable();
             contratosVencer.Load(reader);

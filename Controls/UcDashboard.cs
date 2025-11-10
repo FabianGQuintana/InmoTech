@@ -77,7 +77,6 @@ namespace InmoTech
                 lblKpiProp.Text = data.TotalPropiedades.ToString();
                 lblKpiInq.Text = data.TotalInquilinos.ToString();
                 lblKpiIngreso.Text = data.IngresoTotalMes.ToString("C", CultureInfo.CurrentCulture);
-                lblKpiPend.Text = data.PagosPendientes.ToString();
 
                 // 3. Cards de Propiedades Dinámicas
                 flPropiedades.Controls.Clear();

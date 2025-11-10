@@ -1,4 +1,4 @@
-﻿// Archivo: UcDashboard.Designer.cs
+﻿
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -18,15 +18,12 @@ namespace InmoTech
         private Panel kpi1;
         private Panel kpi2;
         private Panel kpi3;
-        private Panel kpi4;
         private Label lblKpiPropCap;
         private Label lblKpiProp;
         private Label lblKpiInqCap;
         private Label lblKpiInq;
         private Label lblKpiIngresoCap;
         private Label lblKpiIngreso;
-        private Label lblKpiPendCap;
-        private Label lblKpiPend;
 
         private Label lblPropDisp;
         private FlowLayoutPanel flPropiedades;
@@ -58,9 +55,6 @@ namespace InmoTech
             kpi3 = new Panel();
             lblKpiIngreso = new Label();
             lblKpiIngresoCap = new Label();
-            kpi4 = new Panel();
-            lblKpiPend = new Label();
-            lblKpiPendCap = new Label();
             lblPropDisp = new Label();
             flPropiedades = new FlowLayoutPanel();
             lblContratos = new Label();
@@ -75,7 +69,6 @@ namespace InmoTech
             kpi1.SuspendLayout();
             kpi2.SuspendLayout();
             kpi3.SuspendLayout();
-            kpi4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvContratos).BeginInit();
             SuspendLayout();
             // 
@@ -131,15 +124,13 @@ namespace InmoTech
             // tlKpis
             // 
             tlKpis.BackColor = Color.Teal;
-            tlKpis.ColumnCount = 4;
-            tlKpis.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tlKpis.ColumnCount = 3;
             tlKpis.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             tlKpis.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             tlKpis.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
             tlKpis.Controls.Add(kpi1, 0, 0);
             tlKpis.Controls.Add(kpi2, 1, 0);
             tlKpis.Controls.Add(kpi3, 2, 0);
-            tlKpis.Controls.Add(kpi4, 3, 0);
             tlKpis.Dock = DockStyle.Fill;
             tlKpis.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tlKpis.Location = new Point(3, 83);
@@ -257,42 +248,7 @@ namespace InmoTech
             lblKpiIngresoCap.Size = new Size(151, 22);
             lblKpiIngresoCap.TabIndex = 1;
             lblKpiIngresoCap.Text = "Ingreso del mes";
-            // 
-            // kpi4
-            // 
-            kpi4.BackColor = Color.White;
-            kpi4.BorderStyle = BorderStyle.FixedSingle;
-            kpi4.Controls.Add(lblKpiPend);
-            kpi4.Controls.Add(lblKpiPendCap);
-            kpi4.Dock = DockStyle.Fill;
-            kpi4.Location = new Point(884, 20);
-            kpi4.Margin = new Padding(8);
-            kpi4.Name = "kpi4";
-            kpi4.Padding = new Padding(12);
-            kpi4.Size = new Size(273, 74);
-            kpi4.TabIndex = 3;
-            // 
-            // lblKpiPend
-            // 
-            lblKpiPend.AutoSize = true;
-            lblKpiPend.Dock = DockStyle.Top;
-            lblKpiPend.Font = new Font("Microsoft Sans Serif", 11.999999F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblKpiPend.Location = new Point(12, 34);
-            lblKpiPend.Name = "lblKpiPend";
-            lblKpiPend.Size = new Size(27, 29);
-            lblKpiPend.TabIndex = 0;
-            lblKpiPend.Text = "0";
-            // 
-            // lblKpiPendCap
-            // 
-            lblKpiPendCap.AutoSize = true;
-            lblKpiPendCap.Dock = DockStyle.Top;
-            lblKpiPendCap.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblKpiPendCap.Location = new Point(12, 12);
-            lblKpiPendCap.Name = "lblKpiPendCap";
-            lblKpiPendCap.Size = new Size(170, 22);
-            lblKpiPendCap.TabIndex = 1;
-            lblKpiPendCap.Text = "Pagos pendientes";
+           
             // 
             // lblPropDisp
             // 
@@ -393,8 +349,6 @@ namespace InmoTech
             kpi2.PerformLayout();
             kpi3.ResumeLayout(false);
             kpi3.PerformLayout();
-            kpi4.ResumeLayout(false);
-            kpi4.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvContratos).EndInit();
             ResumeLayout(false);
         }
