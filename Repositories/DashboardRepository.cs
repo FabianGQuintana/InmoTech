@@ -24,30 +24,34 @@ namespace InmoTech.Repositories
             // ======================================================
 
             const string sqlKpis = @"
-                -- KPI 1: Total Propiedades Disponibles (Usamos estado=1 [BIT] para activo/disponible)
+                -- KPI 1: Total Propiedades Disponibles (OK)
                 SELECT COUNT(id_inmueble) FROM dbo.inmueble WHERE estado = 1;
 
-                -- KPI 2: Total Inquilinos (CORRECCIÓN FINAL: Contar personas únicas con contratos activos)
-                SELECT COUNT(DISTINCT c.id_persona) 
-                FROM dbo.contrato c 
-                WHERE c.estado = 1;
+                -- KPI 2: Total Inquilinos (OK)
+                SELECT COUNT(p.id_persona) 
+                FROM dbo.persona p
+                INNER JOIN dbo.usuario u ON p.dni = u.dni        -- 1. Relacionar Persona con Usuario (por DNI)
+                INNER JOIN dbo.rol r ON u.id_rol = r.id_rol      -- 2. Relacionar Usuario con Rol (por id_rol)
+                WHERE r.nombre_rol = 'Inquilino' AND p.estado = 1; -- 3. Filtrar por el rol y el estado ACTIVO de la persona
 
-                -- KPI 3: Ingreso Total del Mes (Pagos Completados)
+                -- KPI 3: Ingreso Total del Mes (CORRECCIÓN: Se prueba contra los estados de pago comunes)
                 SELECT ISNULL(SUM(monto_total), 0) FROM dbo.pago 
+                -- Filtro de fecha para el mes actual (Reintroducido)
                 WHERE YEAR(fecha_pago) = YEAR(GETDATE()) AND MONTH(fecha_pago) = MONTH(GETDATE()) 
-                AND estado = 'Completado' AND activo = 1; 
+                -- Se prueba contra COMPLETED o PAGADO, ignorando capitalización
+                AND (UPPER(estado) = 'COMPLETADO' OR UPPER(estado) = 'PAGADO') AND activo = 1; 
 
-                -- KPI 4: Pagos Pendientes
+                -- KPI 4: Pagos Pendientes (Se asume el estado 'PENDIENTE')
                 SELECT COUNT(id_pago) FROM dbo.pago 
-                WHERE estado = 'Pendiente' AND activo = 1; 
+                WHERE UPPER(estado) = 'PENDIENTE' AND activo = 1; 
 
-                -- CONSULTA 5: Propiedades Disponibles (para Cards)
-                SELECT TOP 4 id_inmueble, direccion, tipo, nro_ambientes, estado 
+                -- CONSULTA 5: Propiedades Disponibles (Sin TOP para traer todas las activas)
+                SELECT id_inmueble, direccion, tipo, nro_ambientes, estado 
                 FROM dbo.inmueble 
                 WHERE estado = 1 
                 ORDER BY fecha_creacion DESC;
-
-                -- CONSULTA 6: Contratos Por Vencer (para DataGridView)
+                
+                -- CONSULTA 6: Contratos Por Vencer (OK)
                 SELECT TOP 5 
                     c.id_contrato, 
                     p.nombre + ' ' + p.apellido AS InquilinoNombre,

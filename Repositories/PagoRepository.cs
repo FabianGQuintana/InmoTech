@@ -1,10 +1,12 @@
 ﻿using InmoTech.Data;
 using InmoTech.Models;
+using InmoTech.Services;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
+using InmoTech.Services;
 
 namespace InmoTech.Repositories
 {
@@ -41,7 +43,15 @@ namespace InmoTech.Repositories
             cmd.Parameters.Add("@UsuarioCreador", SqlDbType.VarChar, 50).Value = p.UsuarioCreador;
             cmd.Parameters.Add("@Activo", SqlDbType.Bit).Value = p.Activo;
 
-            return Convert.ToInt32(cmd.ExecuteScalar());
+            int newId = Convert.ToInt32(cmd.ExecuteScalar());
+
+            // NOTIFICACIÓN: Se agrega un pago, lo que afecta Ingresos y Pendientes.
+            if (newId > 0)
+            {
+                AppNotifier.NotifyDashboardChange();
+            }
+
+            return newId;
         }
         #endregion
 

@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using InmoTech.Services;
 
 namespace InmoTech.Repositories
 {
@@ -154,6 +155,9 @@ namespace InmoTech.Repositories
                 // 4) CONFIRMAR TODO
                 // ----------------------------------------------
                 transaccion.Commit();
+
+                AppNotifier.NotifyDashboardChange();
+
                 return 1;
             }
             catch
@@ -277,7 +281,15 @@ namespace InmoTech.Repositories
             cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = estado;
             cmd.Parameters.Add("@Id", SqlDbType.Int).Value = idContrato;
 
-            return cmd.ExecuteNonQuery();
+            int rowsAffected = cmd.ExecuteNonQuery();
+
+            // NOTIFICACIÓN: Cambiar el estado del contrato afecta Inquilinos y Contratos por Vencer.
+            if (rowsAffected > 0)
+            {
+                AppNotifier.NotifyDashboardChange();
+            }
+
+            return rowsAffected;
         }
 
         public int ActualizarContrato(Contrato c)
@@ -309,7 +321,15 @@ namespace InmoTech.Repositories
             cmd.Parameters.Add("@Estado", SqlDbType.Bit).Value = c.Estado;
             cmd.Parameters.Add("@IdContrato", SqlDbType.Int).Value = c.IdContrato;
 
-            return cmd.ExecuteNonQuery();
+            int rowsAffected = cmd.ExecuteNonQuery();
+
+            // NOTIFICACIÓN: Actualizar el contrato afecta la grilla y potencialmente Ingresos.
+            if (rowsAffected > 0)
+            {
+                AppNotifier.NotifyDashboardChange();
+            }
+
+            return rowsAffected;
         }
 
         public int DarDeBajaContrato(int idContrato) => ActualizarEstado(idContrato, false);

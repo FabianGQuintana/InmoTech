@@ -1,22 +1,25 @@
 ﻿
-using InmoTech.Repositories; 
-using InmoTech.Models;      
+using InmoTech.Data.Repositories;
+using InmoTech.Repositories;      // Para DashboardRepository
+using InmoTech.Models;            // Para DashboardData, InmuebleCard
+using InmoTech.Services;          // Para AppNotifier
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
-using System.Globalization; // Para formatear el dinero
 
 namespace InmoTech
 {
     public partial class UcDashboard : UserControl
     {
         // ======================================================
-        // REGIÓN: Repositorios (NUEVO)
+        // REGIÓN: Repositorios
         // ======================================================
         #region Repositorios
         private readonly DashboardRepository _dashboardRepository = new();
+        private readonly InmuebleRepository _inmuebleRepository = new(); // ¡NUEVO! Para cargar imágenes
         #endregion
 
         // ======================================================
@@ -27,6 +30,9 @@ namespace InmoTech
         {
             InitializeComponent();
             this.Load += UcDashboard_Load;
+
+            // Suscribirse al evento de notificación (Dinamismo)
+            AppNotifier.DashboardDataChanged += AppNotifier_DashboardDataChanged;
         }
 
         private void UcDashboard_Load(object? sender, EventArgs e)
@@ -35,14 +41,26 @@ namespace InmoTech
             Seed();
         }
 
-        // ... (IsDesigner se mantiene igual) ...
+        // Manejador del evento de notificación para actualizar la UI desde cualquier hilo
+        private void AppNotifier_DashboardDataChanged()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(Seed));
+            }
+            else
+            {
+                Seed(); // Actualiza la interfaz
+            }
+        }
+
         private static bool IsDesigner()
         {
             return LicenseManager.UsageMode == LicenseUsageMode.Designtime
-                           || Process.GetCurrentProcess().ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase);
+                            || Process.GetCurrentProcess().ProcessName.Equals("devenv", StringComparison.OrdinalIgnoreCase);
         }
-        #endregion
 
+        #endregion
 
         // ======================================================
         // REGIÓN: Carga de Datos y Renderizado (Seed) - MODIFICADO
@@ -53,14 +71,11 @@ namespace InmoTech
         {
             try
             {
-                // 1. Obtener todos los datos del repositorio
                 var data = _dashboardRepository.GetDashboardData();
 
                 // 2. KPIs Dinámicos
                 lblKpiProp.Text = data.TotalPropiedades.ToString();
                 lblKpiInq.Text = data.TotalInquilinos.ToString();
-
-                // Formateo del ingreso usando la cultura actual (ej: "$563.432,32")
                 lblKpiIngreso.Text = data.IngresoTotalMes.ToString("C", CultureInfo.CurrentCulture);
                 lblKpiPend.Text = data.PagosPendientes.ToString();
 
@@ -69,7 +84,6 @@ namespace InmoTech
                 flPropiedades.FlowDirection = FlowDirection.LeftToRight;
                 flPropiedades.WrapContents = true;
 
-                // Usamos la lista dinámica del repositorio
                 foreach (var c in data.InmueblesDisponibles)
                     flPropiedades.Controls.Add(CreatePropertyCard(c));
 
@@ -81,7 +95,6 @@ namespace InmoTech
                 // 4. Contratos por Vencer Dinámicos
                 dgvContratos.DataSource = data.ContratosVencer;
 
-                // Asegurar que las columnas tengan encabezados amigables después de DataBinding
                 if (dgvContratos.Columns.Contains("id_contrato")) dgvContratos.Columns["id_contrato"].HeaderText = "Contrato";
                 if (dgvContratos.Columns.Contains("InquilinoNombre")) dgvContratos.Columns["InquilinoNombre"].HeaderText = "Inquilino";
                 if (dgvContratos.Columns.Contains("InmuebleDireccion")) dgvContratos.Columns["InmuebleDireccion"].HeaderText = "Inmueble";
@@ -91,10 +104,7 @@ namespace InmoTech
             }
             catch (Exception ex)
             {
-                // Manejo de errores de carga (ej. conexión a la BD)
                 MessageBox.Show($"Error al cargar datos del Dashboard: {ex.Message}", "Error de Conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                // Opcional: Establecer valores predeterminados o vaciar KPIs en caso de fallo
                 lblKpiProp.Text = "N/A";
                 lblKpiIngreso.Text = "$0,00";
             }
@@ -106,25 +116,42 @@ namespace InmoTech
         // ======================================================
         #region Renderizado de Tarjeta (Card)
         // ------ UI CARD ------
-        // El argumento ahora usa el modelo InmuebleCard
         private Control CreatePropertyCard(InmuebleCard d)
         {
-            // PENDIENTE: Aquí debes añadir tu lógica para cargar la imagen real 
-            // de la tabla dbo.inmueble_imagen usando d.IdInmueble.
-            // Mientras tanto, se usa un recurso por defecto o Properties.Resources.casa_default
-            Image imagenInmueble;
+            Image? imagenInmueble = null;
+
+            // 1. Intentar cargar la imagen dinámica y manejar excepciones de carga
             try
             {
-                // **IMPLEMENTAR CARGA DE IMAGEN POR IdInmueble AQUÍ**
-                imagenInmueble = Properties.Resources.casa1; // Sustituir por la carga real
+                imagenInmueble = _inmuebleRepository.ObtenerImagenPortada(d.IdInmueble);
             }
-            catch { imagenInmueble = Properties.Resources.casa1; } // Fallback
+            catch (Exception ex)
+            {
+                // Opcional: Registrar el error de carga de imagen para el ID específico
+                System.Diagnostics.Debug.WriteLine($"Error al cargar imagen del Inmueble {d.IdInmueble}: {ex.Message}");
+            }
+
+            // 2. Fallback: Si la carga es nula o falló, usar un recurso estático (fallback)
+            if (imagenInmueble == null)
+            {
+                try
+                {
+                    // Intentar usar el recurso estático. Asegúrate que este recurso existe.
+                    imagenInmueble = Properties.Resources.casa1;
+                }
+                catch
+                {
+                    // Fallback extremo: Si ni siquiera el recurso estático funciona, crear un Bitmap vacío.
+                    // Esto garantiza que el PictureBox no lance una excepción por recibir null.
+                    imagenInmueble = new Bitmap(150, 120);
+                }
+            }
 
             var card = new Panel
             {
                 Width = 340,
                 Height = 150,
-                BackColor = Color.White,
+                BackColor = Color.White, // Asegúrate de que el fondo sea blanco o un color neutro
                 Margin = new Padding(8),
                 Padding = new Padding(10),
                 BorderStyle = BorderStyle.FixedSingle
@@ -132,7 +159,7 @@ namespace InmoTech
 
             var pic = new PictureBox
             {
-                Image = imagenInmueble,
+                Image = imagenInmueble, // ¡IMAGEN GARANTIZADA NO ES NULL!
                 SizeMode = PictureBoxSizeMode.Zoom,
                 Width = 150,
                 Height = 120,
@@ -141,8 +168,7 @@ namespace InmoTech
             };
             card.Controls.Add(pic);
 
-            // ... (resto del código del TableLayoutPanel right) ...
-
+            // Inicialización de TableLayoutPanel (right)
             var right = new TableLayoutPanel
             {
                 Location = new Point(pic.Right + 10, 10),
@@ -191,7 +217,7 @@ namespace InmoTech
             actions.Resize += (_, __) =>
             {
                 btn.Left = (actions.Width - btn.Width) / 2;
-                btn.Top = actions.Height - btn.Height;
+                btn.Top = actions.Height - btn.Height; // pegado abajo y centrado
             };
             actions.Controls.Add(btn);
 
@@ -212,7 +238,6 @@ namespace InmoTech
         // REGIÓN: Handlers de Plantilla (Vacíos)
         // ======================================================
         #region Handlers de Plantilla (Vacíos)
-        // Handlers plantilla
         private void lblKpiInqCap_Click(object sender, EventArgs e) { }
         private void lblKpiInq_Click(object sender, EventArgs e) { }
         private void lblTitulo_Click(object sender, EventArgs e) { }

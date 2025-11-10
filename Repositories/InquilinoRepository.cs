@@ -1,16 +1,18 @@
-﻿using InmoTech.Data;
+﻿
+using InmoTech.Data; 
 using InmoTech.Models;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using InmoTech.Services; // necesario para AppNotifier
 
 namespace InmoTech.Repositories
 {
     public class InquilinoRepository
     {
         // ======================================================
-        //   REGIÓN: Operaciones de Creación y Actualización (CRUD)
+        //   REGIÓN: Operaciones de Creación y Actualización (CRUD)
         // ======================================================
         #region Operaciones de Creación y Actualización (CRUD)
 
@@ -36,7 +38,15 @@ namespace InmoTech.Repositories
             // MODIFICADO: Se agrega el nuevo parámetro
             cmd.Parameters.Add("@usuario_creador_dni", SqlDbType.Int).Value = dniUsuarioCreador;
 
-            return cmd.ExecuteNonQuery();
+            int rowsAffected = cmd.ExecuteNonQuery();
+
+            // INSERCIÓN DE NOTIFICACIÓN: Después de agregar un nuevo inquilino.
+            if (rowsAffected > 0)
+            {
+                AppNotifier.NotifyDashboardChange();
+            }
+
+            return rowsAffected;
         }
 
         public int ActualizarInquilino(Inquilino i)
@@ -62,7 +72,15 @@ namespace InmoTech.Repositories
               (i.FechaNacimiento == DateTime.MinValue ? (object)DBNull.Value : i.FechaNacimiento);
             cmd.Parameters.Add("@dni", SqlDbType.Int).Value = i.Dni;
 
-            return cmd.ExecuteNonQuery();
+            int rowsAffected = cmd.ExecuteNonQuery();
+
+            // INSERCIÓN DE NOTIFICACIÓN: Después de actualizar los datos del inquilino.
+            if (rowsAffected > 0)
+            {
+                AppNotifier.NotifyDashboardChange();
+            }
+
+            return rowsAffected;
         }
 
         public int ActualizarEstado(int dni, bool nuevoEstado)
@@ -72,12 +90,21 @@ namespace InmoTech.Repositories
             using var cmd = new SqlCommand(sql, cn);
             cmd.Parameters.Add("@estado", SqlDbType.TinyInt).Value = nuevoEstado ? 1 : 0;
             cmd.Parameters.Add("@dni", SqlDbType.Int).Value = dni;
-            return cmd.ExecuteNonQuery();
+
+            int rowsAffected = cmd.ExecuteNonQuery();
+
+            // INSERCIÓN DE NOTIFICACIÓN: Cambiar el estado afecta directamente el KPI de Inquilinos.
+            if (rowsAffected > 0)
+            {
+                AppNotifier.NotifyDashboardChange();
+            }
+
+            return rowsAffected;
         }
         #endregion
 
         // ======================================================
-        //  REGIÓN: Operaciones de Consulta (Read)
+        //  REGIÓN: Operaciones de Consulta (Read)
         // ======================================================
         #region Operaciones de Consulta (Read)
         public List<Inquilino> ObtenerInquilinos()
@@ -86,9 +113,9 @@ namespace InmoTech.Repositories
             using var cn = BDGeneral.GetConnection();
             // MODIFICADO: Se agregan las columnas de auditoría
             const string sql = @"
-            SELECT  dni, nombre, apellido, telefono, email, direccion, fecha_nacimiento, estado,
-                    fecha_creacion, usuario_creador_dni
-            FROM    dbo.persona
+            SELECT  dni, nombre, apellido, telefono, email, direccion, fecha_nacimiento, estado,
+                    fecha_creacion, usuario_creador_dni
+            FROM    dbo.persona
             ORDER BY apellido, nombre;";
 
             using var cmd = new SqlCommand(sql, cn);
@@ -127,7 +154,7 @@ namespace InmoTech.Repositories
         #endregion
 
         // ======================================================
-        //  REGIÓN: Busquedas Paginadas (Para Selectores y Grillas)
+        //  REGIÓN: Busquedas Paginadas (Para Selectores y Grillas)
         // ======================================================
         #region Búsqueda Paginada (Para Selectores y Grillas)
 
@@ -148,11 +175,11 @@ namespace InmoTech.Repositories
                 SELECT p.dni, p.nombre, p.apellido, p.telefono, p.email, p.estado
                 FROM dbo.persona p
                 WHERE (@term='' OR
-                        CAST(p.dni AS varchar(20)) LIKE @like OR
-                        p.nombre   LIKE @like OR
-                        p.apellido LIKE @like OR
-                        p.email    LIKE @like OR
-                        p.telefono LIKE @like)
+                      CAST(p.dni AS varchar(20)) LIKE @like OR
+                      p.nombre   LIKE @like OR
+                      p.apellido LIKE @like OR
+                      p.email    LIKE @like OR
+                      p.telefono LIKE @like)
                   AND (@estado IS NULL OR p.estado = @estado)
             )
             SELECT dni, nombre, apellido, telefono, email, estado
@@ -164,9 +191,9 @@ namespace InmoTech.Repositories
             FROM dbo.persona p
             WHERE (@term='' OR
                   CAST(p.dni AS varchar(20)) LIKE @like OR
-                  p.nombre   LIKE @like OR
+                  p.nombre   LIKE @like OR
                   p.apellido LIKE @like OR
-                  p.email    LIKE @like OR
+                  p.email    LIKE @like OR
                   p.telefono LIKE @like)
               AND (@estado IS NULL OR p.estado = @estado);";
 

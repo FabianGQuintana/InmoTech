@@ -34,8 +34,8 @@ namespace InmoTech
         private DataGridView dgvContratos;
 
         /// <inheritdoc/>
-        protected override void Dispose(bool disposing)
-        {
+        protected override void Dispose(bool disposing) 
+        {
             if (disposing && (components != null))
                 components.Dispose();
             base.Dispose(disposing);
@@ -65,10 +65,10 @@ namespace InmoTech
             flPropiedades = new FlowLayoutPanel();
             lblContratos = new Label();
             dgvContratos = new DataGridView();
-            dataGridViewTextBoxColumn1 = new DataGridViewTextBoxColumn();
-            dataGridViewTextBoxColumn2 = new DataGridViewTextBoxColumn();
-            dataGridViewTextBoxColumn3 = new DataGridViewTextBoxColumn();
-            dataGridViewTextBoxColumn4 = new DataGridViewTextBoxColumn();
+            //dataGridViewTextBoxColumn1 = new DataGridViewTextBoxColumn();
+            //dataGridViewTextBoxColumn2 = new DataGridViewTextBoxColumn();
+            //dataGridViewTextBoxColumn3 = new DataGridViewTextBoxColumn();
+            //dataGridViewTextBoxColumn4 = new DataGridViewTextBoxColumn();
             tlRoot.SuspendLayout();
             pnlHeader.SuspendLayout();
             tlKpis.SuspendLayout();
@@ -127,28 +127,6 @@ namespace InmoTech
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "Dashboard";
             lblTitulo.Click += lblTitulo_Click;
-            // 
-            // lblUserName
-            // 
-            lblUserName.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lblUserName.AutoSize = true;
-            lblUserName.Font = new Font("Segoe UI", 10F);
-            lblUserName.Location = new Point(1597, 16);
-            lblUserName.Name = "lblUserName";
-            lblUserName.Size = new Size(79, 28);
-            lblUserName.TabIndex = 1;
-            lblUserName.Text = "Usuario";
-            // 
-            // lblRol
-            // 
-            lblRol.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            lblRol.AutoSize = true;
-            lblRol.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
-            lblRol.Location = new Point(1597, 40);
-            lblRol.Name = "lblRol";
-            lblRol.Size = new Size(41, 25);
-            lblRol.TabIndex = 2;
-            lblRol.Text = "Rol:";
             // 
             // tlKpis
             // 
@@ -360,7 +338,7 @@ namespace InmoTech
             dgvContratos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvContratos.BackgroundColor = Color.Teal;
             dgvContratos.ColumnHeadersHeight = 34;
-            dgvContratos.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4 });
+            //dgvContratos.Columns.AddRange(new DataGridViewColumn[] { dataGridViewTextBoxColumn1, dataGridViewTextBoxColumn2, dataGridViewTextBoxColumn3, dataGridViewTextBoxColumn4 });
             dgvContratos.Dock = DockStyle.Fill;
             dgvContratos.Location = new Point(3, 695);
             dgvContratos.Name = "dgvContratos";
@@ -373,32 +351,32 @@ namespace InmoTech
             // 
             // dataGridViewTextBoxColumn1
             // 
-            dataGridViewTextBoxColumn1.HeaderText = "Contrato";
-            dataGridViewTextBoxColumn1.MinimumWidth = 8;
-            dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
-            dataGridViewTextBoxColumn1.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn2
-            // 
-            dataGridViewTextBoxColumn2.HeaderText = "Inquilino";
-            dataGridViewTextBoxColumn2.MinimumWidth = 8;
-            dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
-            dataGridViewTextBoxColumn2.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn3
-            // 
-            dataGridViewTextBoxColumn3.HeaderText = "Inmueble";
-            dataGridViewTextBoxColumn3.MinimumWidth = 8;
-            dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
-            dataGridViewTextBoxColumn3.ReadOnly = true;
-            // 
-            // dataGridViewTextBoxColumn4
-            // 
-            dataGridViewTextBoxColumn4.HeaderText = "Estado";
-            dataGridViewTextBoxColumn4.MinimumWidth = 8;
-            dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
-            dataGridViewTextBoxColumn4.ReadOnly = true;
-            // 
+            //dataGridViewTextBoxColumn1.HeaderText = "Contrato";
+            //dataGridViewTextBoxColumn1.MinimumWidth = 8;
+            //dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            //dataGridViewTextBoxColumn1.ReadOnly = true;
+            //// 
+            //// dataGridViewTextBoxColumn2
+            //// 
+            //dataGridViewTextBoxColumn2.HeaderText = "Inquilino";
+            //dataGridViewTextBoxColumn2.MinimumWidth = 8;
+            //dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
+            //dataGridViewTextBoxColumn2.ReadOnly = true;
+            //// 
+            //// dataGridViewTextBoxColumn3
+            //// 
+            //dataGridViewTextBoxColumn3.HeaderText = "Inmueble";
+            //dataGridViewTextBoxColumn3.MinimumWidth = 8;
+            //dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
+            //dataGridViewTextBoxColumn3.ReadOnly = true;
+            //// 
+            //// dataGridViewTextBoxColumn4
+            //// 
+            //dataGridViewTextBoxColumn4.HeaderText = "Estado";
+            //dataGridViewTextBoxColumn4.MinimumWidth = 8;
+            //dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
+            //dataGridViewTextBoxColumn4.ReadOnly = true;
+            //// 
             // UcDashboard
             // 
             Controls.Add(tlRoot);
@@ -420,9 +398,9 @@ namespace InmoTech
             ((System.ComponentModel.ISupportInitialize)dgvContratos).EndInit();
             ResumeLayout(false);
         }
-        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
-        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
-        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
-        private DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
+        //private DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+        //private DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
+        //private DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
+        //private DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
     }
 }
