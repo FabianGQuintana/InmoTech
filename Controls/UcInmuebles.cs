@@ -12,6 +12,10 @@ using InmoTech.Repositories; // <<< AGREGADO (para consultar contratos)
 
 namespace InmoTech
 {
+    /// <summary>
+    /// UserControl para administrar inmuebles: alta, edición, baja/activación,
+    /// carga de imágenes y listado con miniaturas. Incluye validaciones y normalización de entradas.
+    /// </summary>
     public partial class UcInmuebles : UserControl
     {
         // ======================================================
@@ -31,6 +35,10 @@ namespace InmoTech
         //  REGIÓN: Constructor y Inicialización
         // ======================================================
         #region Constructor y Inicialización
+        /// <summary>
+        /// Constructor. Configura validaciones, handlers de eventos y estado inicial de controles.
+        /// Deshabilita la validación automática para controlarla manualmente.
+        /// </summary>
         public UcInmuebles()
         {
             InitializeComponent();
@@ -67,10 +75,16 @@ namespace InmoTech
             }
         }
 
+        /// <summary>
+        /// Indica si el control se está ejecutando en el Diseñador de Visual Studio.
+        /// </summary>
         private static bool IsDesigner() =>
             LicenseManager.UsageMode == LicenseUsageMode.Designtime ||
             System.Diagnostics.Process.GetCurrentProcess().ProcessName == "devenv";
 
+        /// <summary>
+        /// Evento Load del control. Inicializa límites, combos, limpia el formulario y refresca el grid.
+        /// </summary>
         private void UcInmuebles_Load(object sender, EventArgs e)
         {
             // Límites de longitud y ayudas
@@ -95,6 +109,9 @@ namespace InmoTech
         //  REGIÓN: Manejadores de Eventos (UI Acciones)
         // ======================================================
         #region Manejadores de Eventos (UI Acciones)
+        /// <summary>
+        /// Abre un diálogo para seleccionar una imagen y la carga en el PictureBox sin bloquear el archivo.
+        /// </summary>
         private void BtnCargarImagen_Click(object sender, EventArgs e)
         {
             using (var ofd = new OpenFileDialog
@@ -111,6 +128,10 @@ namespace InmoTech
             }
         }
 
+        /// <summary>
+        /// Guarda alta/edición del inmueble. Valida con ErrorProvider, lee el formulario,
+        /// crea/actualiza el registro y asocia la imagen si fue seleccionada.
+        /// </summary>
         private void BtnGuardar_Click(object sender, EventArgs e)
         {
             // Limpio errores previos cada vez que intento guardar
@@ -165,6 +186,9 @@ namespace InmoTech
             }
         }
 
+        /// <summary>
+        /// Abre el inmueble seleccionado (doble clic en la grilla) y carga sus datos para edición.
+        /// </summary>
         private void DgvInmuebles_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return; // Ignorar cabecera
@@ -172,6 +196,9 @@ namespace InmoTech
             CargarParaEditar(id);
         }
 
+        /// <summary>
+        /// Activa o da de baja un inmueble. Impide dar de baja si hay contratos activos asociados.
+        /// </summary>
         private void BEstado_Click(object sender, EventArgs e)
         {
             if (_editandoId == null) return;
@@ -222,6 +249,10 @@ namespace InmoTech
         //  REGIÓN: Lógica Principal (CRUD)
         // ======================================================
         #region Lógica Principal (CRUD)
+        /// <summary>
+        /// Carga el listado de inmuebles (activos e inactivos), arma miniaturas si hay imágenes
+        /// y dibuja cada fila en el DataGridView.
+        /// </summary>
         private void RefrescarGrid()
         {
             try
@@ -261,6 +292,9 @@ namespace InmoTech
             }
         }
 
+        /// <summary>
+        /// Carga un inmueble por Id y llena el formulario para edición, incluyendo la portada si existe.
+        /// </summary>
         private void CargarParaEditar(int id)
         {
             try
@@ -302,6 +336,9 @@ namespace InmoTech
         // ======================================================
         #region Mapeo UI - Modelo y Validación
 
+        /// <summary>
+        /// Lee y normaliza los valores del formulario, creando la instancia de <see cref="Inmueble"/>.
+        /// </summary>
         private Inmueble LeerFormulario()
         {
             // Normalizamos espacios y caracteres peligrosos antes de crear el modelo
@@ -320,6 +357,10 @@ namespace InmoTech
             };
         }
 
+        /// <summary>
+        /// Valida campos del formulario y coloca mensajes en el <see cref="ErrorProvider"/>.
+        /// Devuelve false si hay errores y expone un mensaje general en <c>error</c>.
+        /// </summary>
         private bool ValidarFormulario(out string error)
         {
             error = "";
@@ -397,6 +438,10 @@ namespace InmoTech
         private const string DireccionRegex = @"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\s\.\,\#\-/ºª°]+$";
         private const string DescripcionRegex = @"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\s\.\,\;\:\-\(\)\/\#\!¿\?¡""'%]+$";
 
+        /// <summary>
+        /// Selecciona en un ComboBox el ítem cuyo texto coincide (case-insensitive) con <paramref name="value"/>.
+        /// Si no encuentra coincidencia, deja el índice en -1.
+        /// </summary>
         private static void SelectItem(ComboBox cbo, string value)
         {
             for (int i = 0; i < cbo.Items.Count; i++)
@@ -408,6 +453,9 @@ namespace InmoTech
             cbo.SelectedIndex = -1;
         }
 
+        /// <summary>
+        /// Carga un Bitmap desde disco permitiendo compartir el archivo (sin bloquearlo).
+        /// </summary>
         private static Bitmap CargarBitmapSinLock(string path)
         {
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -415,9 +463,15 @@ namespace InmoTech
                 return new Bitmap(img);
         }
 
+        /// <summary>
+        /// Devuelve una nueva imagen escalada a <paramref name="w"/>x<paramref name="h"/>.
+        /// </summary>
         private static Image Escalar(Image img, int w, int h) =>
             img == null ? null : new Bitmap(img, new Size(w, h));
 
+        /// <summary>
+        /// Restablece el formulario al estado inicial (modo alta), limpia errores e imagen.
+        /// </summary>
         private void LimpiarFormulario()
         {
             _editandoId = null;
@@ -441,6 +495,9 @@ namespace InmoTech
             txtDireccion.Focus();
         }
 
+        /// <summary>
+        /// Limpia todos los mensajes de error del <see cref="ErrorProvider"/>.
+        /// </summary>
         private void LimpiarErrores()
         {
             _err.SetError(txtDireccion, "");
@@ -451,9 +508,16 @@ namespace InmoTech
         }
 
         // -------- Normalizadores (evitan espacios dobles y caracteres raros)
+
+        /// <summary>
+        /// Recorta extremos y colapsa espacios múltiples a uno.
+        /// </summary>
         private static string NormalizarEspacios(string s) =>
             Regex.Replace((s ?? "").Trim(), @"\s{2,}", " ");
 
+        /// <summary>
+        /// Normaliza la dirección, eliminando caracteres no permitidos y espacios de más.
+        /// </summary>
         private static string NormalizarDireccion(string s)
         {
             s = NormalizarEspacios(s);
@@ -462,6 +526,9 @@ namespace InmoTech
             return s;
         }
 
+        /// <summary>
+        /// Normaliza la descripción, permitiendo puntuación básica y removiendo caracteres de control.
+        /// </summary>
         private static string NormalizarDescripcion(string s)
         {
             s = NormalizarEspacios(s);
@@ -471,24 +538,37 @@ namespace InmoTech
         }
 
         // -------- KeyPress handlers reutilizables (NO validan foco, solo filtran caracteres)
+
+        /// <summary>
+        /// Permite solo letras y espacios (se respetan teclas de control).
+        /// </summary>
         private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
             e.Handled = !Regex.IsMatch(e.KeyChar.ToString(), @"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]");
         }
 
+        /// <summary>
+        /// Permite letras, números y signos básicos usados en direcciones (.,#-/ ºª°).
+        /// </summary>
         private void LetrasNumerosBasicos_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
             e.Handled = !Regex.IsMatch(e.KeyChar.ToString(), @"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9\.\,\#\-/\sºª°]");
         }
 
+        /// <summary>
+        /// Permite solo dígitos (se respetan teclas de control).
+        /// </summary>
         private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
             e.Handled = !char.IsDigit(e.KeyChar);
         }
 
+        /// <summary>
+        /// Permite letras, números y puntuación básica para descripciones.
+        /// </summary>
         private void Descripcion_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar)) return;
@@ -497,7 +577,14 @@ namespace InmoTech
         #endregion
 
         #region Handlers de Plantilla (Vacíos)
+        /// <summary>
+        /// Reservado para futuras acciones al entrar al GroupBox de creación.
+        /// </summary>
         private void gbCrear_Enter(object sender, EventArgs e) { }
+
+        /// <summary>
+        /// Reservado para reaccionar a cambios de texto en la descripción.
+        /// </summary>
         private void txtDescripcion_TextChanged(object sender, EventArgs e) { }
         #endregion
     }

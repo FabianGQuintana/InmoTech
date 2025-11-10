@@ -246,97 +246,112 @@ namespace InmoTech.Data.Repositories
         // ======================================================
         #region CRUD Inmueble Imagen (Sub-entidad)
         public int AgregarImagenDesdeArchivo(
-            int idInmueble,
-            string archivoOrigen,
-            string titulo = null,
-            bool esPortada = false,
-            short posicion = 0)
+    int idInmueble,
+    string archivoOrigen,
+    string titulo = null,
+    bool esPortada = false,
+    short posicion = 0)
         {
             if (string.IsNullOrWhiteSpace(archivoOrigen) || !File.Exists(archivoOrigen))
                 throw new FileNotFoundException("No se encontró el archivo de imagen.", archivoOrigen);
 
-            // Copiar a Resources\inmuebles\<id>\filename
-            var destDir = GetResourcesInmueblesDir(idInmueble);
+            // ---------- 1) Preparar paths y copiar archivo físico ----------
+            var destDir = GetResourcesInmueblesDir(idInmueble);        // ...\Resources\inmuebles\<id>\
             var fileName = Path.GetFileName(archivoOrigen);
             var destPath = Path.Combine(destDir, fileName);
 
-            // Evitar colisiones
+            // Evitar colisión de nombres
             if (File.Exists(destPath))
             {
                 var name = Path.GetFileNameWithoutExtension(fileName);
                 var ext = Path.GetExtension(fileName);
                 var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                fileName = name + "_" + stamp + ext;
+                fileName = $"{name}_{stamp}{ext}";
                 destPath = Path.Combine(destDir, fileName);
             }
 
             File.Copy(archivoOrigen, destPath);
 
-            // Medidas y metadatos
+            // Metadatos opcionales
             int? w = null, h = null, size = null;
             try
             {
                 using (var img = Image.FromFile(destPath))
-                {
-                    w = img.Width; h = img.Height;
-                }
+                { w = img.Width; h = img.Height; }
+
                 var fi = new FileInfo(destPath);
                 size = (int)fi.Length;
             }
-            catch { /* si falla, seguimos sin medidas */ }
+            catch { /* seguimos sin medidas si falla */ }
 
-            // Ruta relativa que guardaremos en DB (para mover la app sin romper enlaces)
+            // Ruta relativa que guardaremos en DB
             var baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var rutaRel = GetRelativePath(baseDir, destPath);
 
             var extLower = Path.GetExtension(fileName);
             var mime = GetMimeByExtension(extLower);
 
-            // Insert en dbo.inmueble_imagen
+            // ---------- 2) Persistir en BD dentro de una transacción ----------
             using (var cn = BDGeneral.GetConnection())
             using (var tr = cn.BeginTransaction())
-            using (var cmd = new SqlCommand(@"
-            INSERT INTO dbo.inmueble_imagen
-            (id_inmueble, titulo, nombre_archivo, ruta, content_type, bytes_size, ancho_px, alto_px, es_portada, posicion)
-            VALUES (@id_inmueble, @titulo, @nombre_archivo, @ruta, @content_type, @bytes_size, @ancho_px, @alto_px, @es_portada, @posicion);
-            SELECT CAST(SCOPE_IDENTITY() AS int);
-            ", cn, tr))
             {
-                cmd.Parameters.Add("@id_inmueble", SqlDbType.Int).Value = idInmueble;
-                cmd.Parameters.Add("@titulo", SqlDbType.VarChar, 150).Value = (object)titulo ?? DBNull.Value;
-                cmd.Parameters.Add("@nombre_archivo", SqlDbType.VarChar, 255).Value = fileName;
-                cmd.Parameters.Add("@ruta", SqlDbType.NVarChar, 400).Value = rutaRel;
-                cmd.Parameters.Add("@content_type", SqlDbType.VarChar, 100).Value = mime;
-                cmd.Parameters.Add("@bytes_size", SqlDbType.Int).Value = (object)size ?? DBNull.Value;
-                cmd.Parameters.Add("@ancho_px", SqlDbType.Int).Value = (object)w ?? DBNull.Value;
-                cmd.Parameters.Add("@alto_px", SqlDbType.Int).Value = (object)h ?? DBNull.Value;
-                cmd.Parameters.Add("@es_portada", SqlDbType.Bit).Value = esPortada;
-                cmd.Parameters.Add("@posicion", SqlDbType.SmallInt).Value = posicion;
-
-                var newId = (int)cmd.ExecuteScalar();
-
-                if (esPortada)
+                try
                 {
-                    // deja una sola portada (similar a índice único filtrado)
-                    using (var cmd2 = new SqlCommand(@"
-                    UPDATE dbo.inmueble_imagen
-                        SET es_portada = 0
-                        WHERE id_inmueble = @id_inmueble AND id_imagen <> @id AND es_portada = 1;", cn, tr))
+                    // 2.a) Si será portada, primero “liberá” la actual
+                    if (esPortada)
                     {
-                        cmd2.Parameters.Add("@id_inmueble", SqlDbType.Int).Value = idInmueble;
-                        cmd2.Parameters.Add("@id", SqlDbType.Int).Value = newId;
-                        cmd2.ExecuteNonQuery();
+                        using (var cmd0 = new SqlCommand(@"
+                    UPDATE dbo.inmueble_imagen
+                    SET es_portada = 0
+                    WHERE id_inmueble = @id AND es_portada = 1;", cn, tr))
+                        {
+                            cmd0.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
+                            cmd0.ExecuteNonQuery();
+                        }
                     }
+
+                    // 2.b) Insertar la nueva imagen
+                    int newId;
+                    using (var cmd = new SqlCommand(@"
+                INSERT INTO dbo.inmueble_imagen
+                    (id_inmueble, titulo, nombre_archivo, ruta, content_type,
+                     bytes_size, ancho_px, alto_px, es_portada, posicion)
+                VALUES
+                    (@id_inmueble, @titulo, @nombre_archivo, @ruta, @content_type,
+                     @bytes_size, @ancho_px, @alto_px, @es_portada, @posicion);
+                SELECT CAST(SCOPE_IDENTITY() AS int);", cn, tr))
+                    {
+                        cmd.Parameters.Add("@id_inmueble", SqlDbType.Int).Value = idInmueble;
+                        cmd.Parameters.Add("@titulo", SqlDbType.VarChar, 150).Value = (object)titulo ?? DBNull.Value;
+                        cmd.Parameters.Add("@nombre_archivo", SqlDbType.VarChar, 255).Value = fileName;
+                        cmd.Parameters.Add("@ruta", SqlDbType.NVarChar, 400).Value = rutaRel;
+                        cmd.Parameters.Add("@content_type", SqlDbType.VarChar, 100).Value = mime;
+                        cmd.Parameters.Add("@bytes_size", SqlDbType.Int).Value = (object)size ?? DBNull.Value;
+                        cmd.Parameters.Add("@ancho_px", SqlDbType.Int).Value = (object)w ?? DBNull.Value;
+                        cmd.Parameters.Add("@alto_px", SqlDbType.Int).Value = (object)h ?? DBNull.Value;
+                        cmd.Parameters.Add("@es_portada", SqlDbType.Bit).Value = esPortada;
+                        cmd.Parameters.Add("@posicion", SqlDbType.SmallInt).Value = posicion;
+
+                        newId = (int)cmd.ExecuteScalar();
+                    }
+
+                    tr.Commit();
+
+                    // Notificar UI / dashboard
+                    AppNotifier.NotifyDashboardChange();
+
+                    return newId;
                 }
-
-                tr.Commit();
-
-                // NOTIFICACIÓN: La adición de una imagen (especialmente si es portada) debe refrescar las Cards.
-                AppNotifier.NotifyDashboardChange();
-
-                return newId;
+                catch
+                {
+                    // Si algo falla, hacemos rollback y limpiamos el archivo copiado
+                    try { tr.Rollback(); } catch { /* ignore */ }
+                    try { if (File.Exists(destPath)) File.Delete(destPath); } catch { /* ignore */ }
+                    throw;
+                }
             }
         }
+
 
         public List<InmuebleImagen> ListarImagenes(int idInmueble, bool soloActivas = true)
         {
@@ -623,5 +638,22 @@ namespace InmoTech.Data.Repositories
             public bool Estado { get; set; }  // true=Activo
         }
         #endregion
+
+        public int ActualizarCondicion(int idInmueble, string nuevaCondicion)
+        {
+            using (var cn = BDGeneral.GetConnection())
+            using (var cmd = new SqlCommand(@"
+        UPDATE dbo.inmueble
+           SET condiciones = @cond
+         WHERE id_inmueble = @id;", cn))
+            {
+                cmd.Parameters.Add("@cond", SqlDbType.NVarChar, 255).Value = nuevaCondicion;
+                cmd.Parameters.Add("@id", SqlDbType.Int).Value = idInmueble;
+                var n = cmd.ExecuteNonQuery();
+                if (n > 0) AppNotifier.NotifyDashboardChange(); // si venís usando notificaciones
+                return n;
+            }
+        }
+
     }
 }

@@ -8,6 +8,10 @@ using InmoTech.Repositories;
 
 namespace InmoTech.Controls
 {
+    /// <summary>
+    /// Control para visualizar las cuotas de un contrato, permitir su pago
+    /// (con validación de orden) y consultar recibos de cuotas pagadas.
+    /// </summary>
     public partial class UcPagos_Contrato_Cuotas : UserControl
     {
         // ======================================================
@@ -20,7 +24,14 @@ namespace InmoTech.Controls
 
         private List<Cuota> _cuotas = new();
 
+        /// <summary>
+        /// Se dispara cuando el usuario solicita volver a la vista anterior.
+        /// </summary>
         public event EventHandler? Volver;
+
+        /// <summary>
+        /// Se dispara cuando se solicita pagar una cuota. Entrega el contrato y la cuota objetivo.
+        /// </summary>
         public event EventHandler<(Contrato contrato, Cuota cuota)>? PagarCuotaSolicitado;
         #endregion
 
@@ -28,6 +39,10 @@ namespace InmoTech.Controls
         //  REGIÓN: Constructor
         // ======================================================
         #region Constructor
+        /// <summary>
+        /// Crea el control asociado a un contrato específico y engancha el evento Load.
+        /// </summary>
+        /// <param name="contrato">Contrato cuyas cuotas se gestionarán.</param>
         public UcPagos_Contrato_Cuotas(Contrato contrato)
         {
             InitializeComponent();
@@ -40,6 +55,9 @@ namespace InmoTech.Controls
         //  REGIÓN: Carga de Datos y Configuración
         // ======================================================
         #region Carga y Configuración
+        /// <summary>
+        /// Evento de carga: configura cabecera, lista de cuotas y grilla.
+        /// </summary>
         private void UcPagos_Contrato_Cuotas_Load(object? sender, EventArgs e)
         {
             CargarCabeceraContrato();
@@ -47,6 +65,9 @@ namespace InmoTech.Controls
             ConfigurarGrilla();
         }
 
+        /// <summary>
+        /// Completa los labels de cabecera con datos del contrato (inquilino, inmueble, fechas, totales).
+        /// </summary>
         private void CargarCabeceraContrato()
         {
             lblContrato.Text = $"Contrato C-{_contrato.IdContrato}";
@@ -58,6 +79,9 @@ namespace InmoTech.Controls
             ActualizarResumen();
         }
 
+        /// <summary>
+        /// Carga las cuotas desde el repositorio para el contrato activo y las bindea a la grilla.
+        /// </summary>
         private void CargarCuotas()
         {
             _cuotas = _repoCuotas.ObtenerPorContrato(_contrato.IdContrato);
@@ -69,6 +93,9 @@ namespace InmoTech.Controls
         //  REGIÓN: Configuración y Eventos de Grilla
         // ======================================================
         #region Configuración y Eventos de Grilla
+        /// <summary>
+        /// Configura columnas de la grilla de cuotas, estilos y handlers de formato y acciones.
+        /// </summary>
         private void ConfigurarGrilla()
         {
             dgvCuotas.AutoGenerateColumns = false;
@@ -93,6 +120,9 @@ namespace InmoTech.Controls
             dgvCuotas.CellContentClick += DgvCuotas_CellContentClick;
         }
 
+        /// <summary>
+        /// Da formato a fecha y monto; pinta el fondo según estado y setea el texto del botón (Pagar/Ver Recibo).
+        /// </summary>
         private void DgvCuotas_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -123,6 +153,10 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Maneja el click en botones de la grilla: muestra recibo si está pagada o inicia flujo de pago
+        /// con validación de cuotas impagas previas (pago fuera de orden).
+        /// </summary>
         private void DgvCuotas_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || !(dgvCuotas.Columns[e.ColumnIndex] is DataGridViewButtonColumn)) return;
@@ -173,8 +207,15 @@ namespace InmoTech.Controls
         //  REGIÓN: Métodos Auxiliares
         // ======================================================
         #region Métodos Auxiliares
+        /// <summary>
+        /// Indica si una cuota tiene estado "Pagada" (case-insensitive).
+        /// </summary>
         private static bool EsPagada(Cuota c) => string.Equals(c.Estado, "Pagada", StringComparison.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Obtiene el recibo por id de pago y lo muestra en un formulario flotante con el visor de recibo.
+        /// </summary>
+        /// <param name="idPago">Identificador del pago asociado a la cuota.</param>
         private void MostrarVistaRecibo(int idPago)
         {
             try
@@ -212,6 +253,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Calcula y muestra en cabecera los totales pagado/pendiente del contrato.
+        /// </summary>
         private void ActualizarResumen()
         {
             decimal totalPagado = _cuotas.Where(c => EsPagada(c)).Sum(c => c.Importe);
@@ -220,6 +264,9 @@ namespace InmoTech.Controls
             lblTotal.Text = $"{totalPagado + totalPendiente:N0}";
         }
 
+        /// <summary>
+        /// Devuelve la cantidad de meses entre inicio y fin del contrato (sin incluir el mes final incompleto).
+        /// </summary>
         private int ObtenerCantidadMeses()
         {
             return ((_contrato.FechaFin.Year - _contrato.FechaInicio.Year) * 12) +
@@ -231,6 +278,9 @@ namespace InmoTech.Controls
         //  REGIÓN: Eventos de Controles
         // ======================================================
         #region Eventos de Controles
+        /// <summary>
+        /// Botón Volver: notifica a quien hospeda el control para regresar a la vista anterior.
+        /// </summary>
         private void btnVolver_Click(object sender, EventArgs e)
         {
             Volver?.Invoke(this, EventArgs.Empty);

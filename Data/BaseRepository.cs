@@ -9,12 +9,12 @@ namespace InmoTech.Data
         // ⚠️ IMPORTANTE: Aquí deberás poner tu cadena de conexión a la base de datos.
         // Lo ideal sería cargarla desde un App.config o .env también.
         // Por ahora, la ponemos aquí como placeholder para que funcione.
-        private readonly string _connectionString = "Data Source=localhost\\MSSQLSERVER04;" +
-                                                    "Initial Catalog=inmotech;" +
-                                                    "Integrated Security=SSPI;" +
-                                                    "Encrypt=True;" +
-                                                    "TrustServerCertificate=True;" +
-                                                    "Persist Security Info=False;";
+        private readonly string _connectionString = "Data Source=Ivan\\SQLEXPRESS;" +
+                "Initial Catalog=inmotech;" +
+                "Integrated Security=SSPI;" +
+                "Encrypt=True;" +
+                "TrustServerCertificate=True;" +
+                "Persist Security Info=False;";
         // Ejemplo: "Data Source=.;Initial Catalog=InmoTechDB;Integrated Security=True"; para SQL Server local
         // Ejemplo: "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;";
 
