@@ -12,11 +12,19 @@ using System.Globalization; // Necesario para CultureInfo
 
 namespace InmoTech.Controls
 {
+    /// <summary>
+    /// Reportes operativos por usuario (operador).
+    /// Muestra KPIs, clientes morosos, pagos y contratos asociados al operador logueado;
+    /// permite exportación a Excel y visualización formateada de grillas.
+    /// </summary>
     public partial class UcReportesOperador : UserControl
     {
         private readonly ReporteRepository _reporteRepo = new();
         private int _dniUsuarioActual; // Guardamos el DNI del operador logueado
 
+        /// <summary>
+        /// Constructor del control: inicializa componentes, configura UI personalizada y registra eventos.
+        /// </summary>
         public UcReportesOperador()
         {
             InitializeComponent();
@@ -24,6 +32,9 @@ namespace InmoTech.Controls
             ConfigurarEventos();
         }
 
+        /// <summary>
+        /// Ajustes visuales (DoubleBuffer), fuentes de datos iniciales y rango de fechas por defecto.
+        /// </summary>
         private void InitializeCustomComponents()
         {
             HabilitarDoubleBuffer(dgvClientesMorosos);
@@ -38,6 +49,9 @@ namespace InmoTech.Controls
             dtpFechaFin.Value = DateTime.Today;
         }
 
+        /// <summary>
+        /// Registra handlers de ciclo de vida y de interacción, incluido formateo de celdas para cada grilla.
+        /// </summary>
         private void ConfigurarEventos()
         {
             this.Load += UcReportesOperador_Load;
@@ -55,6 +69,10 @@ namespace InmoTech.Controls
                 dgvContratosPorVencer.CellFormatting += DgvContratosPorVencer_CellFormatting;
         }
 
+        /// <summary>
+        /// Handler de carga: verifica autenticación, obtiene el DNI del operador,
+        /// configura grillas y realiza la primera carga de reportes.
+        /// </summary>
         private void UcReportesOperador_Load(object? sender, EventArgs e) // sender es object?
         {
             if (DesignMode || (Site?.DesignMode ?? false)) return;
@@ -72,6 +90,9 @@ namespace InmoTech.Controls
             CargarTodosLosReportes();
         }
 
+        /// <summary>
+        /// Inicializa las fuentes (BindingList) de cada DataGridView y estilos alternados.
+        /// </summary>
         private void ConfigurarDataGrids()
         {
             dgvClientesMorosos.DataSource = new BindingList<ClienteMorosoViewModel>();
@@ -91,11 +112,17 @@ namespace InmoTech.Controls
                 dgvContratosPorVencer.AlternatingRowsDefaultCellStyle.BackColor = ColorTranslator.FromHtml("#F8F9FA");
         }
 
+        /// <summary>
+        /// Actualiza todos los reportes según el rango de fechas seleccionado.
+        /// </summary>
         private void BtnRefrescar_Click(object? sender, EventArgs e) // sender es object?
         {
             CargarTodosLosReportes();
         }
 
+        /// <summary>
+        /// Orquesta la carga de dashboard, morosos, pagos, contratos y contratos por vencer (estos últimos relativos a hoy).
+        /// </summary>
         private void CargarTodosLosReportes()
         {
             if (!this.Enabled) return;
@@ -112,11 +139,17 @@ namespace InmoTech.Controls
             CargarContratosPorVencer(60);
         }
 
+        /// <summary>
+        /// Cambio de pestaña (reservado para futuras cargas perezosas).
+        /// </summary>
         private void TabControlReportes_SelectedIndexChanged(object? sender, EventArgs e) // sender es object?
         {
             // Carga perezosa (opcional)
         }
 
+        /// <summary>
+        /// Obtiene KPIs del operador (ingresos, contratos, pagos) y los muestra con formato regional.
+        /// </summary>
         private void CargarDashboardOperador(DateTime? fechaInicio, DateTime? fechaFin)
         {
             try
@@ -132,6 +165,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Carga y vincula la lista de clientes morosos del operador, respetando el rango de fechas.
+        /// </summary>
         private void CargarClientesMorosos(DateTime? fechaInicio, DateTime? fechaFin)
         {
             try
@@ -147,6 +183,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Carga y vincula los pagos registrados por el operador en el período indicado.
+        /// </summary>
         private void CargarMisPagos(DateTime? fechaInicio, DateTime? fechaFin)
         {
             try
@@ -162,6 +201,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Carga y vincula los contratos creados por el operador dentro del rango de fechas.
+        /// </summary>
         private void CargarMisContratos(DateTime? fechaInicio, DateTime? fechaFin)
         {
             try
@@ -177,7 +219,9 @@ namespace InmoTech.Controls
             }
         }
 
-        // NUEVO: carga de Contratos por Vencer (<= X días desde hoy)
+        /// <summary>
+        /// Carga y vincula los contratos que vencen en los próximos <paramref name="diasHaciaAdelante"/> días (relativo a hoy).
+        /// </summary>
         private void CargarContratosPorVencer(int diasHaciaAdelante)
         {
             try
@@ -194,6 +238,10 @@ namespace InmoTech.Controls
         }
 
         // --- INICIO: MANEJADORES CellFormatting ---
+
+        /// <summary>
+        /// Formato de columnas de Clientes Morosos (fechas dd/MM/yyyy y vacío si MinValue).
+        /// </summary>
         private void DgvClientesMorosos_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0 || sender == null || e.Value == null) return;
@@ -216,6 +264,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Formato de columnas en Mis Pagos: fecha, monto (C2 es-AR), y fecha/hora de registro.
+        /// </summary>
         private void DgvMisPagos_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0 || sender == null || e.Value == null) return;
@@ -239,6 +290,9 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Formato de columnas en Mis Contratos: estado legible, fechas y montos.
+        /// </summary>
         private void DgvMisContratos_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0 || sender == null || e.Value == null) return;
@@ -267,7 +321,9 @@ namespace InmoTech.Controls
             }
         }
 
-        // NUEVO: formateo de la grilla "Contratos por vencer"
+        /// <summary>
+        /// Formato de columnas en Contratos por Vencer: fecha fin (dd/MM/yyyy) y días restantes en texto.
+        /// </summary>
         private void DgvContratosPorVencer_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex < 0 || e.ColumnIndex < 0 || sender == null || e.Value == null) return;
@@ -288,6 +344,10 @@ namespace InmoTech.Controls
         }
         // --- FIN: MANEJADORES CellFormatting ---
 
+        /// <summary>
+        /// Exporta a Excel la grilla correspondiente a la pestaña activa.
+        /// Si no hay datos, muestra un aviso.
+        /// </summary>
         private void BtnExportarExcel_Click(object? sender, EventArgs e) // sender es object?
         {
             DataGridView? dgvToExport = null;
@@ -321,7 +381,12 @@ namespace InmoTech.Controls
             }
         }
 
-        // --- ExportToExcel se mantiene igual que la versión anterior ---
+        /// <summary>
+        /// Exporta el contenido de un <see cref="DataGridView"/> a un archivo XLSX usando ClosedXML,
+        /// respetando formatos básicos (fechas, moneda, números) y autoajustando columnas.
+        /// </summary>
+        /// <param name="dgv">Grilla a exportar.</param>
+        /// <param name="sheetName">Nombre de la hoja.</param>
         private void ExportToExcel(DataGridView dgv, string sheetName)
         {
             try
@@ -411,6 +476,10 @@ namespace InmoTech.Controls
             }
         }
 
+        /// <summary>
+        /// Activa <c>DoubleBuffered</c> por reflexión para reducir parpadeo en controles.
+        /// </summary>
+        /// <param name="ctl">Control objetivo.</param>
         private static void HabilitarDoubleBuffer(Control ctl)
         {
             try

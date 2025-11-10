@@ -12,6 +12,11 @@ using System.Linq; // Para el .Any()
 
 namespace InmoTech.Controls
 {
+    /// <summary>
+    /// Panel principal de reportes para propietarios.
+    /// Muestra KPIs (ingresos, pagos, contratos), dos grillas (inmuebles disponibles/A estrenar y contratos por vencer),
+    /// filtros por rango de fechas, accesos a subreportes y un asistente IA para análisis.
+    /// </summary>
     public partial class UcReportesPropietario : UserControl
     {
         private readonly ReportePropietarioRepository _repo = new();
@@ -26,6 +31,10 @@ namespace InmoTech.Controls
         // Accesos a subreportes
         private Button btnOperadores, btnInmuebles, btnMetodosPago, btnMorosidad, btnTopInquilinos;
 
+        /// <summary>
+        /// Constructor. Configura DPI/estilo, crea la UI, engancha eventos,
+        /// setea valores por defecto de fechas y refresca los datos iniciales.
+        /// </summary>
         public UcReportesPropietario()
         {
             UiTheme.EnableHighDpi(this);
@@ -38,6 +47,10 @@ namespace InmoTech.Controls
             Refrescar();
         }
 
+        /// <summary>
+        /// Construye toda la interfaz de usuario (filtros, botones de acceso, KPIs y grillas).
+        /// No carga datos; solo crea y ubica controles.
+        /// </summary>
         private void BuildUi()
         {
             SuspendLayout();
@@ -206,6 +219,10 @@ namespace InmoTech.Controls
             ResumeLayout();
         }
 
+        /// <summary>
+        /// Conecta eventos de botones, exportaciones, manejo de errores de grilla,
+        /// navegación a subreportes y apertura del asistente IA.
+        /// </summary>
         private void HookEvents()
         {
             btnRefrescar.Click += (s, e) => Refrescar();
@@ -225,9 +242,14 @@ namespace InmoTech.Controls
             btnChatAI.Click += (s, e) => AbrirAsistenteIA();
         }
 
+        /// <summary>
+        /// Abre el asistente de IA en una ventana modal, cargando variables de entorno (.env),
+        /// obteniendo datos (contratos/pagos) del periodo seleccionado y pasando todo al control IA.
+        /// Maneja errores de configuración y acceso a DB.
+        /// </summary>
         private async void AbrirAsistenteIA() // 👈 Cambiado a async
         {
-            // --- 🌟 CORRECCIÓN AQUÍ 🌟 ---
+            
             // Declaramos las listas aquí para que existan fuera del bloque try
             List<ContratoDTO> contratosParaAI = new List<ContratoDTO>();
             List<PagoDTO> pagosParaAI = new List<PagoDTO>();
@@ -305,9 +327,9 @@ namespace InmoTech.Controls
             f.ShowDialog();
         }
 
-
-
-
+        /// <summary>
+        /// Establece valores por defecto de fechas para el filtro (primer día del mes actual hasta hoy).
+        /// </summary>
         private void SetDefaults()
         {
             var hoy = DateTime.Today;
@@ -315,6 +337,10 @@ namespace InmoTech.Controls
             dtpDesde.Value = new DateTime(hoy.Year, hoy.Month, 1);
         }
 
+        /// <summary>
+        /// Abre una ventana modal conteniendo el control de subreporte indicado.
+        /// </summary>
+        /// <param name="content">UserControl del subreporte a hospedar.</param>
         private void AbrirVentana(UserControl content)
         {
             var f = new Form
@@ -330,6 +356,10 @@ namespace InmoTech.Controls
             f.ShowDialog();
         }
 
+        /// <summary>
+        /// Recalcula y muestra KPIs, rellena las grillas de “inmuebles disponibles/A estrenar”
+        /// y “contratos por vencer” usando el rango de fechas seleccionado.
+        /// </summary>
         private void Refrescar()
         {
             var desde = dtpDesde.Value.Date;
